@@ -1,15 +1,9 @@
-import sys
-import os
-sys.path.insert(0, os.path.join(
-    os.path.dirname(__file__), '..', 'backend'
-))
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 
-from app.moteur.moteur_technicien import (
+from moteur.moteur_technicien import (
     calculer_etape1,
     calculer_etape2,
     calculer_etape3
