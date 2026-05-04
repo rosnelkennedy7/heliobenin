@@ -91,10 +91,17 @@ export default function Appareils() {
 
   /* ── Dropdown ── */
   const openDd = (rowId, e) => {
-    const rect  = e.currentTarget.getBoundingClientRect()
-    const left  = Math.min(rect.left, window.innerWidth - 324)
+    const rect       = e.currentTarget.getBoundingClientRect()
+    const left       = Math.min(rect.left, window.innerWidth - 324)
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    const listHeight = 280
     setOpenDdId(rowId)
-    setDdPos({ top: rect.bottom + 4, left: Math.max(8, left) })
+    if (spaceBelow < listHeight && spaceAbove > spaceBelow) {
+      setDdPos({ bottom: window.innerHeight - rect.top + 4, left: Math.max(8, left), width: rect.width, top: 'auto' })
+    } else {
+      setDdPos({ top: rect.bottom + 4, left: Math.max(8, left), width: rect.width, bottom: 'auto' })
+    }
     setDdSearch('')
   }
 
@@ -319,7 +326,7 @@ export default function Appareils() {
       {openDdId && (
         <>
           <div className={styles.ddBackdrop} onClick={closeDd} />
-          <div className={styles.ddPanel} style={{ top: ddPos.top, left: ddPos.left }}>
+          <div className={styles.ddPanel} style={ddPos}>
             {/* Recherche */}
             <div className={styles.ddSearchRow}>
               <Search size={14} color="rgba(255,255,255,0.4)" />

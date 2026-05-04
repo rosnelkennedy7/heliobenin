@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Sun, Mail, Lock, Eye, EyeOff, Fingerprint } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Fingerprint } from 'lucide-react'
 import vitreImg from '../assets/images/vitre.png'
 import styles from './Login.module.css'
 
@@ -95,7 +95,6 @@ export default function Login() {
         <div className={styles.card}>
           {/* Logo */}
           <div className={styles.logo}>
-            <div className={styles.logoIcon}><Sun size={22} color="#F59E0B" /></div>
             <span className={styles.logoText}>Hélio<span className={styles.logoAccent}>Bénin</span></span>
           </div>
 

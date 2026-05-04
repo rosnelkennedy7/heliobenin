@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sun, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../assets/images/vitre.png'
 import styles from './Inscription.module.css'
 
@@ -234,7 +234,6 @@ export default function Inscription() {
         <div className={styles.card}>
           {/* Logo */}
           <div className={styles.cardLogo}>
-            <Sun size={26} color="#F59E0B" strokeWidth={2} />
             <span className={styles.logoText}>
               <span className={styles.logoHelio}>Hélio</span>
               <span className={styles.logoBenin}>Bénin</span>

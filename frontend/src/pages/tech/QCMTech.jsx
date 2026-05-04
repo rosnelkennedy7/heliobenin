@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sun, CheckCircle, XCircle } from 'lucide-react'
+import { CheckCircle, XCircle } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.png'
 import AvatarTech from '../../components/AvatarTech'
 import styles from './QCMTech.module.css'
@@ -163,7 +163,6 @@ export default function QCMTech() {
 
           {/* Logo */}
           <div className={styles.cardLogo}>
-            <Sun size={26} color="#F59E0B" strokeWidth={2} />
             <span className={styles.logoText}>
               <span className={styles.logoHelio}>Hélio</span>
               <span className={styles.logoBenin}>Bénin</span>
