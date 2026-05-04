@@ -11,7 +11,7 @@ import { PANNEAUX, BATTERIES, REGULATEURS_MPPT, REGULATEURS_PWM, ONDULEURS_AIO }
 import { supabase } from '../../utils/supabaseClient'
 import s from './Etude.module.css'
 
-const API = 'http://localhost:8000'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const STEPS = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
 
 /* ─── helpers ────────────────────────────────────────────── */
