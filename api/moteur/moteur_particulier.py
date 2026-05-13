@@ -1,5 +1,5 @@
 import math
-from .tables import ONDULEURS_AIO, CAPACITES_LIFEPO4
+from .tables import get_equipements
 from .utils import (
     RHO,
     section_normalisee_dc,
@@ -59,8 +59,12 @@ def calculer_pc(ej: float, irradiation: float, pr: float) -> float:
 # ════════════════════════════════
 
 def choisir_onduleur_aio(pond: float) -> dict:
+    onduleurs = sorted(
+        get_equipements().get("onduleurs_aio", []),
+        key=lambda o: o["puissance"],
+    )
     if pond <= 12000:
-        for ond in ONDULEURS_AIO:
+        for ond in onduleurs:
             if ond["puissance"] >= pond:
                 return {
                     "nb_onduleurs": 1,
@@ -72,7 +76,7 @@ def choisir_onduleur_aio(pond: float) -> dict:
         meilleur = None
         for nb in [2, 3]:
             pond_unit = pond / nb
-            for ond in ONDULEURS_AIO:
+            for ond in onduleurs:
                 if ond["puissance"] >= pond_unit:
                     option = {
                         "nb_onduleurs": nb,
@@ -184,13 +188,15 @@ def calculer_batteries(
 ) -> dict:
     c_calculee = (ej * n_jours * k_autonomie) / (dod * usys * eta_bat)
 
-    c_unitaire = None
-    for cap in CAPACITES_LIFEPO4:
-        if cap >= c_calculee:
-            c_unitaire = cap
-            break
-    if c_unitaire is None:
-        c_unitaire = 400
+    batteries = get_equipements().get("batteries", [])
+    caps = sorted(set(
+        b["capacite"] for b in batteries
+        if b.get("tension") == usys and b.get("capacite")
+    ))
+    if not caps:
+        caps = [100, 200, 300, 400]
+
+    c_unitaire = next((c for c in caps if c >= c_calculee), caps[-1])
 
     nb_batteries = arrondi_math(c_calculee / c_unitaire)
     if nb_batteries < 1:
