@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Optional
-from ..moteur.moteur_technicien import (
+from ..moteur.moteur_particulier import (
     calculer_etape1,
     calculer_etape2,
     calculer_etape3,
 )
 
-router = APIRouter(prefix="/api/calcul/technicien", tags=["calcul-technicien"])
+router = APIRouter(prefix="/api/calcul/particulier", tags=["calcul-particulier"])
 
 
 class Appareil(BaseModel):
@@ -34,14 +34,6 @@ class Onduleur(BaseModel):
     pv_max: float
 
 
-class Batterie(BaseModel):
-    capacite: float
-    tension: int
-    dod: float = 90.0
-    rendement: float = 95.0
-    technologie: str = ""
-
-
 class ParamsEtape1(BaseModel):
     appareils: List[Appareil]
     cs: float
@@ -65,7 +57,6 @@ class ParamsEtape2(BaseModel):
     params: ParamsEtape1
     panneau: Panneau
     onduleur: Optional[Onduleur] = None
-    batterie: Optional[Batterie] = None
     type_regulateur: str = "AIO"
     usys: Optional[int] = None
     vmax_mppt: Optional[float] = None
@@ -95,8 +86,6 @@ def calcul_etape2(params: ParamsEtape2):
     }
     if params.onduleur:
         equipements["onduleur"] = params.onduleur.model_dump()
-    if params.batterie:
-        equipements["batterie"] = params.batterie.model_dump()
     if params.usys:
         equipements["usys"] = params.usys
     if params.vmax_mppt:

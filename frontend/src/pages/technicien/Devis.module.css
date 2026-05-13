@@ -1,0 +1,758 @@
+/* Devis.module.css — HélioBénin
+   Font : 'Aptos Display', 'Segoe UI', Arial
+*/
+
+/* ══ Page ══════════════════════════════ */
+.fondPage {
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
+  background-color: #0F172A;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1E293B;
+  color: #fff;
+  padding: 0.5rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  z-index: 999;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ══ Stepper — identique à Etude.module.css ══════════════ */
+.stepper { display:flex; align-items:flex-start; justify-content:center; gap:56px; }
+.stepItem { display:flex; flex-direction:column; align-items:center; gap:0.45rem; }
+.stepDot {
+  width:50px; height:50px; border-radius:50%;
+  background:rgba(255,255,255,0.1); border:2.5px solid rgba(255,255,255,0.22);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; font-weight:700; color:rgba(255,255,255,0.4);
+}
+.stepDotActive { background:#F59E0B; border-color:#F59E0B; color:#fff; box-shadow:0 0 0 5px rgba(245,158,11,0.2); }
+.stepDotDone   { background:#22C55E; border-color:#22C55E; color:#fff; box-shadow:0 0 0 5px rgba(34,197,94,0.2); }
+.stepLabel     { font-size:1rem; font-weight:700; color:rgba(255,255,255,0.4); white-space:nowrap; }
+.stepLabelActive { color:#F59E0B; }
+
+/* ══ Carte devis ════════════════════════ */
+.carteDevis {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
+  color: #1E293B;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+/* ════ Section 1 — En-tête ════ */
+.enteteDevis {
+  background: #1E3A5F;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* Toggle */
+.toggleEntete {
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* .toggleBtns est le même div — utilisé pour print */
+
+.toggleBtn {
+  padding: 0.22rem 0.7rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.75rem;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+
+.toggleBtn:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fff;
+}
+
+.toggleBtnActive {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: #000;
+  font-weight: 700;
+}
+
+/* Option A — Logo centré */
+.logoZoneWrap {
+  display: flex;
+  justify-content: center;
+}
+
+.logoZone {
+  width: 140px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-align: center;
+  padding: 0.5rem;
+  transition: border-color .15s, background .15s;
+}
+
+.logoZone:hover {
+  border-color: #F59E0B;
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.logoImg {
+  max-width: 120px;
+  max-height: 64px;
+  object-fit: contain;
+}
+
+/* Option B — En-tête complète */
+.enteteZone {
+  width: 100%;
+  min-height: 90px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-align: center;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  transition: border-color .15s, background .15s;
+}
+
+.enteteZone:hover {
+  border-color: #F59E0B;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.enteteImg {
+  width: 100%;
+  max-height: 80px;
+  object-fit: contain;
+}
+
+.uploadText {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 0.2rem;
+}
+
+.uploadSub {
+  font-size: 0.67rem;
+  color: rgba(255, 255, 255, 0.33);
+}
+
+/* Titre + N° */
+.enteteBottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.devisTitle {
+  font-size: 22px;
+  font-weight: 500;
+  color: #F59E0B;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+}
+
+.numInput {
+  border: none;
+  border-bottom: 1.5px solid #F59E0B;
+  border-radius: 0;
+  background: transparent;
+  color: #F59E0B;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  padding: 0.18rem 0.4rem;
+  width: 150px;
+  text-align: left;
+}
+
+.numInput:focus { outline: none; }
+
+/* ════ Section 2 — Technicien / Client ════ */
+.techClient {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 0.5px solid #E2E8F0;
+}
+
+.partyCol {
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.partyCol:first-child {
+  border-right: 0.5px solid #E2E8F0;
+}
+
+.partyLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+  margin: 0 0 0.35rem;
+}
+
+.partyName {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1E293B;
+  margin: 0 0 0.1rem;
+}
+
+.partyInfo {
+  font-size: 11px;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.clientInput {
+  font-size: 11px;
+  border: 0.5px solid #E2E8F0;
+  border-radius: 4px;
+  padding: 3px 6px;
+  background: #F8FAFC;
+  width: 100%;
+  margin-bottom: 4px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  color: #1E293B !important;
+  -webkit-text-fill-color: #1E293B;
+  text-decoration: none !important;
+  box-sizing: border-box;
+  transition: border-color .15s, background .15s;
+}
+
+.clientInput:focus {
+  outline: none;
+  border-color: #F59E0B;
+  background: #fff;
+}
+
+.clientInput::placeholder { color: #CBD5E1; }
+
+.clientInputErr {
+  border-color: #EF4444 !important;
+  background: #FEF2F2 !important;
+}
+
+/* ════ Section 3 — Tableau ════ */
+.sec3 {
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+}
+
+.th {
+  background: #1E3A5F;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+}
+
+.thDes { width: 42%; }
+.thQty { width: 8%;  text-align: center; }
+.thPu  { width: 22%; text-align: right; }
+.thTot { width: 22%; text-align: right; }
+.thAct { width: 6%;  text-align: center; font-weight: 400; color: rgba(255,255,255,0.45); }
+
+.trOdd  { background: #fff; }
+.trEven { background: #F8FAFC; }
+
+.td {
+  padding: 0.28rem 0.6rem;
+  border-bottom: 0.5px solid #F1F5F9;
+  vertical-align: middle;
+}
+
+.tdDes {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 11px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  color: #1E293B;
+  padding: 0.1rem 0;
+}
+
+.tdDes:focus { outline: none; }
+.tdDes::placeholder { color: #CBD5E1; }
+
+.tdQty {
+  border: 0.5px solid #E2E8F0;
+  border-radius: 3px;
+  background: transparent;
+  width: 52px;
+  font-size: 11px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  color: #1E293B;
+  text-align: center;
+  padding: 0.1rem 0.2rem;
+}
+
+.tdQty:focus { outline: none; border-color: #94A3B8; }
+
+.tdPu {
+  border: 0.5px solid #F59E0B;
+  border-radius: 3px;
+  background: transparent;
+  width: 100%;
+  font-size: 11px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  color: #1E293B;
+  text-align: right;
+  padding: 0.1rem 0.3rem;
+}
+
+.tdPu:focus { outline: none; border-color: #D97706; }
+.tdPu::placeholder { color: #D1D5DB; }
+
+.tdTot {
+  font-size: 11px;
+  font-weight: 500;
+  text-align: right;
+  color: #1E293B;
+  white-space: nowrap;
+}
+
+.tdActCell {
+  text-align: center;
+  padding: 0.2rem 0.3rem;
+}
+
+.trashBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #CBD5E1;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem;
+  border-radius: 3px;
+  transition: color .15s, background .15s;
+}
+
+.trashBtn:hover { color: #EF4444; background: #FEE2E2; }
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  padding: 0.32rem 0.6rem;
+  border: none;
+  border-top: 0.5px dashed #E2E8F0;
+  background: transparent;
+  color: #F59E0B;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  width: 100%;
+  transition: background .15s;
+}
+
+.addBtn:hover { background: rgba(245, 158, 11, 0.06); }
+
+/* ════ Section 4 — Totaux ════ */
+.totaux {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.4rem 1rem;
+  border-top: 0.5px solid #E2E8F0;
+}
+
+.totTable {
+  border-collapse: collapse;
+  min-width: 270px;
+}
+
+.totTable tr td {
+  padding: 0.28rem 0.45rem;
+  font-size: 12px;
+}
+
+.totLabel {
+  color: #64748B;
+  text-align: left;
+}
+
+.totVal {
+  text-align: right;
+  color: #1E293B;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 140px;
+}
+
+.tvaLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  color: #64748B;
+  font-size: 12px;
+}
+
+.tvaCheck {
+  accent-color: #F59E0B;
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+}
+
+.totTotalRow td {
+  border-top: 0.5px solid #E2E8F0;
+  padding-top: 0.5rem !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.totValOrange {
+  color: #F59E0B !important;
+  font-weight: 500;
+}
+
+/* ════ Section 5 — Notes ════ */
+.sec5 {
+  padding: 0.5rem 1rem;
+  background: #F8FAFC;
+  border-top: 0.5px solid #E2E8F0;
+}
+
+.notesLabel {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+  margin-bottom: 0.3rem;
+}
+
+.notes {
+  width: 100%;
+  height: 55px;
+  resize: none;
+  font-size: 11px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  background: white;
+  border: 0.5px solid #E2E8F0;
+  border-radius: 5px;
+  padding: 5px 7px;
+  color: #1E293B;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+
+.notes:focus { outline: none; border-color: #F59E0B; }
+.notes::placeholder { color: #CBD5E1; }
+
+/* ════ Section 6 — Signatures ════ */
+.signatures {
+  padding: 0.75rem 1rem;
+  border-top: 0.5px solid #E2E8F0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.signatureCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.signLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+  margin-bottom: 0.5rem;
+}
+
+.signZone {
+  height: 70px;
+  border-bottom: 0.5px solid #94A3B8;
+  margin-bottom: 6px;
+}
+
+.signSub {
+  font-size: 11px;
+  color: #64748B;
+  line-height: 1.7;
+}
+
+/* ════ Section 7 — Pied de page ════ */
+.piedPage {
+  padding: 0.5rem 1rem;
+  background: white;
+  border-top: 0.5px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  font-size: 10px;
+  font-style: italic;
+  color: #94A3B8;
+}
+
+.footerBtns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btnSave {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
+  border: 0.5px solid #E2E8F0;
+  background: transparent;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  color: #475569;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+.btnSave:hover { background: #F1F5F9; border-color: #CBD5E1; }
+
+.btnPrint {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
+  background: #F59E0B;
+  color: #000;
+  font-weight: 500;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.btnPrint:hover { background: #D97706; }
+
+/* ══ Navigation bas ══════════════════════ */
+.bottomNav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.btnRetour {
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+.btnRetour:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btnSuivant {
+  padding: 0.6rem 1.8rem;
+  border-radius: 8px;
+  border: none;
+  background: #F59E0B;
+  color: #000;
+  font-size: 0.92rem;
+  font-weight: 800;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.btnSuivant:hover { background: #D97706; }
+
+/* ══ @media print ════════════════════════ */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm;
+  }
+
+  /* Masquer tout sauf la carte */
+  .fondPage {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  .overlay { display: none !important; }
+
+  .inner {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .bottomNav { display: none !important; }
+
+  .carteDevis {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    /* PAS de position: fixed */
+  }
+
+  /* Masquer boutons et interactifs */
+  .toggleEntete,
+  .toggleBtns,
+  .btnSave,
+  .btnPrint,
+  .footerBtns,
+  .trashBtn,
+  .addBtn,
+  .thAct,
+  .tdActCell { display: none !important; }
+
+  /* Zones upload vides masquées */
+  .uploadEmpty { display: none !important; }
+
+  .logoZone,
+  .enteteZone {
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .uploadText,
+  .uploadSub { display: none !important; }
+
+  /* Inputs transparents */
+  .numInput,
+  .clientInput,
+  .tdDes,
+  .tdQty,
+  .tdPu,
+  .notes {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: inherit !important;
+  }
+
+  /* En-tête bleu conservé */
+  .enteteDevis {
+    background: #1E3A5F !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* Header tableau répété page 2+ */
+  thead { display: table-header-group !important; }
+  tfoot { display: table-footer-group !important; }
+
+  /* Pas de coupure dans lignes */
+  tr { page-break-inside: avoid !important; }
+
+  /* Lignes vides masquées */
+  .ligneVide { display: none !important; }
+
+  /* Sections groupées */
+  .techClient,
+  .totaux,
+  .signatures,
+  .piedPage { page-break-inside: avoid !important; }
+
+  /* Notes masquées si vides — déjà géré JSX */
+}
+
+/* ══ Responsive mobile ═══════════════════ */
+@media (max-width: 600px) {
+  .techClient {
+    grid-template-columns: 1fr;
+  }
+
+  .partyCol:first-child {
+    border-right: none;
+    border-bottom: 0.5px solid #E2E8F0;
+  }
+
+  .signatures {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .devisTitle {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

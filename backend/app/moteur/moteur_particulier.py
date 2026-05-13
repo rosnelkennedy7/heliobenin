@@ -1,5 +1,5 @@
 import math
-from .tables import get_equipements
+from .tables import ONDULEURS_AIO, CAPACITES_LIFEPO4
 from .utils import (
     RHO,
     section_normalisee_dc,
@@ -25,9 +25,9 @@ def calculer_ej(appareils: list, cs: float, eta: float = 0.80) -> float:
     return round(sigma * cs / eta, 2)
 
 
-def calculer_pond(appareils: list) -> float:
+def calculer_pond(appareils: list, k: float) -> float:
     sigma = sum(a["puissance"] * a["quantite"] for a in appareils)
-    return round(sigma * 1.25, 2)
+    return round(sigma * k, 2)
 
 
 def calculer_puissance_pointe(appareils: list) -> float:
@@ -54,32 +54,13 @@ def calculer_pc(ej: float, irradiation: float, pr: float) -> float:
     return round(ej * (1 / irradiation) * pr, 2)
 
 
-def get_usys(pc: float, pond: float) -> int:
-    if pc <= 800 and pond <= 1500:
-        return 12
-    if 800 < pc <= 1600 and 1500 < pond <= 3000:
-        return 24
-    if pc > 1600 and pond > 3000:
-        return 48
-    # Désaccord → priorité Pond
-    if pond <= 1500:
-        return 12
-    if pond <= 3000:
-        return 24
-    return 48
-
-
 # ════════════════════════════════
 # ÉTAPE 3 — ONDULEUR
 # ════════════════════════════════
 
 def choisir_onduleur_aio(pond: float) -> dict:
-    onduleurs = sorted(
-        get_equipements().get("onduleurs_aio", []),
-        key=lambda o: o["puissance"],
-    )
     if pond <= 12000:
-        for ond in onduleurs:
+        for ond in ONDULEURS_AIO:
             if ond["puissance"] >= pond:
                 return {
                     "nb_onduleurs": 1,
@@ -88,15 +69,24 @@ def choisir_onduleur_aio(pond: float) -> dict:
                     "pond_unitaire": pond,
                 }
     else:
-        pond_unit = pond / 3
-        for ond in onduleurs:
-            if ond["puissance"] >= pond_unit:
-                return {
-                    "nb_onduleurs": 3,
-                    "phase": "triphasé",
-                    "onduleur": ond,
-                    "pond_unitaire": pond_unit,
-                }
+        meilleur = None
+        for nb in [2, 3]:
+            pond_unit = pond / nb
+            for ond in ONDULEURS_AIO:
+                if ond["puissance"] >= pond_unit:
+                    option = {
+                        "nb_onduleurs": nb,
+                        "phase": "triphasé",
+                        "onduleur": ond,
+                        "pond_unitaire": pond_unit,
+                    }
+                    if meilleur is None:
+                        meilleur = option
+                    elif ond["puissance"] * nb < meilleur["onduleur"]["puissance"] * meilleur["nb_onduleurs"]:
+                        meilleur = option
+                    break
+        if meilleur:
+            return meilleur
     return None
 
 
@@ -181,68 +171,6 @@ def calculer_panneaux_pwm(pc: float, usys: int, panneau: dict) -> dict:
 
 
 # ════════════════════════════════
-# VÉRIFICATIONS PLAGES
-# ════════════════════════════════
-
-def verifier_aio(
-    onduleur: dict,
-    vmp_string: float,
-    voc_string: float,
-    pc_reel: float,
-    i_string: float,
-) -> list:
-    warnings = []
-    mppt_min = onduleur["mppt_min"]
-    mppt_max = onduleur["mppt_max"]
-    pv_max   = onduleur["pv_max"]
-    i_mppt   = onduleur.get("courant_mppt_max", 999)
-
-    if voc_string >= mppt_max:
-        warnings.append(
-            f"Voc string ({voc_string}V) dépasse Vmax MPPT ({mppt_max}V) !"
-        )
-    if vmp_string < mppt_min:
-        warnings.append(
-            f"Vmp string ({vmp_string}V) sous Vmin MPPT ({mppt_min}V) !"
-        )
-    if pc_reel > pv_max:
-        warnings.append(
-            f"Puissance champ ({pc_reel}Wc) dépasse PV max onduleur ({pv_max}W) !"
-        )
-    if i_string > i_mppt:
-        warnings.append(
-            f"Courant string ({i_string}A) dépasse courant MPPT max ({i_mppt}A) !"
-        )
-    return warnings
-
-
-def verifier_mppt(
-    regulateur: dict,
-    voc_string: float,
-    vmp_string: float,
-    ireg: float,
-) -> list:
-    warnings = []
-    plage = str(regulateur.get("plage_pv", "0-999"))
-    try:
-        vmax_pv = float(plage.split('-')[-1].replace('V', ''))
-    except Exception:
-        vmax_pv = 999
-
-    courant_max = regulateur.get("courant_max", 999)
-
-    if voc_string >= vmax_pv:
-        warnings.append(
-            f"Voc string ({voc_string}V) dépasse Vmax PV régulateur ({vmax_pv}V) !"
-        )
-    if ireg > courant_max:
-        warnings.append(
-            f"Courant régulateur ({ireg}A) dépasse courant max ({courant_max}A) !"
-        )
-    return warnings
-
-
-# ════════════════════════════════
 # ÉTAPE 5 — BATTERIES
 # ════════════════════════════════
 
@@ -252,9 +180,17 @@ def calculer_batteries(
     usys: int,
     dod: float,
     eta_bat: float,
-    c_unitaire: float,
+    k_autonomie: float = 1.20,
 ) -> dict:
-    c_calculee = (ej * n_jours) / (dod * usys * eta_bat)
+    c_calculee = (ej * n_jours * k_autonomie) / (dod * usys * eta_bat)
+
+    c_unitaire = None
+    for cap in CAPACITES_LIFEPO4:
+        if cap >= c_calculee:
+            c_unitaire = cap
+            break
+    if c_unitaire is None:
+        c_unitaire = 400
 
     nb_batteries = arrondi_math(c_calculee / c_unitaire)
     if nb_batteries < 1:
@@ -399,9 +335,6 @@ def calculer_troncon_onduleur_tableau(
     S_norm = section_normalisee_ac(S_calc)
     Ip_min = I * 1.25
 
-    conducteurs = "3" if phase == "monophasé" else "5"
-    type_cable = f"H07RN-F {conducteurs}×{S_norm}mm²"
-
     if phase == "monophasé":
         protection = "Disjoncteur différentiel 2P 30mA"
         parafoudre_ac = "Type 2 AC 2P 230V"
@@ -416,7 +349,7 @@ def calculer_troncon_onduleur_tableau(
         suffix = f" (Onduleur {i + 1})" if nb_onduleurs > 1 else ""
         troncons.append({
             "troncon": f"Onduleur → Tableau{suffix}",
-            "type_cable": type_cable,
+            "type_cable": "H07RN-F",
             "longueur": longueur,
             "courant": round(I, 2),
             "section_calculee": round(S_calc, 3),
@@ -441,29 +374,25 @@ def calculer_troncon_onduleur_tableau(
 def calculer_etape1(params: dict) -> dict:
     appareils = params["appareils"]
     cs = params["cs"]
+    k = params["k"]
     eta = params.get("eta", 0.80)
     irradiation = params["irradiation"]
     latitude = params["latitude"]
     pr = params.get("pr") or get_pr(latitude)
 
     ej = calculer_ej(appareils, cs, eta)
-    pond = calculer_pond(appareils)
+    pond = calculer_pond(appareils, k)
     puissance_pointe = calculer_puissance_pointe(appareils)
     pc = calculer_pc(ej, irradiation, pr)
-    usys = get_usys(pc, pond)
-    courant_reg = calculer_courant_regulateur(pc, usys)
-
-    type_reg = params.get("type_regulateur", "AIO")
-    if type_reg == "AIO" and pond > 12000:
-        nb_onduleurs = 3
-        phase = "triphasé"
-    else:
-        nb_onduleurs = 1
-        phase = "monophasé"
+    courant_reg = calculer_courant_regulateur(pc, 48)
 
     onduleur_info = None
-    if type_reg == "AIO":
+    usys = None
+    if params.get("type_regulateur") == "AIO":
         onduleur_info = choisir_onduleur_aio(pond)
+        if onduleur_info:
+            usys = onduleur_info["onduleur"]["usys"]
+            courant_reg = calculer_courant_regulateur(pc, usys)
 
     return {
         "ej": ej,
@@ -474,79 +403,40 @@ def calculer_etape1(params: dict) -> dict:
         "usys": usys,
         "courant_regulateur": courant_reg,
         "onduleur_suggere": onduleur_info,
-        "nb_onduleurs": nb_onduleurs,
-        "phase": phase,
+        "nb_onduleurs": onduleur_info["nb_onduleurs"] if onduleur_info else 1,
+        "phase": onduleur_info["phase"] if onduleur_info else "monophasé",
     }
 
 
 def calculer_etape2(etape1: dict, params: dict, equipements: dict) -> dict:
-    panneau  = equipements["panneau"]
+    panneau = equipements["panneau"]
     type_reg = equipements.get("type_regulateur", "AIO")
-    batterie = equipements.get("batterie") or {}
-
-    pc   = etape1["pc"]
-    ej   = etape1["ej"]
+    pc = etape1["pc"]
+    pond = etape1["pond"]
+    ej = etape1["ej"]
     n_jours = params.get("n_jours", 2)
-
-    # DoD et rendement depuis la batterie choisie
-    dod     = batterie.get("dod", 90) / 100 if batterie else params.get("dod", 0.90)
-    eta_bat = batterie.get("rendement", 95) / 100 if batterie else params.get("eta_bat", 0.95)
-    c_unitaire = batterie.get("capacite", 200) if batterie else 200
-
-    warnings = []
+    dod = params.get("dod", 0.90)
+    eta_bat = params.get("eta_bat", 0.95)
 
     if type_reg == "AIO":
-        onduleur    = equipements["onduleur"]
-        usys        = onduleur["usys"]
+        onduleur = equipements["onduleur"]
+        usys = onduleur["usys"]
+        panneaux_calc = calculer_panneaux_aio(pc, onduleur, panneau)
         nb_onduleurs = etape1.get("nb_onduleurs", 1)
-        phase        = etape1.get("phase", "monophasé")
-
-        # Vérif LiFePO4 pour triphasé
-        if nb_onduleurs == 3:
-            techno = (batterie.get("technologie") or "").lower()
-            if batterie and not ("lifepo4" in techno or "lithium" in techno):
-                warnings.append(
-                    "Installation triphasée : uniquement LiFePO4 autorisé !"
-                )
-
-        # Calcul panneaux pour un onduleur, multiplié × nb_onduleurs
-        pc_unit = pc / nb_onduleurs if nb_onduleurs > 1 else pc
-        panneaux_calc = calculer_panneaux_aio(pc_unit, onduleur, panneau)
-        panneaux_calc["np_final_total"] = panneaux_calc["np_final"] * nb_onduleurs
-        panneaux_calc["pc_reel_total"]  = round(panneaux_calc["pc_reel"] * nb_onduleurs, 2)
-
-        # Vérifications plages AIO
-        i_string = panneau["isc"] * panneaux_calc["n_parallele"]
-        warnings += verifier_aio(
-            onduleur,
-            panneaux_calc["vmp_string"],
-            panneaux_calc["voc_string"],
-            panneaux_calc["pc_reel"],
-            i_string,
-        )
-
+        phase = etape1.get("phase", "monophasé")
     elif type_reg == "MPPT":
-        usys       = equipements["usys"]
-        vmax_mppt  = equipements["vmax_mppt"]
+        usys = equipements["usys"]
+        vmax_mppt = equipements["vmax_mppt"]
         panneaux_calc = calculer_panneaux_mppt(pc, usys, vmax_mppt, panneau)
-        panneaux_calc["np_final_total"] = panneaux_calc["np_final"]
-        panneaux_calc["pc_reel_total"]  = panneaux_calc["pc_reel"]
         nb_onduleurs = 1
         phase = "monophasé"
-
-        reg = equipements.get("regulateur") or {}
-        ireg = calculer_courant_regulateur(pc, usys)
-        warnings += verifier_mppt(reg, panneaux_calc["voc_string"], panneaux_calc["vmp_string"], ireg)
-
-    else:  # PWM
+    else:
         usys = equipements["usys"]
         panneaux_calc = calculer_panneaux_pwm(pc, usys, panneau)
-        panneaux_calc["np_final_total"] = panneaux_calc["np_final"]
-        panneaux_calc["pc_reel_total"]  = panneaux_calc["pc_reel"]
         nb_onduleurs = 1
         phase = "monophasé"
 
-    batteries_calc = calculer_batteries(ej, n_jours, usys, dod, eta_bat, c_unitaire)
+    batteries_calc = calculer_batteries(ej, n_jours, usys, dod, eta_bat)
     courant_reg = calculer_courant_regulateur(pc, usys)
 
     return {
@@ -556,20 +446,19 @@ def calculer_etape2(etape1: dict, params: dict, equipements: dict) -> dict:
         "courant_regulateur": round(courant_reg, 2),
         "phase": phase,
         "nb_onduleurs": nb_onduleurs,
-        "warnings": warnings,
     }
 
 
 def calculer_etape3(etape1: dict, etape2: dict, params: dict, equipements: dict) -> dict:
-    panneau      = equipements["panneau"]
-    type_reg     = equipements.get("type_regulateur", "AIO")
-    n_par        = etape2["panneaux"]["n_parallele"]
-    vmp_string   = etape2["panneaux"]["vmp_string"]
-    usys         = etape2["usys"]
-    pond         = etape1["pond"]
-    pc           = etape1["pc"]
+    panneau = equipements["panneau"]
+    type_reg = equipements.get("type_regulateur", "AIO")
+    n_par = etape2["panneaux"]["n_parallele"]
+    vmp_string = etape2["panneaux"]["vmp_string"]
+    usys = etape2["usys"]
+    pond = etape1["pond"]
+    pc = etape1["pc"]
     nb_onduleurs = etape2["nb_onduleurs"]
-    phase        = etape2["phase"]
+    phase = etape2["phase"]
 
     L_pan_ond = params["longueur_panneau_ond"]
     L_reg_bat = params["longueur_reg_bat"]
@@ -578,13 +467,8 @@ def calculer_etape3(etape1: dict, etape2: dict, params: dict, equipements: dict)
 
     troncons = []
 
-    # T1 : Panneau → Onduleur (× nb_onduleurs pour triphasé)
-    t1_base = calculer_troncon_panneau_onduleur(panneau["isc"], n_par, vmp_string, L_pan_ond)
-    for i in range(nb_onduleurs):
-        t1 = dict(t1_base)
-        if nb_onduleurs > 1:
-            t1["troncon"] = f"Panneau → Onduleur (Onduleur {i + 1})"
-        troncons.append(t1)
+    t1 = calculer_troncon_panneau_onduleur(panneau["isc"], n_par, vmp_string, L_pan_ond)
+    troncons.append(t1)
 
     fusible_nh_reg = None
     if type_reg in ["MPPT", "PWM"]:
@@ -600,10 +484,10 @@ def calculer_etape3(etape1: dict, etape2: dict, params: dict, equipements: dict)
     troncons.extend(t4["troncons"])
 
     porte_fusibles = []
-    if t1_base["fusible_gpv"]:
+    if t1["fusible_gpv"]:
         porte_fusibles.append({
             "designation": "Porte-fusible gPV 10×38mm 1000V DC",
-            "quantite": n_par * nb_onduleurs,
+            "quantite": n_par,
         })
     if fusible_nh_reg:
         porte_fusibles.append({
@@ -618,13 +502,13 @@ def calculer_etape3(etape1: dict, etape2: dict, params: dict, equipements: dict)
 
     parafoudres = [
         {
-            "designation": t1_base["parafoudre_dc"],
-            "quantite": t1_base["qt_parafoudre_dc"] * nb_onduleurs,
+            "designation": t1["parafoudre_dc"],
+            "quantite": t1["qt_parafoudre_dc"],
             "position": "Côté panneaux",
         },
         {
             "designation": t4["parafoudre_ac"],
-            "quantite": 1,
+            "quantite": t4["qt_parafoudre_ac"],
             "position": "Côté tableau",
         },
     ]

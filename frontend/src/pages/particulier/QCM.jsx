@@ -5,7 +5,11 @@ import Avatar from '../../components/Avatar'
 import { saveParticulier } from '../../utils/storage'
 import styles from './QCM.module.css'
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i)
+const SECTIONS = [
+  { label: 'Matin',       hours: [6, 7, 8, 9, 10, 11] },
+  { label: 'Après-midi',  hours: [12, 13, 14, 15, 16, 17] },
+  { label: 'Soir / Nuit', hours: [18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5] },
+]
 
 export default function QCM() {
   const navigate = useNavigate()
@@ -110,23 +114,32 @@ export default function QCM() {
             </div>
           )}
 
-          {/* Grille 24h */}
+          {/* Grille heures SBEE — 3 sections */}
           {q1 === 'oui' && q2 === 'sbee' && (
             <div className={styles.grille}>
               <p className={styles.qLabel}>Question 3</p>
               <p className={styles.grilleTitle}>
                 Sélectionnez les heures où la SBEE coupe souvent
               </p>
-              <div className={styles.hourGrid}>
-                {HOURS.map(h => (
-                  <button
-                    key={h}
-                    type="button"
-                    className={`${styles.hourCell} ${heures.has(h) ? styles.hourActive : ''}`}
-                    onClick={() => toggleHeure(h)}
-                  >
-                    {String(h).padStart(2, '0')}h
-                  </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                {SECTIONS.map(sec => (
+                  <div key={sec.label}>
+                    <p style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 0.3rem' }}>
+                      {sec.label}
+                    </p>
+                    <div className={styles.hourGrid}>
+                      {sec.hours.map(h => (
+                        <button
+                          key={h}
+                          type="button"
+                          className={`${styles.hourCell} ${heures.has(h) ? styles.hourActive : ''}`}
+                          onClick={() => toggleHeure(h)}
+                        >
+                          {String(h).padStart(2, '0')}h
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
               {heures.size > 0 && (

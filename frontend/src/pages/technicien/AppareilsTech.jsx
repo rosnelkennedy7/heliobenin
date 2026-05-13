@@ -55,14 +55,30 @@ function Stepper({ active }) {
 export default function AppareilsTech() {
   const navigate = useNavigate()
 
-  const [rows,     setRows]     = useState([])
+  const [rows, setRows] = useState(() => {
+    const sv = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
+    return (sv.appareils || []).map(a => ({
+      id: Date.now() + Math.random(),
+      nom: a.nom || '',
+      puissance: a.puissance || 0,
+      quantite: a.quantite || 1,
+      hJour: a.hJour ?? a.h_jour ?? 4,
+      hNuit: a.hNuit ?? a.h_nuit ?? 0,
+      typeCharge: a.typeCharge || 'Résistif',
+      facteurPointe: a.facteurPointe || 1.0,
+      isManual: false,
+    }))
+  })
   const [openDdId, setOpenDdId] = useState(null)
   const [ddPos,    setDdPos]    = useState({ top: 0, left: 0 })
   const [ddSearch, setDdSearch] = useState('')
 
   /* ── Dérivés ── */
-  const hasOverflow = rows.some(r => (r.hJour || 0) + (r.hNuit || 0) > 24)
-  const canProceed  = rows.length > 0 && !hasOverflow
+  const hasOverflow  = rows.some(r => (r.hJour || 0) + (r.hNuit || 0) > 24)
+  const canProceed   = rows.length > 0 && !hasOverflow
+  const totPuissance = Math.round(rows.reduce((s, r) => s + r.puissance * r.quantite, 0))
+  const totEnergie   = Math.round(rows.reduce((s, r) => s + r.puissance * r.quantite * ((r.hJour || 0) + (r.hNuit || 0)), 0))
+  const totPointe    = Math.round(rows.reduce((s, r) => s + r.puissance * r.quantite * r.facteurPointe, 0))
 
   /* ── Lignes ── */
   const updateRow = (id, key, val) =>
@@ -188,7 +204,7 @@ export default function AppareilsTech() {
                 </th>
                 <th className={styles.th}>
                   <span>P. Pointe</span>
-                  <span className={styles.thSub}>(W) — calc.</span>
+                  <span className={styles.thSub}>(W) </span>
                 </th>
                 <th className={styles.th} />
               </tr>
@@ -260,7 +276,7 @@ export default function AppareilsTech() {
                         type="number"
                         min={0.1}
                         max={24}
-                        step={0.5}
+                        step={1}
                         placeholder="0.5"
                         value={row.hJour}
                         onChange={e => updateRow(row.id, 'hJour', +e.target.value)}
@@ -275,7 +291,7 @@ export default function AppareilsTech() {
                           type="number"
                           min={0.1}
                           max={24}
-                          step={0.5}
+                          step={1}
                           placeholder="0.5"
                           value={row.hNuit}
                           onChange={e => updateRow(row.id, 'hNuit', +e.target.value)}
@@ -316,6 +332,23 @@ export default function AppareilsTech() {
             </tbody>
           </table>
         </div>
+
+        {rows.length > 0 && (
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryBlock}>
+              <span className={styles.summaryLabel}>Puissance totale</span>
+              <span className={styles.summaryVal}>{totPuissance} W</span>
+            </div>
+            <div className={styles.summaryBlock}>
+              <span className={styles.summaryLabel}>Énergie totale</span>
+              <span className={styles.summaryVal}>{totEnergie} Wh/j</span>
+            </div>
+            <div className={styles.summaryBlock}>
+              <span className={styles.summaryLabel}>Puissance de pointe</span>
+              <span className={styles.summaryVal}>{totPointe} W</span>
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <div className={styles.bottomNav}>

@@ -162,6 +162,19 @@ export default function LocalisationTech() {
     }
   }, [])
 
+  /* ── Restaurer depuis localStorage ── */
+  useEffect(() => {
+    const sv = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
+    const loc = sv.localisation
+    if (!loc || loc.latitude == null || loc.longitude == null) return
+    setPosition({ lat: loc.latitude, lng: loc.longitude })
+    if (loc.irradiation != null) {
+      setIrradiation({ value: String(loc.irradiation), month: loc.moisMin || '' })
+    }
+    fetchLocality(loc.latitude, loc.longitude)
+    setFlyTarget({ latlng: [loc.latitude, loc.longitude], zoom: 12 })
+  }, [])
+
   /* ── Double-clic sur la carte ── */
   const handleMapDblClick = useCallback(({ lat, lng }) => {
     if (!isInBenin(lat, lng)) { setOutOfBounds(true); return }

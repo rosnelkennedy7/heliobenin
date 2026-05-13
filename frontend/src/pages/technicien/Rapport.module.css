@@ -1,0 +1,502 @@
+/* ══ Page fond vitre ═══════════════════════════════════════ */
+.page {
+  position: relative;
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.2);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ══ Stepper ════════════════════════════════════════════════ */
+.stepper { display:flex; align-items:flex-start; justify-content:center; gap:56px; }
+.stepItem { display:flex; flex-direction:column; align-items:center; gap:0.45rem; }
+.stepDot {
+  width:50px; height:50px; border-radius:50%;
+  background:rgba(255,255,255,0.1); border:2.5px solid rgba(255,255,255,0.22);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; font-weight:700; color:rgba(255,255,255,0.4);
+}
+.stepDotActive { background:#F59E0B; border-color:#F59E0B; color:#fff; box-shadow:0 0 0 5px rgba(245,158,11,0.2); }
+.stepDotDone   { background:#22C55E; border-color:#22C55E; color:#fff; box-shadow:0 0 0 5px rgba(34,197,94,0.2); }
+.stepLabel     { font-size:1rem; font-weight:700; color:rgba(255,255,255,0.4); white-space:nowrap; }
+.stepLabelActive { color:#F59E0B; }
+
+/* ══ Content ════════════════════════════════════════════════ */
+.pageContent {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 3rem;
+  gap: 1.5rem;
+}
+
+/* ══ Carte rapport ══════════════════════════════════════════ */
+.carteRapport {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  width: 100%;
+  max-width: 800px;
+  overflow: hidden;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+}
+
+/* ══ A4 Page sections ════════════════════════════════════════ */
+.a4Page {
+  min-height: 257mm;
+  padding: 1.2cm 1.4cm 0.8cm;
+  border-bottom: 3px dashed #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.lastPage {
+  border-bottom: none;
+}
+
+/* ══ En-tête page 1 ════════════════════════════════════════ */
+.entete {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  min-height: 56px;
+}
+.logoImg {
+  max-height: 70px;
+  max-width: 220px;
+  object-fit: contain;
+}
+.enteteImg {
+  max-height: 120px;
+  max-width: 100%;
+  object-fit: contain;
+}
+.enteteText {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1E3A5F;
+}
+
+/* ══ Titre central page 1 ══════════════════════════════════ */
+.titreZone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 0 2rem;
+  text-align: center;
+}
+.titrePrincipal {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #1E3A5F;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.titreSous {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #F59E0B;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 0.4rem;
+}
+.titreTrait {
+  width: 80px;
+  height: 4px;
+  background: #F59E0B;
+  border-radius: 2px;
+  margin: 1rem auto;
+}
+.titreRef {
+  font-size: 0.92rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+/* ══ Grid infos page 1 ════════════════════════════════════ */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.infoBlock {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.infoBlockTitle {
+  background: #1E3A5F;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.45rem 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.infoRow {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 0.84rem;
+}
+.infoRow:last-child { border-bottom: none; }
+.infoLabel {
+  color: #6B7280;
+  flex-shrink: 0;
+  min-width: 78px;
+}
+.infoVal {
+  color: #111827;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+/* ══ Pied de page ════════════════════════════════════════ */
+.piedPage {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px solid #E5E7EB;
+  font-size: 0.72rem;
+  color: #9CA3AF;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pageNum {
+  font-weight: 600;
+  color: #6B7280;
+}
+
+/* ══ Section titles ═══════════════════════════════════════ */
+.secTitle {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1E3A5F;
+  margin-bottom: 0.2rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 3px solid #F59E0B;
+}
+.secSubtitle {
+  font-size: 0.9rem;
+  color: #6B7280;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+.secSubA {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+/* ══ Tables communes ═══════════════════════════════════════ */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+  margin-bottom: 0.75rem;
+}
+.table th {
+  background: #1E3A5F;
+  color: #ffffff;
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.table td {
+  padding: 0.38rem 0.55rem;
+  border-bottom: 1px solid #F3F4F6;
+  color: #374151;
+  font-size: 0.82rem;
+  vertical-align: top;
+}
+.table tbody tr:nth-child(even) td { background: #F9FAFB; }
+
+.tdCenter { text-align: center !important; }
+.tdRight  { text-align: right !important; }
+
+.trTotal td {
+  background: #EFF6FF !important;
+  font-weight: 700;
+  border-top: 2px solid #3B82F6;
+  color: #1E3A5F;
+}
+
+/* ══ Bilan summary ════════════════════════════════════════ */
+.bilanSummary {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin-top: 0.25rem;
+}
+.bilanRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.28rem 0;
+  border-bottom: 1px solid #E5E7EB;
+  font-size: 0.85rem;
+  color: #374151;
+}
+.bilanRow:last-child { border-bottom: none; }
+.bilanVal {
+  font-weight: 700;
+  color: #1E3A5F;
+}
+.bilanRowHL {
+  background: #FFFBEB;
+  padding: 0.32rem 0.4rem;
+  border-radius: 4px;
+  margin-top: 0.2rem;
+  border-bottom: none !important;
+}
+.bilanRowHL .bilanVal { color: #D97706; }
+
+/* ══ Equipment cards ═══════════════════════════════════════ */
+.equipGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-top: 0.4rem;
+}
+.equipCard {
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.equipBlue   { background: #EFF6FF; border-left-color: #3B82F6; }
+.equipGreen  { background: #F0FDF4; border-left-color: #22C55E; }
+.equipOrange { background: #FFFBEB; border-left-color: #F59E0B; }
+.equipPurple { background: #F5F3FF; border-left-color: #8B5CF6; }
+
+.equipCardTitle {
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6B7280;
+}
+.equipCardMain {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #111827;
+}
+.equipCardSub {
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+/* ══ Maintenance table ═══════════════════════════════════════ */
+.tableMaint {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+  margin-bottom: 0.75rem;
+}
+.tableMaint th {
+  background: #1E3A5F;
+  color: #ffffff;
+  padding: 0.38rem 0.45rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+.tableMaint td {
+  padding: 0.32rem 0.45rem;
+  border-bottom: 1px solid #F3F4F6;
+  color: #374151;
+  vertical-align: top;
+  font-size: 0.75rem;
+}
+.tableMaint tbody tr:nth-child(even) td:not(.maintSecHeader) { background: #F9FAFB; }
+.maintSecHeader td {
+  background: #F59E0B !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 0.78rem !important;
+  padding: 0.35rem 0.45rem !important;
+  letter-spacing: 0.04em;
+}
+
+/* ══ Signatures page 6 ════════════════════════════════════ */
+.sigGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  margin-top: 1.5rem;
+  flex: 1;
+}
+.sigBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.sigRole {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1E3A5F;
+  border-bottom: 2px solid #1E3A5F;
+  padding-bottom: 0.35rem;
+}
+.sigText {
+  font-size: 0.87rem;
+  color: #374151;
+  line-height: 1.55;
+  margin: 0;
+}
+.sigLine {
+  border-bottom: 1.5px solid #9CA3AF;
+  padding-bottom: 2.5rem;
+  padding-top: 0.4rem;
+  font-size: 0.78rem;
+  color: #6B7280;
+}
+.cachet {
+  margin-top: 0.5rem;
+  width: 90px;
+  height: 90px;
+  border: 2px dashed #D1D5DB;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cachetInner {
+  font-size: 0.72rem;
+  color: #9CA3AF;
+  font-style: italic;
+}
+
+/* ══ Non renseigné ════════════════════════════════════════ */
+.na {
+  color: #9CA3AF;
+  font-style: italic;
+  font-size: 0.85em;
+}
+
+/* ══ Buttons ════════════════════════════════════════════ */
+.btnActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btnRetour {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #F59E0B;
+  background: transparent;
+  color: #F59E0B;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+}
+.btnRetour:hover { background: rgba(245,158,11,0.12); }
+.btnPrint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: #F59E0B;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+}
+.btnPrint:hover { background: #D97706; }
+
+/* ══ Print ══════════════════════════════════════════════════ */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  .page {
+    background: none !important;
+    min-height: auto !important;
+  }
+  .overlay { display: none !important; }
+
+  nav { display: none !important; }
+
+  .pageContent {
+    padding: 0 !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+  }
+
+  .carteRapport {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .a4Page {
+    page-break-after: always !important;
+    border-bottom: none !important;
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+
+  .lastPage { page-break-after: auto !important; }
+
+  .btnActions { display: none !important; }
+
+  .table, .tableMaint {
+    font-size: 10px !important;
+  }
+  .table th, .table td,
+  .tableMaint th, .tableMaint td {
+    padding: 0.3rem 0.4rem !important;
+    font-size: 10px !important;
+  }
+
+  .titrePrincipal { font-size: 1.8rem !important; }
+  .titreSous      { font-size: 1.1rem !important; }
+
+  thead { display: table-header-group !important; }
+  tr    { page-break-inside: avoid !important; }
+
+  .equipGrid { page-break-inside: avoid !important; }
+  .infoGrid  { page-break-inside: avoid !important; }
+  .sigGrid   { page-break-inside: avoid !important; }
+  .bilanSummary { page-break-inside: avoid !important; }
+
+  .a4Page:not(.lastPage) { margin-bottom: 0 !important; }
+
+  @page { size: A4 portrait; margin: 2cm; }
+}

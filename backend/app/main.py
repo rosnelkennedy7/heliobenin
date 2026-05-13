@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routes import dimensionnement, devis, auth
 from app.routers.calcul import router as calcul_router
+from app.routers.calcul_particulier import router as calcul_particulier_router
+from app.routers.equipements import router as equipements_router
 
 app = FastAPI(
     title="HélioBénin API",
@@ -22,6 +24,8 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(dimensionnement.router, prefix="/api/dimensionnement", tags=["dimensionnement"])
 app.include_router(devis.router, prefix="/api/devis", tags=["devis"])
 app.include_router(calcul_router)
+app.include_router(calcul_particulier_router)
+app.include_router(equipements_router)
 
 
 @app.get("/")

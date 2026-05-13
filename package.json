@@ -1,7 +1,8 @@
 {
   "name": "heliobenin",
   "version": "1.0.0",
-  "scripts": {
-    "build": "cd frontend && npm install && npm run build"
+  "description": "HélioBénin — Application locale React + FastAPI",
+  "devDependencies": {
+    "xlsx": "^0.18.5"
   }
 }

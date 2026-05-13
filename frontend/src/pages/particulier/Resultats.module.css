@@ -1,0 +1,389 @@
+/* ══════════════════════════════════════════════
+   Resultats.module.css — page devis particulier
+══════════════════════════════════════════════ */
+
+.page {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 25, 0.82);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem 1rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Stepper ── */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 80px;
+}
+.stepWrap {
+  display: flex;
+  align-items: center;
+}
+.stepLine { display: none; }
+.stepLineDone { display: none; }
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+.stepDot {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2.5px solid rgba(255, 255, 255, 0.22);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stepDotActive {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: #fff;
+  box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.2);
+}
+.stepDotDone {
+  background: #22C55E;
+  border-color: #22C55E;
+  color: #fff;
+  box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.2);
+}
+.stepLabel {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+.stepLabelActive {
+  color: #F59E0B;
+}
+
+/* ── States (loading / erreur) ── */
+.statusCard {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(245, 158, 11, 0.2);
+  border-top-color: #F59E0B;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.statusText {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+.errorCard {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.errorText {
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.btnRetry {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 6px;
+  color: #FCA5A5;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnRetry:hover { background: rgba(239, 68, 68, 0.25); }
+
+/* ── Carte résumé système ── */
+.sysCard {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sysBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 80px;
+}
+
+.sysLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sysVal {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #10B981;
+}
+
+/* ── Tableau devis ── */
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.th {
+  background: rgba(15, 23, 42, 0.95);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.7rem;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.thDes {
+  text-align: left;
+  min-width: 220px;
+}
+
+.tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+.tr:hover           { background: rgba(245, 158, 11, 0.04); }
+
+.td {
+  padding: 0.5rem 0.7rem;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: right;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.tdDes {
+  text-align: left;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.tdTot {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* tfoot */
+.tfRowSub .tfLabel,
+.tfRowSub .tfVal {
+  padding: 0.5rem 0.7rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.6);
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tfLabel { text-align: right; font-weight: 600; }
+.tfVal   { text-align: right; }
+
+.tfRowTotal .tfLabelTotal,
+.tfRowTotal .tfValTotal {
+  padding: 0.6rem 0.7rem;
+  background: rgba(245, 158, 11, 0.08);
+  border-top: 1px solid rgba(245, 158, 11, 0.2);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.tfLabelTotal { text-align: right; color: rgba(255, 255, 255, 0.7); }
+.tfValTotal   { text-align: right; color: #F59E0B; font-size: 0.95rem; }
+
+/* ── Disclaimer ── */
+.disclaimer {
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Carte contact ── */
+.contactCard {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.contactName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  text-align: center;
+}
+
+.contactBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 240px;
+}
+
+.btnWa,
+.btnMail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter 0.15s, transform 0.1s;
+  width: 100%;
+  border: none;
+}
+.btnWa:hover,
+.btnMail:hover { filter: brightness(1.12); transform: translateY(-1px); }
+
+.btnWa {
+  background: #22C55E;
+  color: #fff;
+}
+
+.btnMail {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* ── Navigation bas ── */
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  background: rgba(5, 10, 25, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+}
+
+.btnRetour {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnRetour:hover { background: rgba(255, 255, 255, 0.1); }
+
+.btnNew {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 7px;
+  color: #F59E0B;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnNew:hover { background: rgba(245, 158, 11, 0.2); }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .sysCard { flex-direction: column; gap: 0.7rem; }
+  .sysBlock { flex-direction: row; justify-content: space-between; width: 100%; }
+  .th, .td { padding: 0.4rem 0.5rem; font-size: 0.78rem; }
+  .thDes { min-width: 150px; }
+}

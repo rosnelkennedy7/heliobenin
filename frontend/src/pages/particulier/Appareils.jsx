@@ -70,7 +70,7 @@ export default function Appareils() {
   /* ── Dérivés ── */
   const budgetNum   = parseInt(budgetDisplay.replace(/\s/g, ''), 10) || 0
   const hasOverflow = rows.some(r => (r.hJour || 0) + (r.hNuit || 0) > 24)
-  const budgetOk    = mode !== 'avec_budget' || budgetNum >= 200000
+  const budgetOk    = mode !== 'avec_budget' || budgetNum >= 500000
   const canProceed  = rows.length > 0 && !hasOverflow && budgetOk
 
   /* ── Lignes ── */
@@ -81,12 +81,12 @@ export default function Appareils() {
 
   const addLigne = () => {
     if (rows.length >= 50) return
-    setRows(prev => [...prev, { id: Date.now() + Math.random(), nom: '', puissance: 0, quantite: 1, hJour: 4, hNuit: 0, typeCharge: 'Résistif', facteurPointe: 1.0, isManual: false }])
+    setRows(prev => [...prev, { id: Date.now() + Math.random(), nom: '', puissance: 0, quantite: 1, hJour: 4, hNuit: 0, typeCharge: 'Résistif', facteurPointe: 1.0, isManual: false, priorite: true }])
   }
 
   const addManual = () => {
     if (rows.length >= 50) return
-    setRows(prev => [...prev, { id: Date.now() + Math.random(), nom: '', puissance: 0, quantite: 1, hJour: 4, hNuit: 0, typeCharge: 'Manuel', facteurPointe: 1.0, isManual: true }])
+    setRows(prev => [...prev, { id: Date.now() + Math.random(), nom: '', puissance: 0, quantite: 1, hJour: 4, hNuit: 0, typeCharge: 'Manuel', facteurPointe: 1.0, isManual: true, priorite: true }])
   }
 
   /* ── Dropdown ── */
@@ -134,6 +134,7 @@ export default function Appareils() {
         wh_j:          r.puissance * r.quantite * ((r.hJour || 0) + (r.hNuit || 0)),
         typeCharge:    r.typeCharge,
         facteurPointe: r.facteurPointe,
+        priorite:      r.priorite !== false,
       })),
     })
     navigate('/resultats')
@@ -157,19 +158,19 @@ export default function Appareils() {
         {mode === 'avec_budget' && (
           <div className={styles.budgetSection}>
             <label className={styles.budgetLabel}>Votre budget disponible</label>
-            <div className={`${styles.budgetInputWrap} ${budgetDisplay && budgetNum < 200000 ? styles.budgetError : ''}`}>
+            <div className={`${styles.budgetInputWrap} ${budgetDisplay && budgetNum < 500000 ? styles.budgetError : ''}`}>
               <input
                 type="text"
                 inputMode="numeric"
                 value={budgetDisplay}
                 onChange={handleBudgetChange}
-                placeholder="200 000"
+                placeholder="500 000"
                 className={styles.budgetInput}
               />
               <span className={styles.budgetCurrency}>FCFA</span>
             </div>
-            <p className={`${styles.budgetHint} ${budgetDisplay && budgetNum < 200000 ? styles.budgetHintError : ''}`}>
-              Budget minimum requis : 200 000 FCFA
+            <p className={`${styles.budgetHint} ${budgetDisplay && budgetNum < 500000 ? styles.budgetHintError : ''}`}>
+              Budget minimum requis : 500 000 FCFA
             </p>
           </div>
         )}
@@ -200,13 +201,14 @@ export default function Appareils() {
                   <span>Nuit 🌙</span>
                   <span className={styles.thSub}>18h - 06h</span>
                 </th>
+                <th className={styles.th}>Priorité</th>
                 <th className={styles.th} />
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={6} className={styles.emptyMsg}>
+                  <td colSpan={7} className={styles.emptyMsg}>
                     Ajoutez des appareils avec les boutons ci-dessus
                   </td>
                 </tr>
@@ -292,6 +294,18 @@ export default function Appareils() {
                         />
                         {overflow && <span className={styles.overflowMsg}>Total &gt; 24h</span>}
                       </div>
+                    </td>
+
+                    {/* PRIORITÉ */}
+                    <td className={styles.td} style={{ textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => updateRow(row.id, 'priorite', row.priorite === false)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.15rem', padding: '0 0.2rem', lineHeight: 1 }}
+                        title={row.priorite !== false ? 'Prioritaire' : 'Non prioritaire'}
+                      >
+                        {row.priorite !== false ? '⭐' : '○'}
+                      </button>
                     </td>
 
                     {/* ACTION */}

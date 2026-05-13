@@ -122,7 +122,6 @@ export default function QCMTech() {
         <div className={styles.content}>
           <div className={`${styles.card} ${styles.resultCard}`}>
             <div className={styles.cardLogo}>
-              <Sun size={26} color="#F59E0B" strokeWidth={2} />
               <span className={styles.logoText}>
                 <span className={styles.logoHelio}>Hélio</span>
                 <span className={styles.logoBenin}>Bénin</span>

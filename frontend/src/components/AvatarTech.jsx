@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronDown, User, FolderOpen, LogOut } from 'lucide-react'
+import { ChevronDown, User, FolderOpen, LogOut, Plus } from 'lucide-react'
 import styles from './Avatar.module.css'
 
 export default function AvatarTech() {
@@ -55,6 +55,12 @@ export default function AvatarTech() {
             </button>
             <button className={styles.menuItem} onClick={() => go('/mes-projets')}>
               <FolderOpen size={15} /> Mes Projets
+            </button>
+            <button className={styles.menuItem} onClick={() => {
+              localStorage.removeItem('heliobenin_technicien')
+              go('/localisation-tech')
+            }}>
+              <Plus size={15} /> Nouveau projet
             </button>
             <div className={styles.divider} />
             <button className={`${styles.menuItem} ${styles.logout}`} onClick={() => go('/')}>

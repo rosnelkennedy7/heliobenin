@@ -2,16 +2,15 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Check, ChevronDown, Search, Zap, Shield,
-  AlertCircle, AlertTriangle, CheckCircle, Plus, Send,
+  AlertCircle, AlertTriangle, CheckCircle, Plus,
 } from 'lucide-react'
 import Navbar from '../../components/Navbar'
 import vitreImg from '../../assets/images/vitre.png'
 import AvatarTech from '../../components/AvatarTech'
-import { PANNEAUX, BATTERIES, REGULATEURS_MPPT, REGULATEURS_PWM, ONDULEURS_AIO } from '../../data/equipements'
+
 import { supabase } from '../../utils/supabaseClient'
 import s from './Etude.module.css'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const STEPS = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
 
 /* ─── helpers ────────────────────────────────────────────── */
@@ -75,7 +74,7 @@ function Stepper({ active }) {
   )
 }
 
-/* ─── Dropdown générique ─────────────────────────────────── */
+/* ─── Dropdown générique (compatible/autres groupés) ────── */
 function Dropdown({ items = [], value, onChange, placeholder, labelFn, rightFn, compatFn }) {
   const [open, setOpen] = useState(false)
   const [q, setQ]       = useState('')
@@ -87,7 +86,21 @@ function Dropdown({ items = [], value, onChange, placeholder, labelFn, rightFn, 
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
-  const filtered = items.filter(it => !q.trim() || labelFn(it).toLowerCase().includes(q.toLowerCase()))
+  const allFiltered = items.filter(it => !q.trim() || labelFn(it).toLowerCase().includes(q.toLowerCase()))
+  const compatible  = compatFn ? allFiltered.filter(it => compatFn(it))  : allFiltered
+  const autres      = compatFn ? allFiltered.filter(it => !compatFn(it)) : []
+
+  const renderItem = (it, i, isCompat) => (
+    <button key={i} type="button"
+      className={isCompat ? `${s.ddItem} ${s.ddItemCompat}` : s.ddItemOther}
+      onClick={() => { onChange(it); setOpen(false) }}>
+      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{labelFn(it)}</span>
+      <span className={s.ddItemRight}>
+        {isCompat && compatFn && <span className={`${s.badge} ${s.badgeGreen}`}>✓</span>}
+        {rightFn && rightFn(it)}
+      </span>
+    </button>
+  )
 
   return (
     <div className={s.ddWrap} ref={ref}>
@@ -107,21 +120,93 @@ function Dropdown({ items = [], value, onChange, placeholder, labelFn, rightFn, 
             <Search size={13} color="rgba(255,255,255,0.35)" />
             <input autoFocus className={s.ddSearchInput} placeholder="Rechercher…" value={q} onChange={e => setQ(e.target.value)} />
           </div>
-          {filtered.length === 0 && <p className={s.ddNoResult}>Aucun résultat</p>}
-          {filtered.map((it, i) => {
-            const compat = compatFn ? compatFn(it) : false
-            return (
-              <button key={i} type="button"
-                className={`${s.ddItem} ${compat ? s.ddItemCompat : ''}`}
-                onClick={() => { onChange(it); setOpen(false) }}>
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{labelFn(it)}</span>
-                <span className={s.ddItemRight}>
-                  {compat && <span className={`${s.badge} ${s.badgeGreen}`}>✓ Compatible</span>}
-                  {rightFn && rightFn(it)}
-                </span>
-              </button>
-            )
-          })}
+          {allFiltered.length === 0 && <p className={s.ddNoResult}>Aucun résultat</p>}
+          {compatible.length > 0 && (
+            <>
+              {compatFn && <div className={s.ddGroupHeader}>── Compatibles ✅ ──</div>}
+              {compatible.map((it, i) => renderItem(it, `c${i}`, true))}
+            </>
+          )}
+          {autres.length > 0 && (
+            <>
+              <div className={s.ddGroupHeader}>── Autres ──</div>
+              {autres.map((it, i) => renderItem(it, `a${i}`, false))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── Dropdown batteries groupé par technologie ─────────── */
+const TECHNO_ORDER = ['LiFePO4', 'AGM', 'GEL', 'Plomb-acide']
+
+function BatterieDropdown({ batteries = [], value, onChange, isTriphasé = false }) {
+  const [open, setOpen] = useState(false)
+  const [q, setQ]       = useState('')
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [])
+
+  const labelFn = b => `${b.marque} ${b.modele} — ${b.capacite}Ah / ${b.tension}V`
+
+  const filtered = batteries.filter(b =>
+    !q.trim() || labelFn(b).toLowerCase().includes(q.toLowerCase())
+  )
+
+  const grouped = TECHNO_ORDER.reduce((acc, t) => {
+    const list = filtered.filter(b => {
+      const techno = (b.technologie || '').toLowerCase()
+      if (t === 'LiFePO4')    return techno.includes('lifepo4') || techno.includes('lithium')
+      if (t === 'AGM')        return techno === 'agm'
+      if (t === 'GEL')        return techno === 'gel'
+      if (t === 'Plomb-acide') return techno.includes('plomb')
+      return false
+    })
+    if (list.length) acc[t] = list
+    return acc
+  }, {})
+
+  return (
+    <div className={s.ddWrap} ref={ref}>
+      <button
+        type="button"
+        className={`${s.ddTrigger} ${open ? s.ddTriggerOpen : ''}`}
+        onClick={() => { setOpen(o => !o); setQ('') }}
+      >
+        {value
+          ? <span className={s.ddSelectedLabel}>{labelFn(value)}</span>
+          : <span className={s.ddPlaceholder}>Sélectionner une batterie…</span>}
+        <ChevronDown size={13} style={{ flexShrink: 0, color: 'rgba(255,255,255,0.4)', transition: 'transform .18s', transform: open ? 'rotate(180deg)' : '' }} />
+      </button>
+      {open && (
+        <div className={s.ddPanel}>
+          <div className={s.ddSearch}>
+            <Search size={13} color="rgba(255,255,255,0.35)" />
+            <input autoFocus className={s.ddSearchInput} placeholder="Rechercher…" value={q} onChange={e => setQ(e.target.value)} />
+          </div>
+          {filtered.length === 0 && <p className={s.ddNoResult}>Aucune batterie disponible</p>}
+          {Object.entries(grouped).map(([techno, items]) => (
+            <div key={techno}>
+              <div className={s.ddGroupHeader}>── {techno} ──</div>
+              {items.map((b, i) => (
+                <button key={i} type="button" className={s.ddItem}
+                  onClick={() => { onChange(b); setOpen(false) }}>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{labelFn(b)}</span>
+                  <span className={s.ddItemRight}>
+                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
+                      {b.energie ? `${b.energie} kWh` : `DoD ${b.dod}%`}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -129,11 +214,10 @@ function Dropdown({ items = [], value, onChange, placeholder, labelFn, rightFn, 
 }
 
 /* ─── Formulaire panneau perso ───────────────────────────── */
-function FormPanneauCustom({ onUse, onPropose, pc }) {
+function FormPanneauCustom({ onUse, pc }) {
   const [f, setF]   = useState({ puissance: 400, voc: 48.5, vmp: 40.2, isc: 10.2, tension_nominale: 24, marque: '', modele: '', imp: '', rendement: '' })
   const [err, setErr] = useState({})
   const [soumis, setSoumis] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   const set = (k, v) => { setF(p => ({ ...p, [k]: v })); setErr(e => ({ ...e, [k]: '' })) }
 
@@ -150,30 +234,23 @@ function FormPanneauCustom({ onUse, onPropose, pc }) {
   const handleUse = () => {
     const e = validate()
     if (Object.keys(e).length) { setErr(e); return }
-    onUse({ ...f, puissance: +f.puissance, voc: +f.voc, vmp: +f.vmp, isc: +f.isc, tension_nominale: +f.tension_nominale, isCustom: true, badge: 'Personnel' })
-  }
-
-  const handlePropose = async () => {
-    const e = validate()
-    if (Object.keys(e).length) { setErr(e); return }
-    if (!supabase) { alert('Configuration Supabase requise (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY)'); return }
-    setLoading(true)
-    try {
+    const item = { ...f, puissance: +f.puissance, voc: +f.voc, vmp: +f.vmp, isc: +f.isc, tension_nominale: +f.tension_nominale, isCustom: true }
+    setSoumis(true)
+    if (supabase) {
       const user = JSON.parse(localStorage.getItem('helio_user') || '{}')
-      await supabase.from('equipements_custom').insert([{
+      supabase.from('equipements_custom').insert([{
         type_equipement: 'panneau',
-        caracteristiques: { ...f, puissance: +f.puissance, voc: +f.voc, vmp: +f.vmp, isc: +f.isc },
+        caracteristiques: { ...item },
         marque: f.marque || null, modele: f.modele || null,
         statut: 'en_attente', user_id: user.id || null,
-      }])
-      setSoumis(true)
-      onUse({ ...f, puissance: +f.puissance, voc: +f.voc, vmp: +f.vmp, isc: +f.isc, tension_nominale: +f.tension_nominale, isCustom: true, badge: 'En attente' })
-    } finally { setLoading(false) }
+      }]).catch(() => {})
+    }
+    onUse(item)
   }
 
   return (
     <div className={s.customCard}>
-      <div className={s.customCardTitle}>✏ Panneau personnalisé</div>
+      <div className={s.customCardTitle}>Panneau</div>
       <div className={s.customGrid}>
         <Field label="Puissance (Wc) *" error={err.puissance}>
           <input type="number" min={50} max={700} value={f.puissance} onChange={e => set('puissance', e.target.value)} className={`${s.inputOrange} ${err.puissance ? s.inputError : ''}`} />
@@ -202,19 +279,13 @@ function FormPanneauCustom({ onUse, onPropose, pc }) {
         <Field label="Rendement (%)"><input type="number" min={10} max={30} step={0.1} value={f.rendement} onChange={e => set('rendement', e.target.value)} className={s.inputOrange} /></Field>
       </div>
       {soumis && (
-        <div className={s.msgSuccess}><CheckCircle size={15} style={{ flexShrink: 0 }} />
-          Soumis pour validation admin. Disponible dans la base après approbation.
-        </div>
+        <div className={s.msgSuccess}><CheckCircle size={15} style={{ flexShrink: 0 }} />Équipement ajouté</div>
       )}
-      <div className={s.btnRow}>
-        <button type="button" className={s.btnPrimary} style={{ width: 'auto', flex: 1 }} onClick={handleUse}>
-          <Check size={15} /> Utiliser pour cette étude
+      {!soumis && (
+        <button type="button" className={s.btnPrimary} onClick={handleUse}>
+          <Check size={15} /> Utiliser cet équipement
         </button>
-        <button type="button" className={s.btnGreen} onClick={handlePropose} disabled={loading || soumis}>
-          {loading ? <div className={s.spinnerWhite} /> : <Send size={14} />}
-          Proposer à la base
-        </button>
-      </div>
+      )}
     </div>
   )
 }
@@ -223,6 +294,7 @@ function FormPanneauCustom({ onUse, onPropose, pc }) {
 function FormOnduleurCustom({ onUse, pc }) {
   const [f, setF]   = useState({ puissance: 5000, usys: 48, mppt_min: 120, mppt_max: 500, pv_max: 6500, marque: '', modele: '', rendement: 97 })
   const [err, setErr] = useState({})
+  const [soumis, setSoumis] = useState(false)
   const set = (k, v) => { setF(p => ({ ...p, [k]: v })); setErr(e => ({ ...e, [k]: '' })) }
 
   const validate = () => {
@@ -238,14 +310,20 @@ function FormOnduleurCustom({ onUse, pc }) {
   const handleUse = () => {
     const e = validate()
     if (Object.keys(e).length) { setErr(e); return }
-    onUse({ ...f, puissance: +f.puissance, usys: +f.usys, mppt_min: +f.mppt_min, mppt_max: +f.mppt_max, pv_max: +f.pv_max, rendement: +f.rendement })
+    const item = { ...f, puissance: +f.puissance, usys: +f.usys, mppt_min: +f.mppt_min, mppt_max: +f.mppt_max, pv_max: +f.pv_max, rendement: +f.rendement, isCustom: true }
+    setSoumis(true)
+    if (supabase) {
+      const user = JSON.parse(localStorage.getItem('helio_user') || '{}')
+      supabase.from('equipements_custom').insert([{ type_equipement: 'onduleur', caracteristiques: item, marque: f.marque || null, statut: 'en_attente', user_id: user.id || null }]).catch(() => {})
+    }
+    onUse(item)
   }
 
   const pvInsuffisant = pc && +f.pv_max < pc
 
   return (
     <div className={s.customCard}>
-      <div className={s.customCardTitle}>✏ Onduleur AIO personnalisé</div>
+      <div className={s.customCardTitle}>Onduleur</div>
       <div className={s.customGrid}>
         <Field label="Puissance (W) *" error={err.puissance}>
           <input type="number" min={500} max={15000} value={f.puissance} onChange={e => set('puissance', e.target.value)} className={`${s.inputOrange} ${err.puissance ? s.inputError : ''}`} />
@@ -280,9 +358,10 @@ function FormOnduleurCustom({ onUse, pc }) {
         <Field label="Marque"><input type="text" value={f.marque} onChange={e => set('marque', e.target.value)} className={s.inputOrange} /></Field>
         <Field label="Modèle"><input type="text" value={f.modele} onChange={e => set('modele', e.target.value)} className={s.inputOrange} /></Field>
       </div>
-      <button type="button" className={s.btnPrimary} style={{ marginTop: '0.25rem' }} onClick={handleUse}>
-        <Check size={15} /> Utiliser cet onduleur
-      </button>
+      {soumis
+        ? <div className={s.msgSuccess}><CheckCircle size={15} style={{ flexShrink: 0 }} />✅ Équipement ajouté</div>
+        : <button type="button" className={s.btnPrimary} style={{ marginTop: '0.25rem' }} onClick={handleUse}><Check size={15} /> Utiliser cet équipement</button>
+      }
     </div>
   )
 }
@@ -291,6 +370,7 @@ function FormOnduleurCustom({ onUse, pc }) {
 function FormRegMpptCustom({ onUse, vocString }) {
   const [f, setF]   = useState({ courant_max: 60, usys: 48, vmax_pv: 150, marque: '', modele: '' })
   const [err, setErr] = useState({})
+  const [soumis, setSoumis] = useState(false)
   const set = (k, v) => { setF(p => ({ ...p, [k]: v })); setErr(e => ({ ...e, [k]: '' })) }
 
   const handleUse = () => {
@@ -298,14 +378,20 @@ function FormRegMpptCustom({ onUse, vocString }) {
     if (!f.courant_max || f.courant_max < 5) e.courant_max = 'Requis (min 5 A)'
     if (!f.vmax_pv || f.vmax_pv < 50)        e.vmax_pv = 'Requis (min 50 V)'
     if (Object.keys(e).length) { setErr(e); return }
-    onUse({ ...f, courant_max: +f.courant_max, usys: +f.usys, vmax_pv: +f.vmax_pv })
+    const item = { ...f, courant_max: +f.courant_max, usys: +f.usys, vmax_pv: +f.vmax_pv, isCustom: true }
+    setSoumis(true)
+    if (supabase) {
+      const user = JSON.parse(localStorage.getItem('helio_user') || '{}')
+      supabase.from('equipements_custom').insert([{ type_equipement: 'regulateur_mppt', caracteristiques: item, marque: f.marque || null, statut: 'en_attente', user_id: user.id || null }]).catch(() => {})
+    }
+    onUse(item)
   }
 
   const vmaxInsuffisant = vocString && +f.vmax_pv < vocString
 
   return (
     <div className={s.customCard}>
-      <div className={s.customCardTitle}>✏ Régulateur MPPT personnalisé</div>
+      <div className={s.customCardTitle}>Régulateur MPPT</div>
       <div className={s.customGrid}>
         <Field label="Courant max (A) *" error={err.courant_max}>
           <input type="number" min={5} max={200} value={f.courant_max} onChange={e => set('courant_max', e.target.value)} className={`${s.inputOrange} ${err.courant_max ? s.inputError : ''}`} />
@@ -326,9 +412,10 @@ function FormRegMpptCustom({ onUse, vocString }) {
           Tension PV max insuffisante (Voc_string = {vocString} V)
         </div>
       )}
-      <button type="button" className={s.btnPrimary} style={{ marginTop: '0.25rem' }} onClick={handleUse}>
-        <Check size={15} /> Utiliser ce régulateur
-      </button>
+      {soumis
+        ? <div className={s.msgSuccess}><CheckCircle size={15} style={{ flexShrink: 0 }} />✅ Équipement ajouté</div>
+        : <button type="button" className={s.btnPrimary} style={{ marginTop: '0.25rem' }} onClick={handleUse}><Check size={15} /> Utiliser cet équipement</button>
+      }
     </div>
   )
 }
@@ -337,14 +424,21 @@ function FormRegMpptCustom({ onUse, vocString }) {
 function FormRegPwmCustom({ onUse }) {
   const [f, setF] = useState({ courant_max: 30, usys: 24, marque: '', modele: '' })
   const [err, setErr] = useState({})
+  const [soumis, setSoumis] = useState(false)
   const set = (k, v) => { setF(p => ({ ...p, [k]: v })); setErr(e => ({ ...e, [k]: '' })) }
   const handleUse = () => {
     if (!f.courant_max || f.courant_max < 5) { setErr({ courant_max: 'Requis (min 5 A)' }); return }
-    onUse({ ...f, courant_max: +f.courant_max, usys: +f.usys })
+    const item = { ...f, courant_max: +f.courant_max, usys: +f.usys, isCustom: true }
+    setSoumis(true)
+    if (supabase) {
+      const user = JSON.parse(localStorage.getItem('helio_user') || '{}')
+      supabase.from('equipements_custom').insert([{ type_equipement: 'regulateur_pwm', caracteristiques: item, marque: f.marque || null, statut: 'en_attente', user_id: user.id || null }]).catch(() => {})
+    }
+    onUse(item)
   }
   return (
     <div className={s.customCard}>
-      <div className={s.customCardTitle}>✏ Régulateur PWM personnalisé</div>
+      <div className={s.customCardTitle}> Régulateur PWM</div>
       <div className={s.customGrid}>
         <Field label="Courant max (A) *" error={err.courant_max}>
           <input type="number" min={5} max={100} value={f.courant_max} onChange={e => set('courant_max', e.target.value)} className={`${s.inputOrange} ${err.courant_max ? s.inputError : ''}`} />
@@ -357,9 +451,10 @@ function FormRegPwmCustom({ onUse }) {
         <Field label="Marque"><input type="text" value={f.marque} onChange={e => set('marque', e.target.value)} className={s.inputOrange} /></Field>
         <Field label="Modèle"><input type="text" value={f.modele} onChange={e => set('modele', e.target.value)} className={s.inputOrange} /></Field>
       </div>
-      <button type="button" className={s.btnPrimary} style={{ marginTop: '0.25rem' }} onClick={handleUse}>
-        <Check size={15} /> Utiliser ce régulateur
-      </button>
+      {soumis
+        ? <div className={s.msgSuccess}><CheckCircle size={15} style={{ flexShrink: 0 }} />✅ Équipement ajouté</div>
+        : <button type="button" className={s.btnPrimary} style={{ marginTop: '0.25rem' }} onClick={handleUse}><Check size={15} /> Utiliser cet équipement</button>
+      }
     </div>
   )
 }
@@ -369,7 +464,6 @@ function FormBatterieCustom({ onUse, onPropose, usys }) {
   const [f, setF] = useState({ tension: usys || 48, capacite: 200, technologie: 'LiFePO4', marque: '', modele: '', dod: 90, rendement: 95 })
   const [err, setErr]     = useState({})
   const [soumis, setSoumis] = useState(false)
-  const [loading, setLoading] = useState(false)
   const set = (k, v) => { setF(p => ({ ...p, [k]: v })); setErr(e => ({ ...e, [k]: '' })) }
 
   const handleTechno = (t) => {
@@ -388,30 +482,23 @@ function FormBatterieCustom({ onUse, onPropose, usys }) {
   const handleUse = () => {
     const e = validate()
     if (Object.keys(e).length) { setErr(e); return }
-    onUse({ ...f, tension: +f.tension, capacite: +f.capacite, dod: +f.dod, rendement: +f.rendement, isCustom: true, badge: 'Personnel' })
-  }
-
-  const handlePropose = async () => {
-    const e = validate()
-    if (Object.keys(e).length) { setErr(e); return }
-    if (!supabase) { alert('Configuration Supabase requise'); return }
-    setLoading(true)
-    try {
+    const item = { ...f, tension: +f.tension, capacite: +f.capacite, dod: +f.dod, rendement: +f.rendement, isCustom: true }
+    setSoumis(true)
+    if (supabase) {
       const user = JSON.parse(localStorage.getItem('helio_user') || '{}')
-      await supabase.from('equipements_custom').insert([{
+      supabase.from('equipements_custom').insert([{
         type_equipement: 'batterie',
-        caracteristiques: { ...f, tension: +f.tension, capacite: +f.capacite },
+        caracteristiques: { ...item },
         marque: f.marque || null, modele: f.modele || null,
         statut: 'en_attente', user_id: user.id || null,
-      }])
-      setSoumis(true)
-      handleUse()
-    } finally { setLoading(false) }
+      }]).catch(() => {})
+    }
+    onUse(item)
   }
 
   return (
     <div className={s.customCard}>
-      <div className={s.customCardTitle}>✏ Batterie personnalisée</div>
+      <div className={s.customCardTitle}>Batterie</div>
       <div className={s.customGrid}>
         <Field label="Tension (V) *" error={err.tension}>
           <select value={f.tension} onChange={e => set('tension', e.target.value)} className={`${s.selectOrange} ${err.tension ? s.inputError : ''}`}>
@@ -426,7 +513,7 @@ function FormBatterieCustom({ onUse, onPropose, usys }) {
             <option value="LiFePO4">LiFePO4</option>
             <option value="AGM">AGM</option>
             <option value="GEL">GEL</option>
-            <option value="Plomb">Plomb ouvert</option>
+            <option value="Plomb">Plomb acide</option>
           </select>
         </Field>
         <Field label="DoD (%)">
@@ -442,13 +529,10 @@ function FormBatterieCustom({ onUse, onPropose, usys }) {
         <Field label="Marque"><input type="text" value={f.marque} onChange={e => set('marque', e.target.value)} className={s.inputOrange} /></Field>
         <Field label="Modèle"><input type="text" value={f.modele} onChange={e => set('modele', e.target.value)} className={s.inputOrange} /></Field>
       </div>
-      {soumis && <div className={s.msgSuccess}><CheckCircle size={15} style={{ flexShrink: 0 }} />Soumis pour validation admin.</div>}
-      <div className={s.btnRow}>
-        <button type="button" className={s.btnPrimary} style={{ width: 'auto', flex: 1 }} onClick={handleUse}><Check size={15} />Utiliser pour cette étude</button>
-        <button type="button" className={s.btnGreen} onClick={handlePropose} disabled={loading || soumis}>
-          {loading ? <div className={s.spinnerWhite} /> : <Send size={14} />}Proposer à la base
-        </button>
-      </div>
+      {soumis
+        ? <div className={s.msgSuccess}><CheckCircle size={15} style={{ flexShrink: 0 }} />✅ Équipement ajouté</div>
+        : <button type="button" className={s.btnPrimary} onClick={handleUse}><Check size={15} />Utiliser cet équipement</button>
+      }
     </div>
   )
 }
@@ -530,6 +614,50 @@ export default function Etude() {
   const [showCustomReg,  setShowCustomReg]  = useState(false)
   const [showCustomBat,  setShowCustomBat]  = useState(false)
 
+  /* ── Équipements custom (ajoutés en tête de liste) ── */
+  const [customPanneaux,  setCustomPanneaux]  = useState([])
+  const [customOnduleurs, setCustomOnduleurs] = useState([])
+  const [customRegsMppt,  setCustomRegsMppt]  = useState([])
+  const [customRegsPwm,   setCustomRegsPwm]   = useState([])
+  const [customBatteries, setCustomBatteries] = useState([])
+
+  /* ── Équipements depuis l'API ── */
+  const [equipements, setEquipements] = useState({})
+
+  useEffect(() => {
+    fetch('/api/equipements')
+      .then(r => r.json())
+      .then(data => setEquipements(data))
+      .catch(() => {})
+  }, [])
+
+  /* ── Restaurer depuis localStorage ── */
+  useEffect(() => {
+    const sv = stored.etude
+    if (!sv) return
+    if (sv.parametres) {
+      const p = sv.parametres
+      if (p.cs           !== undefined) setCs(p.cs)
+      if (p.k            !== undefined) setK(p.k)
+      if (p.eta          !== undefined) setEta(p.eta)
+      if (p.typeOnduleur !== undefined) setTypeOnduleur(p.typeOnduleur)
+      if (p.pr           !== undefined) setPr(p.pr)
+      if (p.nJours       !== undefined) setNJours(p.nJours)
+      if (p.dod          !== undefined) setDod(p.dod)
+      if (p.etaBat       !== undefined) setEtaBat(p.etaBat)
+      if (p.dPanOnd      !== undefined) setDPanOnd(p.dPanOnd)
+      if (p.dRegBat      !== undefined) setDRegBat(p.dRegBat)
+      if (p.dBatOnd      !== undefined) setDBatOnd(p.dBatOnd)
+      if (p.dOndTab      !== undefined) setDOndTab(p.dOndTab)
+    }
+    if (sv.etape1) { setResE1(sv.etape1); setOpenS1(false); setOpenS2(true) }
+    if (sv.etape2) { setResE2(sv.etape2); setOpenS2(false); setOpenS3(true) }
+    if (sv.etape3) setResE3(sv.etape3)
+    if (sv.equipements?.panneau)  setSelPanneau(sv.equipements.panneau)
+    if (sv.equipements?.onduleur) setSelOnduleur(sv.equipements.onduleur)
+    if (sv.equipements?.batterie) setSelBatterie(sv.equipements.batterie)
+  }, [])
+
   /* ── Section 3 longueurs ── */
   const [l3, setL3] = useState({ panOnd: 10, regBat: 2, batOnd: 2, ondTab: 10 })
   const [dirty3, setDirty3] = useState(false)
@@ -546,12 +674,32 @@ export default function Etude() {
 
   /* Compatibilité panneaux selon Usys */
   const usysDetected = resE1?.usys || 48
+  const isTriphasé = resE1?.nb_onduleurs === 3 || resE1?.phase === 'triphasé'
   const panneauCompat = (p) => {
     if (usysDetected === 12) return p.tension_nominale === 12
     if (usysDetected === 24) return p.tension_nominale === 24 || p.tension_nominale === 12
     return true  // 48V : tous compatibles (mise en série)
   }
   const batterieCompat = (b) => b.tension === usysDetected
+
+  /* Listes filtrées depuis l'API */
+  const panneauxList = [...customPanneaux, ...(equipements.panneaux || [])]
+  const onduleursAioList = [...customOnduleurs, ...(equipements.onduleurs_aio || []).filter(o => !resE1 || o.usys === usysDetected)]
+  const regulateursMpptList = [...customRegsMppt, ...(equipements.regulateurs || []).filter(r => {
+    const ts = String(r.tension_systeme || '')
+    return (r.type || '').toUpperCase() === 'MPPT' && ts.includes(String(usysDetected))
+  })]
+  const regulateursPwmList = [...customRegsPwm, ...(equipements.regulateurs || []).filter(r => {
+    const ts = String(r.tension_systeme || '')
+    return (r.type || '').toUpperCase() === 'PWM' && ts.includes(String(usysDetected))
+  })]
+  const batteriesList = [...customBatteries, ...(equipements.batteries || []).filter(b => {
+    if (isTriphasé) {
+      const t = (b.technologie || '').toLowerCase()
+      return b.tension === usysDetected && (t.includes('lifepo4') || t.includes('lithium'))
+    }
+    return b.tension === usysDetected
+  })]
 
   /* APPAREILS → format API */
   const appareilsApi = () => appareils.map(a => ({
@@ -578,7 +726,7 @@ export default function Etude() {
     if (!appareils.length) { setErrE1('Aucun appareil trouvé. Retournez à la page Appareils.'); return }
     setLoadE1(true); setErrE1(null); setResE1(null); setResE2(null); setResE3(null)
     try {
-      const r = await fetch(`${API}/api/calcul/etape1`, {
+      const r = await fetch('/api/calcul/technicien/etape1', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(paramsApi()),
       })
@@ -586,12 +734,6 @@ export default function Etude() {
       const data = await r.json()
       setResE1(data)
       setOpenS1(false); setOpenS2(true)
-      /* Pré-sélectionner l'onduleur AIO suggéré */
-      if (data.onduleur_suggere?.onduleur) {
-        const sug = data.onduleur_suggere.onduleur
-        const found = ONDULEURS_AIO.find(o => o.puissance === sug.puissance && o.usys === sug.usys)
-        if (found) setSelOnduleur(found)
-      }
     } catch (e) {
       setErrE1(e instanceof TypeError
         ? 'Impossible de joindre le backend.\nDémarrez le serveur FastAPI :\n  cd heliobenin/backend\n  uvicorn app.main:app --reload'
@@ -614,14 +756,15 @@ export default function Etude() {
     if (!panneau) { setErrE2('Sélectionnez un panneau.'); return }
     setLoadE2(true); setErrE2(null); setResE2(null); setResE3(null)
     try {
-      const equipements = {
+      const equip = {
         panneau, type_regulateur: paramsApi().type_regulateur,
         ...(typeReg === 'AIO'  && selOnduleur  ? { onduleur: selOnduleur }           : {}),
         ...(typeReg === 'MPPT' && selRegMppt   ? { usys: resE1?.usys || 48, vmax_mppt: +vmaxMppt } : {}),
         ...(typeReg === 'PWM'  && selRegPwm    ? { usys: resE1?.usys || 48 }           : {}),
+        ...(selBatterie ? { batterie: selBatterie } : {}),
       }
-      const body = { etape1: resE1, params: paramsApi(), ...equipements }
-      const r = await fetch(`${API}/api/calcul/etape2`, {
+      const body = { etape1: resE1, params: paramsApi(), ...equip }
+      const r = await fetch('/api/calcul/technicien/etape2', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
@@ -644,7 +787,7 @@ export default function Etude() {
         panneau,
         type_regulateur: paramsApi().type_regulateur,
       }
-      const r = await fetch(`${API}/api/calcul/etape3`, {
+      const r = await fetch('/api/calcul/technicien/etape3', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
@@ -660,7 +803,7 @@ export default function Etude() {
     saveTechnicien({
       etude: {
         etape1: resE1, etape2: resE2, etape3: resE3,
-        parametres: { cs, k, eta, typeReg, pr, nJours, dod, etaBat, dPanOnd, dRegBat, dBatOnd, dOndTab },
+        parametres: { cs, k, eta, typeOnduleur, pr, nJours, dod, etaBat, dPanOnd, dRegBat, dBatOnd, dOndTab },
         equipements: { panneau, onduleur: selOnduleur, batterie: selBatterie },
       },
     })
@@ -706,58 +849,66 @@ export default function Etude() {
 
           {openS1 && (
             <div className={s.sectionBody}>
-              {/* Irradiation lecture seule */}
-              <div className={s.readonlyBlock}>
-                <div className={s.fieldLabel} style={{ marginBottom: '0.3rem' }}>Irradiation solaire (mois le plus défavorable)</div>
-                <span className={s.readonlyVal}>{loc.irradiation ?? '—'} kWh/m²/j</span>
-                {loc.moisMin && <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', marginLeft: '0.65rem' }}>({loc.moisMin})</span>}
+              {/* Irradiation — carte verte */}
+              <div className={s.irrCard}>
+                <div>
+                  <span className={s.irrLabel}>Irradiation solaire </span>
+                  {loc.moisMin && <div className={s.irrSub}>{loc.moisMin}</div>}
+                </div>
+                <span className={s.irrVal}>{loc.irradiation ?? '—'} kWh/m²/j</span>
               </div>
 
-              {/* Paramètres grille 2 colonnes */}
-              <div className={s.grid2}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
-                  <Field label="Cs — Coefficient de simultanéité">
-                    <input type="number" min={0.50} max={1.0} step={0.01} value={cs} onChange={e => setCs(+e.target.value)} className={s.inputOrange} />
-                  </Field>
-                  <Field label="k — Coefficient sécurité onduleur">
-                    <input type="number" min={1.0} max={2.0} step={0.05} value={k} onChange={e => setK(+e.target.value)} className={s.inputOrange} />
-                  </Field>
-                  <Field label="η — Rendement système">
-                    <input type="number" min={0.60} max={0.95} step={0.01} value={eta} onChange={e => setEta(+e.target.value)} className={s.inputOrange} />
-                  </Field>
-                  <Field label="Type d'onduleur">
-                    <select value={typeOnduleur} onChange={e => { setTypeOnduleur(e.target.value); setSelOnduleur(null); setSelRegMppt(null); setSelRegPwm(null) }} className={s.selectOrange}>
-                      <option value="AIO">All-in-One</option>
-                      <option value="SEPARE">Régulateur séparé</option>
-                    </select>
-                  </Field>
+              {/* 8 paramètres — cartes amber compactes */}
+              <div className={s.grid4}>
+                <div className={s.paramCard}>
+                  <span className={s.paramLabel}>Coeff.Simultanéité</span>
+                  <input type="number" min={0.50} max={1.0} step={0.01} value={cs} onChange={e => setCs(+e.target.value)} className={s.inputOrange} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
-                  <Field label="PR — Ratio de performance">
-                    <input type="number" min={0.60} max={0.85} step={0.01} value={pr} onChange={e => setPr(+e.target.value)} className={s.inputOrange} />
-                  </Field>
-                  <Field label="N — Autonomie (jours)">
-                    <input type="number" min={1} max={5} step={0.5} value={nJours} onChange={e => setNJours(+e.target.value)} className={s.inputOrange} />
-                  </Field>
-                  <Field label="DoD batterie (%)">
-                    <input type="number" min={50} max={95} step={5} value={dod} onChange={e => setDod(+e.target.value)} className={s.inputOrange} />
-                  </Field>
-                  <Field label="η_bat — Rendement batterie">
-                    <input type="number" min={0.80} max={0.99} step={0.01} value={etaBat} onChange={e => setEtaBat(+e.target.value)} className={s.inputOrange} />
-                  </Field>
+                <div className={s.paramCard}>
+                  <span className={s.paramLabel}> Coeff.onduleur</span>
+                  <input type="number" min={1.0} max={2.0} step={0.05} value={k} onChange={e => setK(+e.target.value)} className={s.inputOrange} />
+                </div>
+                <div className={s.paramCard}>
+                  <span className={s.paramLabel}>Rendement système</span>
+                  <input type="number" min={0.60} max={0.95} step={0.01} value={eta} onChange={e => setEta(+e.target.value)} className={s.inputOrange} />
+                </div>
+                <div className={s.paramCard}>
+                  <span className={s.paramLabel}>Type d'onduleur</span>
+                  <select value={typeOnduleur} onChange={e => { setTypeOnduleur(e.target.value); setSelOnduleur(null); setSelRegMppt(null); setSelRegPwm(null) }} className={s.selectOrange}>
+                    <option value="AIO">All-in-One</option>
+                    <option value="SEPARE">Régulateur séparé</option>
+                  </select>
+                </div>
+                <div className={s.paramCard}>
+                  <span className={s.paramLabel}>Ratio de performance</span>
+                  <input type="number" min={0.60} max={0.85} step={0.01} value={pr} onChange={e => setPr(+e.target.value)} className={s.inputOrange} />
+                </div>
+                <div className={s.paramCard}>
+                  <span className={s.paramLabel}>Autonomie système</span>
+                  <input type="number" min={1} max={5} step={0.1} value={nJours} onChange={e => setNJours(+e.target.value)} className={s.inputOrange} />
+                </div>
+                <div className={s.paramCard}>
+                  <span className={s.paramLabel}>DoD batterie </span>
+                  <input type="number" min={50} max={95} step={5} value={dod} onChange={e => setDod(+e.target.value)} className={s.inputOrange} />
+                </div>
+                <div className={s.paramCard}>
+                  <span className={s.paramLabel}>Rendement batterie</span>
+                  <input type="number" min={0.80} max={0.99} step={0.01} value={etaBat} onChange={e => setEtaBat(+e.target.value)} className={s.inputOrange} />
                 </div>
               </div>
 
-              {/* Distances */}
+              {/* Distances — 3 ou 4 champs sur une ligne */}
               <div>
-                <div className={s.blkTitle}>Distances des tronçons (mètres)</div>
-                <div className={s.grid2}>
-                  <Field label="Panneau → Régulateur/Onduleur">
+                <div className={s.blkTitle}>Distances</div>
+                <div className={typeOnduleur === 'AIO' ? s.grid3 : s.grid4}>
+                  <Field label={typeOnduleur === 'AIO' ? 'Panneau → Onduleur' : 'Panneau → Régulateur'}>
                     <input type="number" min={1} max={100} value={dPanOnd} onChange={e => setDPanOnd(+e.target.value)} className={s.inputOrange} />
                   </Field>
-                  <Field label="Régulateur → Batterie">
-                    <input type="number" min={1} max={50} value={dRegBat} onChange={e => setDRegBat(+e.target.value)} className={s.inputOrange} />
-                  </Field>
+                  {typeOnduleur !== 'AIO' && (
+                    <Field label="Régulateur → Batterie">
+                      <input type="number" min={1} max={50} value={dRegBat} onChange={e => setDRegBat(+e.target.value)} className={s.inputOrange} />
+                    </Field>
+                  )}
                   <Field label="Batterie → Onduleur">
                     <input type="number" min={1} max={50} value={dBatOnd} onChange={e => setDBatOnd(+e.target.value)} className={s.inputOrange} />
                   </Field>
@@ -811,26 +962,26 @@ export default function Etude() {
 
             {openS2 && (
               <div className={s.sectionBody}>
+                <div className={s.equipGrid}>
                 {/* ── PANNEAU ── */}
                 <div className={s.equipSection}>
                   <div className={s.equipTitle}>☀ Panneau solaire</div>
                   <Dropdown
-                    items={PANNEAUX}
+                    items={panneauxList}
                     value={selPanneau}
                     onChange={p => { setSelPanneau(p); setShowCustomPan(false) }}
                     placeholder="Sélectionner un panneau…"
-                    labelFn={p => p.isCustom ? `Personnalisé — ${p.puissance} Wc` : `${p.marque} ${p.modele} — ${p.puissance} Wc`}
+                    labelFn={p => p.isCustom ? `✱ Personnalisé — ${p.puissance} Wc` : `${p.marque} ${p.modele} — ${p.puissance} Wc`}
                     rightFn={p => <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>{p.vmp}V / {p.isc}A</span>}
                     compatFn={panneauCompat}
                   />
-                  {selPanneau?.badge && (
-                    <div className={s.itemSoumis}>
-                      {selPanneau.badge === 'En attente' ? '⏳' : '🟡'} {selPanneau.badge} — {selPanneau.puissance} Wc
-                    </div>
-                  )}
                   {!showCustomPan
-                    ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomPan(true)}><Plus size={14} />Panneau personnalisé</button>
-                    : <FormPanneauCustom pc={resE1.pc} onUse={p => { setSelPanneau(p); setShowCustomPan(false) }} />
+                    ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomPan(true)}><Plus size={14} />Ajouter un panneau</button>
+                    : <FormPanneauCustom pc={resE1.pc} onUse={p => {
+                        setCustomPanneaux(prev => [p, ...prev])
+                        setSelPanneau(p)
+                        setShowCustomPan(false)
+                      }} />
                   }
                 </div>
 
@@ -842,33 +993,27 @@ export default function Etude() {
 
                   {typeReg === 'AIO' && (
                     <>
-                      {resE1.onduleur_suggere && (
-                        <div className={s.ondRecommande}>
-                          <div>
-                            <div className={s.ondName}>
-                              {selOnduleur?.marque || 'Deye'} {selOnduleur?.modele || ''} —{' '}
-                              {(resE1.onduleur_suggere.onduleur.puissance / 1000).toFixed(1)} kW / {resE1.onduleur_suggere.onduleur.usys}V
-                            </div>
-                            <div className={s.ondSub}>
-                              MPPT : {resE1.onduleur_suggere.onduleur.mppt_min}–{resE1.onduleur_suggere.onduleur.mppt_max} V
-                              {resE1.nb_onduleurs > 1 && ` — ${resE1.nb_onduleurs} onduleurs (${resE1.phase})`}
-                            </div>
-                          </div>
-                          <span className={`${s.badge} ${s.badgeGreen}`}>Recommandé ✅</span>
-                        </div>
-                      )}
                       <Dropdown
-                        items={ONDULEURS_AIO}
+                        items={onduleursAioList}
                         value={selOnduleur}
                         onChange={o => { setSelOnduleur(o); setShowCustomOnd(false) }}
-                        placeholder="Choisir un autre onduleur AIO…"
-                        labelFn={o => `${o.marque} ${o.modele} — ${o.puissance / 1000} kW / ${o.usys}V`}
+                        placeholder="Choisir un onduleur AIO…"
+                        labelFn={o => o.isCustom ? `✱ Personnalisé — ${o.puissance / 1000} kW / ${o.usys}V` : `${o.marque} ${o.modele} — ${o.puissance / 1000} kW / ${o.usys}V`}
                         rightFn={o => <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>MPPT {o.mppt_max}V</span>}
                       />
                       {!showCustomOnd
-                        ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomOnd(true)}><Plus size={14} />Onduleur personnalisé</button>
-                        : <FormOnduleurCustom pc={resE1.pc} onUse={o => { setSelOnduleur(o); setShowCustomOnd(false) }} />
+                        ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomOnd(true)}><Plus size={14} />Ajouter un onduleur</button>
+                        : <FormOnduleurCustom pc={resE1.pc} onUse={o => {
+                            setCustomOnduleurs(prev => [o, ...prev])
+                            setSelOnduleur(o)
+                            setShowCustomOnd(false)
+                          }} />
                       }
+                      {resE2?.warnings?.length > 0 && resE2.warnings.map((w, i) => (
+                        <div key={i} className={s.warnMsg}>
+                          <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2, color: '#F59E0B' }} />{w}
+                        </div>
+                      ))}
                     </>
                   )}
 
@@ -878,16 +1023,20 @@ export default function Etude() {
                         <input type="number" min={50} max={500} value={vmaxMppt} onChange={e => setVmaxMppt(+e.target.value)} className={s.inputOrange} style={{ maxWidth: 180 }} />
                       </Field>
                       <Dropdown
-                        items={REGULATEURS_MPPT}
+                        items={regulateursMpptList}
                         value={selRegMppt}
                         onChange={r => { setSelRegMppt(r); setShowCustomReg(false) }}
                         placeholder="Sélectionner un régulateur MPPT…"
-                        labelFn={r => `${r.marque} ${r.modele} — ${r.courant_max}A`}
+                        labelFn={r => r.isCustom ? `✱ Personnalisé — ${r.courant_max}A / ${r.vmax_pv}V` : `${r.marque} ${r.modele} — ${r.courant_max}A`}
                         rightFn={r => <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>{r.plage_pv}</span>}
                       />
                       {!showCustomReg
-                        ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomReg(true)}><Plus size={14} />Régulateur MPPT personnalisé</button>
-                        : <FormRegMpptCustom vocString={vocString} onUse={r => { setSelRegMppt(r); setShowCustomReg(false) }} />
+                        ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomReg(true)}><Plus size={14} />Ajouter un régulateur MPPT</button>
+                        : <FormRegMpptCustom vocString={vocString} onUse={r => {
+                            setCustomRegsMppt(prev => [r, ...prev])
+                            setSelRegMppt(r)
+                            setShowCustomReg(false)
+                          }} />
                       }
                     </>
                   )}
@@ -895,15 +1044,19 @@ export default function Etude() {
                   {typeReg === 'PWM' && (
                     <>
                       <Dropdown
-                        items={REGULATEURS_PWM}
+                        items={regulateursPwmList}
                         value={selRegPwm}
                         onChange={r => { setSelRegPwm(r); setShowCustomReg(false) }}
                         placeholder="Sélectionner un régulateur PWM…"
-                        labelFn={r => `${r.marque} ${r.modele} — ${r.courant_max}A`}
+                        labelFn={r => r.isCustom ? `✱ Personnalisé — ${r.courant_max}A` : `${r.marque} ${r.modele} — ${r.courant_max}A`}
                       />
                       {!showCustomReg
-                        ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomReg(true)}><Plus size={14} />Régulateur PWM personnalisé</button>
-                        : <FormRegPwmCustom onUse={r => { setSelRegPwm(r); setShowCustomReg(false) }} />
+                        ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomReg(true)}><Plus size={14} />Ajouter un régulateur PWM</button>
+                        : <FormRegPwmCustom onUse={r => {
+                            setCustomRegsPwm(prev => [r, ...prev])
+                            setSelRegPwm(r)
+                            setShowCustomReg(false)
+                          }} />
                       }
                     </>
                   )}
@@ -911,21 +1064,29 @@ export default function Etude() {
 
                 {/* ── BATTERIE ── */}
                 <div className={s.equipSection}>
-                  <div className={s.equipTitle}>🔋 Batterie LiFePO4</div>
-                  <Dropdown
-                    items={BATTERIES}
+                  <div className={s.equipTitle}>Batterie ({usysDetected}V)</div>
+                  {isTriphasé && (
+                    <div className={s.warnMsg}>
+                      <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2, color: '#F59E0B' }} />
+                      Installation triphasée — batteries LiFePO4 uniquement
+                    </div>
+                  )}
+                  <BatterieDropdown
+                    batteries={batteriesList}
                     value={selBatterie}
                     onChange={b => { setSelBatterie(b); setShowCustomBat(false) }}
-                    placeholder="Sélectionner une batterie…"
-                    labelFn={b => `${b.marque} ${b.modele} — ${b.capacite}Ah / ${b.tension}V`}
-                    rightFn={b => <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>{b.energie} kWh</span>}
-                    compatFn={batterieCompat}
+                    isTriphasé={isTriphasé}
                   />
                   {!showCustomBat
-                    ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomBat(true)}><Plus size={14} />Batterie personnalisée</button>
-                    : <FormBatterieCustom usys={usysDetected} onUse={b => { setSelBatterie(b); setShowCustomBat(false) }} />
+                    ? <button type="button" className={s.btnSecondary} onClick={() => setShowCustomBat(true)}><Plus size={14} />Ajouter une batterie</button>
+                    : <FormBatterieCustom usys={usysDetected} onUse={b => {
+                        setCustomBatteries(prev => [b, ...prev])
+                        setSelBatterie(b)
+                        setShowCustomBat(false)
+                      }} />
                   }
                 </div>
+                </div>{/* equipGrid */}
 
                 {errE2 && (
                   <div className={s.msgError}>
@@ -950,7 +1111,7 @@ export default function Etude() {
                       <div className={s.e2Row}><span className={s.e2Label}>Puissance réelle champ</span><span className={s.e2Val}>{resE2.panneaux.pc_reel} Wc</span></div>
                     </div>
                     <div className={s.e2Block}>
-                      <div className={s.e2BlockTitle}>🔋 Parc batteries</div>
+                      <div className={s.e2BlockTitle}>Pack batteries</div>
                       <div className={s.e2Row}><span className={s.e2Label}>Capacité calculée</span><span className={s.e2Val}>{resE2.batteries.c_calculee} Ah</span></div>
                       <div className={s.e2Row}><span className={s.e2Label}>Capacité unitaire</span><span className={s.e2Val}>{resE2.batteries.c_unitaire} Ah</span></div>
                       <div className={s.e2Row}><span className={s.e2Label}>Nombre de batteries</span><span className={s.e2Val}>{resE2.batteries.nb_batteries}</span></div>
@@ -996,7 +1157,7 @@ export default function Etude() {
                         <table className={s.table}>
                           <thead>
                             <tr>
-                              {['Tronçon','L (m)','I (A)','Type câble','Section (mm²)','Protection','Calibre (A)'].map(h =>
+                              {['Tronçon','L (m)','I (A)','Type câble','Section (mm²)','Qté','Protection','Calibre (A)'].map(h =>
                                 <th key={h} className={s.th}>{h}</th>
                               )}
                             </tr>
@@ -1016,16 +1177,29 @@ export default function Etude() {
                                 <td className={`${s.td} ${s.tdOrange}`}>{t.courant}</td>
                                 <td className={s.td}>{t.type_cable}</td>
                                 <td className={`${s.td} ${s.tdOrange}`}>{t.section} mm²</td>
+                                <td className={`${s.td} ${s.tdOrange}`}>{t.quantite ?? 1}</td>
                                 <td className={s.td}>{t.protection}</td>
                                 <td className={`${s.td} ${s.tdGreen}`}>{t.calibre} A</td>
                               </tr>
                             ))}
+                            {resE3.differentiel && (
+                              <tr style={{ background: 'rgba(34,197,94,0.06)' }}>
+                                <td className={s.td}>{resE3.differentiel.type}</td>
+                                <td className={s.td}>—</td>
+                                <td className={s.td}>—</td>
+                                <td className={s.td}>—</td>
+                                <td className={s.td}>—</td>
+                                <td className={`${s.td} ${s.tdOrange}`}>{resE3.differentiel.quantite}</td>
+                                <td className={s.td}>Différentiel</td>
+                                <td className={`${s.td} ${s.tdGreen}`}>{resE3.differentiel.calibre} A</td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
                       </div>
                       {dirty3 && (
                         <button className={s.btnRecalculer} onClick={() => lancerCables()} disabled={loadE3}>
-                          🔄 Recalculer les câbles
+                          Recalculer les câbles
                         </button>
                       )}
                     </div>
@@ -1069,17 +1243,6 @@ export default function Etude() {
                       </table>
                     </div>
 
-                    {/* Différentiel */}
-                    {resE3.differentiel && (
-                      <div className={s.diffRow}>
-                        <Shield size={18} style={{ color: '#22C55E', flexShrink: 0 }} />
-                        <span>
-                          <span className={s.diffVal}>{resE3.differentiel.type}</span>
-                          {' — '}Calibre : <span className={s.diffVal}>{resE3.differentiel.calibre} A</span>
-                          {' — '}Qté : <span className={s.diffVal}>{resE3.differentiel.quantite}</span>
-                        </span>
-                      </div>
-                    )}
                   </>
                 )}
               </div>
