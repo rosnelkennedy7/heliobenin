@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import vitreImg from '../../assets/images/vitre.png'
 import Avatar from '../../components/Avatar'
-import { saveParticulier } from '../../utils/storage'
+import { saveParticulier, getCurrentModeParticulier } from '../../utils/storage'
 import styles from './QCM.module.css'
 
 const SECTIONS = [

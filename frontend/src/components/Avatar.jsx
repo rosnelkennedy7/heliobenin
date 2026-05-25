@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronDown, User, LogOut } from 'lucide-react'
+import { clearParticulier } from '../utils/storage'
 import styles from './Avatar.module.css'
 
 export default function Avatar() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
 
-  const raw  = localStorage.getItem('helio_user')
+  const raw  = localStorage.getItem('helio_user_particulier')
   const user = raw ? JSON.parse(raw) : { prenom: 'Jean', nom: 'Doe', email: 'jean@exemple.bj', role: 'particulier' }
   const nomInitial = (user.nom?.[0] || 'U').toUpperCase()
   const fullName   = [user.prenom, user.nom].filter(Boolean).join(' ')
@@ -55,7 +56,12 @@ export default function Avatar() {
               <User size={15} /> Mon profil
             </button>
             <div className={styles.divider} />
-            <button className={`${styles.menuItem} ${styles.logout}`} onClick={() => go('/')}>
+            <button className={`${styles.menuItem} ${styles.logout}`} onClick={() => {
+              clearParticulier()
+              localStorage.removeItem('helio_user_particulier')
+              localStorage.removeItem('heliobenin_role')
+              go('/')
+            }}>
               <LogOut size={15} /> Se déconnecter
             </button>
           </div>

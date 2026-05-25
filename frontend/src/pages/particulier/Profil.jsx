@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sun, Eye, EyeOff, Check, ChevronLeft } from 'lucide-react'
-import vitreImg from '../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.png'
 import styles from './Profil.module.css'
 
 export default function Profil() {
   const navigate = useNavigate()
 
-  const raw  = localStorage.getItem('helio_user')
+  const raw  = localStorage.getItem('helio_user_particulier')
   const user = raw ? JSON.parse(raw) : { prenom: '', nom: '', email: '', whatsapp: '', role: 'particulier' }
 
   const [whatsapp,   setWhatsapp]   = useState(user.whatsapp || '')
@@ -40,7 +40,7 @@ export default function Profil() {
       if (newPass !== confPass)  { setPassError('Les mots de passe ne correspondent pas.'); return }
     }
     const updated = { ...user, whatsapp, ...(newPass ? { password: newPass } : {}) }
-    localStorage.setItem('helio_user', JSON.stringify(updated))
+    localStorage.setItem('helio_user_particulier', JSON.stringify(updated))
     setOldPass(''); setNewPass(''); setConfPass('')
     setEditWa(false)
     setSaved(true)
@@ -52,19 +52,16 @@ export default function Profil() {
       <div className={styles.overlay} />
 
       <div className={styles.inner}>
-        {/* Retour */}
         <button className={styles.btnRetour} onClick={() => navigate(-1)}>
           <ChevronLeft size={18} /> Retour
         </button>
 
-        {/* Grand avatar + nom + badge */}
         <div className={styles.avatarBlock}>
           <div className={styles.bigCircle}>{nomInitial}</div>
           <h2 className={styles.userName}>{fullName || 'Utilisateur'}</h2>
           <span className={styles.badge}>{roleLabel}</span>
         </div>
 
-        {/* Infos de base (lecture seule) */}
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>Informations personnelles</h3>
 
@@ -81,7 +78,6 @@ export default function Profil() {
             <div className={styles.readBox}>{user.email || '–'}</div>
           </div>
 
-          {/* WhatsApp modifiable */}
           <div className={styles.fieldRow}>
             <label className={styles.label}>WhatsApp</label>
             <div className={styles.waRow}>
@@ -113,7 +109,6 @@ export default function Profil() {
           </div>
         </section>
 
-        {/* Sécurité */}
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>Sécurité — Changer le mot de passe</h3>
 
@@ -166,7 +161,6 @@ export default function Profil() {
           {passError && <p className={styles.error}>{passError}</p>}
         </section>
 
-        {/* Enregistrer */}
         <button className={styles.btnSave} onClick={handleSave}>
           {saved
             ? <><Check size={18} /> Modifications enregistrées</>

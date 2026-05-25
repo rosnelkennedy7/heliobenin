@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Loader } from 'lucide-react'
-import vitreImg from '../assets/images/vitre.png'
-import mtnImg from '../assets/images/MTN.jpg'
-import moovImg from '../assets/images/MOOV.png'
-import celtiisImg from '../assets/images/Celtiis.jpg'
+import vitreImg from '../../assets/images/vitre.png'
+import mtnImg from '../../assets/images/MTN.jpg'
+import moovImg from '../../assets/images/MOOV.png'
+import celtiisImg from '../../assets/images/Celtiis.jpg'
 import styles from './Paiement.module.css'
 
 const RESEAUX = [
@@ -60,7 +60,6 @@ export default function Paiement() {
     }, 3000)
   }
 
-  /* ── Écran succès ── */
   if (statut === 'success') {
     return (
       <div className={styles.page} style={{ backgroundImage: `url(${vitreImg})` }}>
@@ -70,7 +69,6 @@ export default function Paiement() {
             <CheckCircle size={72} color="#22c55e" strokeWidth={1.5} />
             <h2 className={styles.successTitle}>Paiement confirmé !</h2>
             <p className={styles.successMsg}>Bienvenue sur HélioBénin</p>
-            <p className={styles.successRedirect}>Redirection en cours…</p>
           </div>
         </div>
       </div>
@@ -83,7 +81,6 @@ export default function Paiement() {
       <div className={styles.content}>
         <div className={styles.card}>
 
-          {/* Logo */}
           <div className={styles.cardLogo}>
             <span className={styles.logoText}>
               <span className={styles.logoHelio}>Hélio</span>
@@ -92,7 +89,6 @@ export default function Paiement() {
           </div>
           <p className={styles.cardSlogan}>Votre guide de dimensionnement solaire</p>
 
-          {/* Montant */}
           <div className={styles.montantRow}>
             <span className={styles.montant}>1 500</span>
             <span className={styles.devise}>FCFA</span>
@@ -101,7 +97,6 @@ export default function Paiement() {
 
           <hr className={styles.sep} />
 
-          {/* Réseau */}
           <p className={styles.reseauTitle}>RÉSEAU DE PAIEMENT</p>
 
           <div className={styles.reseaux}>
@@ -118,7 +113,6 @@ export default function Paiement() {
             ))}
           </div>
 
-          {/* Champ numéro conditionnel */}
           {selectedReseau && (
             <div className={styles.numField}>
               <label htmlFor="numero" className={styles.numLabel}>
@@ -139,7 +133,6 @@ export default function Paiement() {
             </div>
           )}
 
-          {/* Bouton payer */}
           <button
             type="button"
             className={`${styles.btnPayer} ${!canPay ? styles.btnDisabled : ''}`}
@@ -156,7 +149,7 @@ export default function Paiement() {
             )}
           </button>
 
-          <p className={styles.secure}>Paiement sécurisé 🔒</p>
+          <p className={styles.secure}>Paiement sécurisé</p>
         </div>
       </div>
     </div>

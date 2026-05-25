@@ -5,7 +5,7 @@ import vitreImg from "../../assets/images/vitre.png";
 import mtnImg from "../../assets/images/MTN.jpg";
 import moovImg from "../../assets/images/MOOV.png";
 import celtiisImg from "../../assets/images/Celtiis.jpg";
-import styles from "./PaiementTech.module.css";
+import styles from "./Paiement.module.css";
 
 const RESEAUX = [
   { id: "mtn", label: "MTN Money", img: mtnImg, placeholder: "06 97 12 34 56" },
@@ -36,14 +36,12 @@ const FORMULES = [
     label: "Mensuel",
     prix: "25 000",
     sous: "Dimensionnements illimité 1 mois",
-    /*badge: 'POPULAIRE',*/
   },
   {
     id: "annuel",
     label: "Annuel",
     prix: "180 000",
-    sous:  'Dimensionnements illimités 1an',
-    /*badge: 'MEILLEURE OFFRE',*/
+    sous: "Dimensionnements illimités 1an",
   },
 ];
 
@@ -62,7 +60,7 @@ const saveTechnicien = (newData) => {
   );
 };
 
-export default function PaiementTech() {
+export default function Paiement() {
   const navigate = useNavigate();
   const [formule, setFormule] = useState(null);
   const [reseau, setReseau] = useState(null);
@@ -108,7 +106,6 @@ export default function PaiementTech() {
     }, 3000);
   };
 
-  /* ── Écran succès ── */
   if (statut === "success") {
     return (
       <div
@@ -135,7 +132,6 @@ export default function PaiementTech() {
       <div className={styles.overlay} />
       <div className={styles.content}>
         <div className={styles.card}>
-          {/* Logo */}
           <div className={styles.cardLogo}>
             <span className={styles.logoText}>
               <span className={styles.logoHelio}>Hélio</span>
@@ -146,7 +142,6 @@ export default function PaiementTech() {
             Votre guide de dimensionnement solaire
           </p>
 
-          {/* Formules */}
           <p className={styles.reseauTitle}>CHOISISSEZ UNE FORMULE</p>
           <div className={styles.formules}>
             {FORMULES.map((f) => (
@@ -170,7 +165,6 @@ export default function PaiementTech() {
 
           <hr className={styles.sep} />
 
-          {/* Réseau */}
           <p className={styles.reseauTitle}>RÉSEAU DE PAIEMENT</p>
           <div className={styles.reseaux}>
             {RESEAUX.map((r) => (
@@ -186,7 +180,6 @@ export default function PaiementTech() {
             ))}
           </div>
 
-          {/* Champ numéro conditionnel */}
           {selectedReseau && (
             <div className={styles.numField}>
               <label htmlFor="numero" className={styles.numLabel}>
@@ -208,7 +201,6 @@ export default function PaiementTech() {
             </div>
           )}
 
-          {/* Bouton payer */}
           <button
             type="button"
             className={`${styles.btnPayer} ${!canPay ? styles.btnDisabled : ""}`}

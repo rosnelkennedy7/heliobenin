@@ -1,11 +1,24 @@
 import openpyxl
 import os
+import glob
 
-EXCEL_PATH = os.path.join(
-    os.path.dirname(__file__),
-    '..', '..', 'data',
-    'HélioBénin Equipement.xlsx'
-)
+
+def find_excel_equipements() -> str:
+    data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
+    patterns = [
+        os.path.join(data_dir, '*.xlsx'),
+        os.path.join(data_dir, '**/*.xlsx'),
+    ]
+    for pattern in patterns:
+        for f in glob.glob(pattern):
+            name = os.path.basename(f).lower()
+            if 'equipement' in name or 'equipment' in name:
+                print(f"Excel trouvé : {repr(f)}")
+                return f
+    raise FileNotFoundError("Fichier HélioBénin Equipement.xlsx introuvable dans data/")
+
+
+EXCEL_PATH = find_excel_equipements()
 
 
 def _parse_plage(s):

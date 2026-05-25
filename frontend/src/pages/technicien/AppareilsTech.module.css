@@ -198,17 +198,17 @@
   padding: 0.65rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.85);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   white-space: nowrap;
   vertical-align: top;
   display: table-cell;
 }
 
-.thApp { min-width: 200px; }
+.thApp { min-width: 200px; text-align: left; }
 
 .thSub {
   display: block;
@@ -224,6 +224,8 @@
   padding: 0.5rem 0.65rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .tdApp {
@@ -231,6 +233,8 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
   min-width: 200px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .rowError { background: rgba(239, 68, 68, 0.06); }
@@ -246,18 +250,20 @@
 /* ── Inputs dans les cellules ── */
 .cellInput {
   width: 100%;
-  background: rgba(255, 255, 255, 0.07);
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 7px;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.9rem;
   font-family: inherit;
   padding: 0.4rem 0.5rem;
   outline: none;
+  text-align: center;
   transition: border-color 0.15s;
 }
 
 .cellInput:focus { border-color: rgba(245, 158, 11, 0.5); }
+.cellInput::placeholder { color: rgba(255, 255, 255, 0.4); }
 .cellInputError  { border-color: #EF4444 !important; background: rgba(239, 68, 68, 0.08) !important; }
 
 /* Colonnes numériques étroites */
@@ -321,6 +327,7 @@
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .ddPlaceholder {

@@ -10,6 +10,36 @@ from ..moteur.moteur_technicien import (
 router = APIRouter(prefix="/api/calcul/technicien", tags=["calcul-technicien"])
 
 
+def normaliser_panneau(p: dict) -> dict:
+    return {
+        "puissance": p.get("puissance") or p.get("Puissance (Wc)") or 0,
+        "voc":       p.get("voc")       or p.get("Voc (V)")        or 0,
+        "vmp":       p.get("vmp")       or p.get("Vmp (V)")        or 0,
+        "isc":       p.get("isc")       or p.get("Isc (A)")        or 0,
+    }
+
+
+def normaliser_onduleur(o: dict) -> dict:
+    return {
+        "puissance":  o.get("puissance")  or o.get("Puissance (W)")       or 0,
+        "usys":       o.get("usys")       or o.get("Tension système (V)") or 48,
+        "mppt_min":   o.get("mppt_min")   or o.get("MPPT min (V)")        or 60,
+        "mppt_max":   o.get("mppt_max")   or o.get("MPPT max (V)")        or 500,
+        "pv_max":     o.get("pv_max")     or o.get("PV max (W)")          or 9999,
+        "rendement":  o.get("rendement")  or o.get("Rendement (%)")       or 97,
+    }
+
+
+def normaliser_batterie(b: dict) -> dict:
+    return {
+        "capacite":    b.get("capacite")    or b.get("Capacité (Ah)") or 200,
+        "tension":     b.get("tension")     or b.get("Tension (V)")   or 48,
+        "dod":         b.get("dod")         or b.get("DoD (%)")       or 80,
+        "rendement":   b.get("rendement")   or b.get("Rendement (%)") or 95,
+        "technologie": b.get("technologie") or b.get("Technologie")   or "",
+    }
+
+
 class Appareil(BaseModel):
     nom: str
     puissance: float
@@ -90,13 +120,13 @@ def calcul_etape1(params: ParamsEtape1):
 @router.post("/etape2")
 def calcul_etape2(params: ParamsEtape2):
     equipements = {
-        "panneau": params.panneau.model_dump(),
+        "panneau": normaliser_panneau(params.panneau.model_dump()),
         "type_regulateur": params.type_regulateur,
     }
     if params.onduleur:
-        equipements["onduleur"] = params.onduleur.model_dump()
+        equipements["onduleur"] = normaliser_onduleur(params.onduleur.model_dump())
     if params.batterie:
-        equipements["batterie"] = params.batterie.model_dump()
+        equipements["batterie"] = normaliser_batterie(params.batterie.model_dump())
     if params.usys:
         equipements["usys"] = params.usys
     if params.vmax_mppt:
@@ -112,7 +142,7 @@ def calcul_etape2(params: ParamsEtape2):
 @router.post("/etape3")
 def calcul_etape3(params: ParamsEtape3):
     equipements = {
-        "panneau": params.panneau.model_dump(),
+        "panneau": normaliser_panneau(params.panneau.model_dump()),
         "type_regulateur": params.type_regulateur,
     }
     return calculer_etape3(

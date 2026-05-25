@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { saveParticulier } from '../../utils/storage'
+import { saveParticulier, getCurrentModeParticulier } from '../../utils/storage'
 import { Search, MapPin } from 'lucide-react'
 import Navbar from '../../components/Navbar'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
@@ -62,16 +62,13 @@ function MapFlyTo({ target }) {
   return null
 }
 
-/* ── Stepper 4 étapes ── */
+/* ── Stepper 3 étapes ── */
 function Stepper({ active }) {
-  const steps = ['Localisation', 'Appareils', 'Résultats', 'Contact']
+  const steps = ['Localisation', 'Appareils', 'Résultats']
   return (
     <div className={styles.stepper}>
       {steps.map((step, i) => (
         <div key={step} className={styles.stepWrap}>
-          {i > 0 && (
-            <div className={`${styles.stepLine} ${i <= active ? styles.stepLineDone : ''}`} />
-          )}
           <div className={styles.stepItem}>
             <div className={`
               ${styles.stepDot}

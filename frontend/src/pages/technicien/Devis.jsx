@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar'
 import AvatarTech from '../../components/AvatarTech'
 import vitreImg from '../../assets/images/vitre.png'
 import { supabase } from '../../utils/supabaseClient'
+import { getTechnicien, saveTechnicien, getUserTechnicien } from '../../utils/storage'
 import s from './Devis.module.css'
 
 const STEPS = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
@@ -129,8 +130,8 @@ function buildLignes(etude) {
 export default function Devis() {
   const navigate = useNavigate()
 
-  const techStorage = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
-  const user        = JSON.parse(localStorage.getItem('helio_user') || '{}')
+  const techStorage = getTechnicien()
+  const user        = getUserTechnicien()
   const etude       = techStorage.etude
   const sv          = techStorage.devis   // valeurs sauvegardées
 
@@ -145,16 +146,18 @@ export default function Devis() {
   const today   = new Date()
   const dateStr = `${String(today.getDate()).padStart(2,'0')} / ${String(today.getMonth()+1).padStart(2,'0')} / ${today.getFullYear()}`
 
-  const [client,       setClient]       = useState(sv?.client || { nom: '', telephone: '', email: '', localisation: '' })
+  const [client,       setClient]       = useState(sv?.client || { civilite: 'Mr', nom: '', telephone: '', email: '', localisation: '' })
+  const [tech,         setTech]         = useState(sv?.tech   || { civilite: 'Mr', nom: '', entreprise: '', specialite: '', ifu: '', rccm: '', whatsapp: '', email: '', localisation: '' })
   const [clientErrors, setClientErrors] = useState({})
   const [lignes,       setLignes]       = useState(() => sv?.lignes || buildLignes(etude))
   const [tva,          setTva]          = useState(sv?.tva    || false)
+  const [ligneExtra,   setLigneExtra]   = useState(sv?.ligneExtra || { label: '', montant: 0 })
   const [notes,        setNotes]        = useState(sv?.notes  || '')
   const [toast,        setToast]        = useState(null)
 
   const sousTotal    = lignes.reduce((a, l) => a + (l.qty || 0) * (l.pu || 0), 0)
   const montantTva   = tva ? sousTotal * 0.18 : 0
-  const totalGeneral = sousTotal + montantTva
+  const totalGeneral = sousTotal + (ligneExtra.montant || 0) + montantTva
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3200) }
 
@@ -191,12 +194,11 @@ export default function Devis() {
 
   const persist = () => {
     const data = {
-      numero: numDevis, client, lignes, tva, notes,
+      numero: numDevis, client, tech, lignes, ligneExtra, tva, notes,
       type_entete: typeEntete, logoDataUrl, enteteDataUrl,
       sous_total: sousTotal, montant_tva: montantTva, total: totalGeneral,
     }
-    const base = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
-    localStorage.setItem('heliobenin_technicien', JSON.stringify({ ...base, devis: data }))
+    saveTechnicien({ devis: data })
     return data
   }
 
@@ -221,25 +223,33 @@ export default function Devis() {
 
   const handlePrint = () => {
     const errs = {}
-    if (!client.nom?.trim())       errs.nom       = 'Requis'
-    if (!client.telephone?.trim()) errs.telephone = 'Requis'
+    if (!tech.nom?.trim())
+      errs.techNom = 'Requis'
+    if (!tech.whatsapp?.trim() && !tech.email?.trim())
+      errs.techContact = 'WhatsApp ou Email requis'
+    if (!client.nom?.trim())
+      errs.clientNom = 'Requis'
+    if (!client.telephone?.trim())
+      errs.clientTel = 'Requis'
     if (Object.keys(errs).length > 0) {
       setClientErrors(errs)
+      showToast('❌ Remplissez les champs obligatoires')
       return
     }
     persist()
-    window.print()
+    showToast('💡 Conseil : Dans les options d\'impression, décochez "En-têtes et pieds de page" pour un rendu optimal')
+    setTimeout(() => window.print(), 3400)
   }
 
   const handleSuivant = () => { persist(); navigate('/rapport-tech') }
-
-  const techName = [user.prenom, user.nom].filter(Boolean).join(' ') || '—'
 
   return (
     <div className={s.fondPage} style={{ backgroundImage: `url(${vitreImg})` }}>
       <div className={s.overlay} />
 
-      <Navbar stepper={<Stepper active={3} />} avatar={<AvatarTech />} />
+      <div className={s.header}>
+        <Navbar stepper={<Stepper active={3} />} avatar={<AvatarTech />} />
+      </div>
 
       {toast && <div className={s.toast}>{toast}</div>}
 
@@ -298,14 +308,15 @@ export default function Devis() {
               </>
             )}
 
-            <div className={s.enteteBottom}>
-              <div className={s.devisTitle}>
-                Devis N°&nbsp;<input
-                  className={s.numInput}
-                  value={numDevis}
-                  onChange={e => setNumDevis(e.target.value)}
-                />
-              </div>
+          </div>
+
+          <div className={s.enteteBottom}>
+            <div className={s.devisTitle}>
+              Devis N°&nbsp;<input
+                className={s.numInput}
+                value={numDevis}
+                onChange={e => setNumDevis(e.target.value)}
+              />
             </div>
           </div>
 
@@ -313,47 +324,63 @@ export default function Devis() {
           <div className={s.techClient}>
             <div className={s.partyCol}>
               <div className={s.partyLabel}>Technicien</div>
-              <div className={s.partyName}>{techName}</div>
-              {user.entreprise && <p className={s.partyInfo}>{user.entreprise}</p>}
-              {user.ifu        && <p className={s.partyInfo}>IFU : {user.ifu}</p>}
-              {user.rccm       && <p className={s.partyInfo}>RCCM : {user.rccm}</p>}
-              {user.specialite && <p className={s.partyInfo}>{user.specialite}</p>}
-              {user.whatsapp   && <p className={s.partyInfo}>+229 {user.whatsapp}</p>}
-              {user.email      && <p className={s.partyInfo}>{user.email}</p>}
+              <div className={!tech.nom?.trim() ? s.hidePrint : ''} style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <select className={s.civiliteSelect} value={tech.civilite}
+                  onChange={e => setTech(t => ({ ...t, civilite: e.target.value }))}>
+                  <option value="Mr">Mr</option>
+                  <option value="Mme">Mme</option>
+                  <option value="Mlle">Mlle</option>
+                </select>
+                <span className={s.civilitePrint}>{tech.civilite}</span>
+                <input className={`${s.clientInput}${clientErrors.techNom ? ' ' + s.clientInputErr : ''}`}
+                  placeholder="Nom Prénom *" value={tech.nom} required
+                  onChange={e => { setTech(t => ({ ...t, nom: e.target.value })); setClientErrors(x => ({ ...x, techNom: undefined })) }} />
+              </div>
+              <input className={`${s.clientInput}${!tech.entreprise?.trim()  ? ' ' + s.hidePrint : ''}`} placeholder="Entreprise"
+                value={tech.entreprise}  onChange={e => setTech(t => ({ ...t, entreprise: e.target.value }))} />
+              <input className={`${s.clientInput}${!tech.specialite?.trim()  ? ' ' + s.hidePrint : ''}`} placeholder="Spécialité"
+                value={tech.specialite}  onChange={e => setTech(t => ({ ...t, specialite: e.target.value }))} />
+              <input className={`${s.clientInput}${!tech.ifu?.trim()         ? ' ' + s.hidePrint : ''}`} placeholder="IFU"
+                value={tech.ifu}         onChange={e => setTech(t => ({ ...t, ifu: e.target.value }))} />
+              <input className={`${s.clientInput}${!tech.rccm?.trim()        ? ' ' + s.hidePrint : ''}`} placeholder="RCCM"
+                value={tech.rccm}        onChange={e => setTech(t => ({ ...t, rccm: e.target.value }))} />
+              <input className={`${s.clientInput}${clientErrors.techContact ? ' ' + s.clientInputErr : ''}${!tech.whatsapp?.trim() ? ' ' + s.hidePrint : ''}`}
+                placeholder="WhatsApp (+229) *" value={tech.whatsapp}
+                onChange={e => { setTech(t => ({ ...t, whatsapp: e.target.value })); setClientErrors(x => ({ ...x, techContact: undefined })) }} />
+              <input className={`${s.clientInput}${clientErrors.techContact ? ' ' + s.clientInputErr : ''}${!tech.email?.trim() ? ' ' + s.hidePrint : ''}`}
+                placeholder="Email *" value={tech.email}
+                onChange={e => { setTech(t => ({ ...t, email: e.target.value })); setClientErrors(x => ({ ...x, techContact: undefined })) }} />
+              <input className={`${s.clientInput}${!tech.localisation?.trim() ? ' ' + s.hidePrint : ''}`} placeholder="Localisation"
+                value={tech.localisation} onChange={e => setTech(t => ({ ...t, localisation: e.target.value }))} />
             </div>
 
             <div className={s.partyCol}>
               <div className={s.partyLabel}>Client</div>
+              <div className={!client.nom?.trim() ? s.hidePrint : ''} style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <select className={s.civiliteSelect} value={client.civilite}
+                  onChange={e => setClient(c => ({ ...c, civilite: e.target.value }))}>
+                  <option value="Mr">Mr</option>
+                  <option value="Mme">Mme</option>
+                  <option value="Mlle">Mlle</option>
+                </select>
+                <span className={s.civilitePrint}>{client.civilite}</span>
+                <input className={`${s.clientInput}${clientErrors.clientNom ? ' ' + s.clientInputErr : ''}`}
+                  placeholder="Nom Prénom *" value={client.nom} required
+                  onChange={e => { setClient(c => ({ ...c, nom: e.target.value })); setClientErrors(x => ({ ...x, clientNom: undefined })) }} />
+              </div>
               <input
-                className={`${s.clientInput} ${clientErrors.nom ? s.clientInputErr : ''}`}
-                placeholder="Nom Prénom *"
-                value={client.nom}
-                onChange={e => {
-                  setClient(c => ({ ...c, nom: e.target.value }))
-                  setClientErrors(x => ({ ...x, nom: undefined }))
-                }}
+                className={`${s.clientInput}${clientErrors.clientTel ? ' ' + s.clientInputErr : ''}${!client.telephone?.trim() ? ' ' + s.hidePrint : ''}`}
+                placeholder="Téléphone *" type="tel" value={client.telephone}
+                onChange={e => { setClient(c => ({ ...c, telephone: e.target.value })); setClientErrors(x => ({ ...x, clientTel: undefined })) }}
               />
               <input
-                className={`${s.clientInput} ${clientErrors.telephone ? s.clientInputErr : ''}`}
-                placeholder="Téléphone *"
-                type="tel"
-                value={client.telephone}
-                onChange={e => {
-                  setClient(c => ({ ...c, telephone: e.target.value }))
-                  setClientErrors(x => ({ ...x, telephone: undefined }))
-                }}
-              />
-              <input
-                className={s.clientInput}
-                placeholder="Email"
-                type="email"
-                value={client.email}
+                className={`${s.clientInput}${!client.email?.trim() ? ' ' + s.hidePrint : ''}`}
+                placeholder="Email" type="email" value={client.email}
                 onChange={e => setClient(c => ({ ...c, email: e.target.value }))}
               />
               <input
-                className={s.clientInput}
-                placeholder="Localisation"
-                value={client.localisation}
+                className={`${s.clientInput}${!client.localisation?.trim() ? ' ' + s.hidePrint : ''}`}
+                placeholder="Localisation" value={client.localisation}
                 onChange={e => setClient(c => ({ ...c, localisation: e.target.value }))}
               />
             </div>
@@ -428,8 +455,27 @@ export default function Devis() {
                   <td className={s.totLabel}>Sous-total</td>
                   <td className={s.totVal}>{fmt(sousTotal)} FCFA</td>
                 </tr>
-                {tva && (
-                <tr>
+                <tr className={!ligneExtra.label?.trim() ? s.hidePrint : ''}>
+                  <td className={s.totLabel}>
+                    <input
+                      className={s.extraLabelInput}
+                      placeholder="Main d'œuvre, déplacement..."
+                      value={ligneExtra.label}
+                      onChange={e => setLigneExtra(l => ({ ...l, label: e.target.value }))}
+                    />
+                  </td>
+                  <td className={s.totVal} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
+                    <input
+                      className={s.extraMontantInput}
+                      type="number" min={0}
+                      placeholder="0"
+                      value={ligneExtra.montant}
+                      onChange={e => setLigneExtra(l => ({ ...l, montant: +e.target.value }))}
+                    />
+                    <span>FCFA</span>
+                  </td>
+                </tr>
+                <tr className={!tva ? s.hidePrint : ''}>
                   <td className={s.totLabel}>
                     <label className={s.tvaLabel}>
                       <input
@@ -442,10 +488,9 @@ export default function Devis() {
                     </label>
                   </td>
                   <td className={s.totVal}>
-                    {fmt(montantTva)} FCFA
+                    {tva ? `${fmt(montantTva)} FCFA` : '—'}
                   </td>
                 </tr>
-                )}
                 <tr className={s.totTotalRow}>
                   <td className={s.totLabel}>Total général</td>
                   <td className={`${s.totVal} ${s.totValOrange}`}>
@@ -457,8 +502,7 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 5 — Notes ════ */}
-          {notes.trim() !== '' && (
-          <div className={s.sec5}>
+          <div className={`${s.sec5}${!notes.trim() ? ' ' + s.hidePrint : ''}`}>
             <div className={s.notesLabel}>Notes / Conditions</div>
             <textarea
               className={s.notes}
@@ -467,20 +511,19 @@ export default function Devis() {
               placeholder="Acompte de 50% à la commande. Pose non incluse..."
             />
           </div>
-          )}
 
           {/* ════ Section 6 — Signatures ════ */}
           <div className={s.signatures}>
             <div className={s.signatureCol}>
               <div className={s.signLabel}>Signature du technicien</div>
               <div className={s.signZone} />
-              <div className={s.signSub}>Nom : {techName}</div>
-              <div className={s.signSub}>Date : _______________</div>
+              <div className={s.signSub}>Nom : {tech.nom ? `${tech.civilite} ${tech.nom}` : '_______________'}</div>
+              <div className={s.signSub}>Date : {dateStr}</div>
             </div>
             <div className={s.signatureCol}>
               <div className={s.signLabel}>Signature du client</div>
               <div className={s.signZone} />
-              <div className={s.signSub}>Nom : {client.nom || '_______________'}</div>
+              <div className={s.signSub}>Nom : {client.nom ? `${client.civilite} ${client.nom}` : '_______________'}</div>
               <div className={s.signSub}>Date : {dateStr}</div>
             </div>
           </div>
@@ -498,6 +541,7 @@ export default function Devis() {
             </div>
           </div>
 
+          <div className={s.pageNum}>Page 1/1</div>
         </div>
 
         {/* Navigation */}

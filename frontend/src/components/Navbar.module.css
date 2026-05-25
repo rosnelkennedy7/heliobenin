@@ -76,3 +76,11 @@
   .logoText { font-size: 1.3rem; }
   .flag { width: 36px; height: 24px; }
 }
+
+/* -- Mobile -- */
+@media (max-width: 480px) {
+  .stepper { gap: 0.2rem !important; }
+  .stepDot { width: 24px !important; height: 24px !important; font-size: 0.72rem !important; }
+  .stepLabel { font-size: 0.6rem !important; }
+  .navLogo { font-size: 0.85rem !important; }
+}

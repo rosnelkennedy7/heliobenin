@@ -18,6 +18,12 @@ class Settings(BaseSettings):
         "https://*.vercel.app",
     ]
 
+    # Admin
+    ADMIN_EMAIL: str = "admin@heliobenin.com"
+    ADMIN_PASSWORD: str = "HelioAdmin2024!"
+    ADMIN_JWT_SECRET: str = "heliobenin-admin-secret-key-2024"
+    ADMIN_JWT_EXPIRE_HOURS: int = 24
+
     # KKiaPay
     KKIAPAY_PUBLIC_KEY: str = ""
     KKIAPAY_PRIVATE_KEY: str = ""

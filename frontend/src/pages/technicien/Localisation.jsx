@@ -46,13 +46,11 @@ const MARKER_ICON = L.divIcon({
   iconAnchor: [12, 32],
 })
 
-/* ── Double-clic sur la carte ── */
 function MapDblClickHandler({ onDblClick }) {
   useMapEvents({ dblclick: (e) => onDblClick(e.latlng) })
   return null
 }
 
-/* ── Vol vers une position ── */
 function MapFlyTo({ target }) {
   const map = useMap()
   useEffect(() => {
@@ -61,7 +59,6 @@ function MapFlyTo({ target }) {
   return null
 }
 
-/* ── Stepper 5 étapes ── */
 function Stepper({ active }) {
   const steps = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
   return (
@@ -89,16 +86,12 @@ function Stepper({ active }) {
   )
 }
 
-/* ── Sauvegarde technicien ── */
 const saveTechnicien = (newData) => {
   const existing = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
   localStorage.setItem('heliobenin_technicien', JSON.stringify({ ...existing, ...newData }))
 }
 
-/* ══════════════════════════════════════
-   Page principale
-══════════════════════════════════════ */
-export default function LocalisationTech() {
+export default function Localisation() {
   const navigate = useNavigate()
 
   const [position,     setPosition]     = useState(null)
@@ -111,7 +104,6 @@ export default function LocalisationTech() {
   const [showResults,  setShowResults]  = useState(false)
   const [flyTarget,    setFlyTarget]    = useState(null)
 
-  /* ── NASA POWER — climatologie mensuelle ── */
   const fetchIrradiation = useCallback(async (lat, lng) => {
     setLoadingIrr(true)
     setIrradiation(null)
@@ -138,7 +130,6 @@ export default function LocalisationTech() {
     }
   }, [])
 
-  /* ── Nominatim reverse geocode → nom de la localité ── */
   const fetchLocality = useCallback(async (lat, lng) => {
     try {
       const res  = await fetch(
@@ -162,7 +153,6 @@ export default function LocalisationTech() {
     }
   }, [])
 
-  /* ── Restaurer depuis localStorage ── */
   useEffect(() => {
     const sv = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
     const loc = sv.localisation
@@ -175,7 +165,6 @@ export default function LocalisationTech() {
     setFlyTarget({ latlng: [loc.latitude, loc.longitude], zoom: 12 })
   }, [])
 
-  /* ── Double-clic sur la carte ── */
   const handleMapDblClick = useCallback(({ lat, lng }) => {
     if (!isInBenin(lat, lng)) { setOutOfBounds(true); return }
     setOutOfBounds(false)
@@ -184,7 +173,6 @@ export default function LocalisationTech() {
     fetchLocality(lat, lng)
   }, [fetchIrradiation, fetchLocality])
 
-  /* ── Recherche Nominatim (limité au Bénin) ── */
   const handleSearch = async () => {
     if (!search.trim()) return
     try {
@@ -220,14 +208,12 @@ export default function LocalisationTech() {
     setFlyTarget({ latlng: [latlng.lat, latlng.lng], zoom: 12 })
   }
 
-  /* ── Réinitialiser ── */
   const handleReset = () => {
     setPosition(null); setLocality(null); setIrradiation(null)
     setOutOfBounds(false); setSearch(''); setSearchResults([])
     setShowResults(false); setFlyTarget(null)
   }
 
-  /* ── Suivant ── */
   const handleSuivant = () => {
     if (!position) return
     saveTechnicien({
@@ -249,7 +235,6 @@ export default function LocalisationTech() {
 
       <div className={styles.inner}>
 
-        {/* Barre de recherche */}
         <div className={styles.searchRow}>
           <div className={styles.searchBox}>
             <Search size={17} color="#F59E0B" style={{ flexShrink: 0 }} />
@@ -267,7 +252,6 @@ export default function LocalisationTech() {
           </button>
         </div>
 
-        {/* Dropdown résultats */}
         {showResults && searchResults.length > 0 && (
           <div className={styles.dropdown}>
             {searchResults.map(r => (
@@ -283,7 +267,6 @@ export default function LocalisationTech() {
           </div>
         )}
 
-        {/* Carte Leaflet — double-clic pour sélectionner */}
         <div className={styles.mapWrap}>
           <MapContainer
             center={BENIN_CENTER}
@@ -308,7 +291,6 @@ export default function LocalisationTech() {
           </MapContainer>
         </div>
 
-        {/* Messages sous la carte */}
         {outOfBounds && (
           <div className={styles.outOfBounds}>
             ⚠️ Veuillez sélectionner un point au Bénin
@@ -320,7 +302,6 @@ export default function LocalisationTech() {
           </p>
         )}
 
-        {/* ── 4 cartes info ── */}
         <div className={styles.infoSection}>
           <div className={styles.localityCard}>
             <MapPin size={16} color="#F59E0B" style={{ flexShrink: 0 }} />
@@ -362,7 +343,6 @@ export default function LocalisationTech() {
           </div>
         </div>
 
-        {/* Navigation bas */}
         <div className={styles.bottomNav}>
           <button className={styles.btnRetour} onClick={() => navigate('/paiement-tech')}>
             ‹ Retour

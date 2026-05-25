@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "dev:admin": "vite --config vite.admin.config.js",
+    "build:admin": "vite build --config vite.admin.config.js",
+    "preview:admin": "vite preview --config vite.admin.config.js --outDir dist-admin",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {

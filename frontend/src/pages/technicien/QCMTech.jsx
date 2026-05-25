@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, XCircle } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.png'
 import AvatarTech from '../../components/AvatarTech'
+import { saveTechnicien } from '../../utils/storage'
 import styles from './QCMTech.module.css'
 
 const questions = [
@@ -76,128 +76,184 @@ const questions = [
 
 export default function QCMTech() {
   const navigate = useNavigate()
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [selected,        setSelected]        = useState(null)
-  const [score,           setScore]           = useState(0)
-  const [done,            setDone]            = useState(false)
-  const [finalScore,      setFinalScore]      = useState(0)
+  const [reponses,  setReponses]  = useState({})
+  const [submitted, setSubmitted] = useState(false)
+  const [score,     setScore]     = useState(0)
 
-  const q        = questions[currentQuestion]
-  const isLast   = currentQuestion === questions.length - 1
-  const progress = ((currentQuestion + 1) / questions.length) * 100
+  const toutesRepondues = Object.keys(reponses).length === questions.length
 
-  const handleSelect = (idx) => {
-    if (selected !== null) return
-    setSelected(idx)
+  const handleSelect = (qId, optIdx) => {
+    if (submitted) return
+    setReponses(prev => ({ ...prev, [qId]: optIdx }))
   }
 
-  const handleNext = () => {
-    if (selected === null) return
-    const newScore = selected === q.correct ? score + 1 : score
-    if (isLast) {
-      setFinalScore(newScore)
-      setDone(true)
-    } else {
-      setScore(newScore)
-      setCurrentQuestion(prev => prev + 1)
-      setSelected(null)
+  const handleValider = () => {
+    if (!toutesRepondues) return
+    let s = 0
+    questions.forEach(q => {
+      if (reponses[q.id] === q.correct) s++
+    })
+    setScore(s)
+    setSubmitted(true)
+    if (s >= 4) {
+      saveTechnicien({ qcm_valide: true })
+      setTimeout(() => navigate('/paiement-tech'), 2000)
     }
   }
 
   const handleRetry = () => {
-    setCurrentQuestion(0)
+    setReponses({})
+    setSubmitted(false)
     setScore(0)
-    setSelected(null)
-    setDone(false)
-    setFinalScore(0)
   }
 
-  /* ── Écran résultat ── */
-  if (done) {
-    const success = finalScore >= 4
-    return (
-      <div className={styles.page} style={{ backgroundImage: `url(${vitreImg})` }}>
-        <div className={styles.overlay} />
-        <AvatarTech />
-        <div className={styles.content}>
-          <div className={`${styles.card} ${styles.resultCard}`}>
+  return (
+    <div className={styles.page} style={{ backgroundImage: `url(${vitreImg})` }}>
+      <div className={styles.overlay} />
+      <AvatarTech />
+      <div className={styles.content}>
+
+        {/* Conteneur unique centré */}
+        <div style={{
+          width: '100%',
+          maxWidth: 600,
+          margin: '0 auto',
+          padding: '0 1rem 2rem',
+        }}>
+
+          {/* Logo + titre */}
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem', paddingTop: '1rem' }}>
             <div className={styles.cardLogo}>
               <span className={styles.logoText}>
                 <span className={styles.logoHelio}>Hélio</span>
                 <span className={styles.logoBenin}>Bénin</span>
               </span>
             </div>
-            {success
-              ? <CheckCircle size={72} color="#22c55e" strokeWidth={1.5} className={styles.resultIcon} />
-              : <XCircle    size={72} color="#ef4444" strokeWidth={1.5} className={styles.resultIcon} />
-            }
-            <h2 className={success ? styles.resultTitleSuccess : styles.resultTitleFail}>
-              {success ? 'Test validé !' : 'Score insuffisant'}
-            </h2>
-            <p className={styles.resultScore}>
-              Vous avez obtenu <strong>{finalScore}/6</strong> — Score minimum requis : 4/6
+            <p className={styles.cardSlogan}>
+              Test de qualification : répondez aux 6 questions
             </p>
-            {!success && (
-              <p className={styles.resultHint}>Vous pouvez repasser le test.</p>
-            )}
-            <button
-              className={styles.btnNext}
-              onClick={success ? () => navigate('/paiement-tech') : handleRetry}
-            >
-              {success ? 'Continuer vers le paiement' : 'Repasser le test'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  /* ── Écran question ── */
-  return (
-    <div className={styles.page} style={{ backgroundImage: `url(${vitreImg})` }}>
-      <div className={styles.overlay} />
-      <AvatarTech />
-      <div className={styles.content}>
-        <div className={styles.card}>
-
-          {/* Logo */}
-          <div className={styles.cardLogo}>
-            <span className={styles.logoText}>
-              <span className={styles.logoHelio}>Hélio</span>
-              <span className={styles.logoBenin}>Bénin</span>
-            </span>
-          </div>
-          <p className={styles.cardSlogan}>Votre guide de dimensionnement solaire</p>
-
-          {/* Progression */}
-          <p className={styles.progressLabel}>Question {currentQuestion + 1} / {questions.length}</p>
-          <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+              Score minimum requis : 4/6
+            </p>
           </div>
 
-          {/* Question */}
-          <p className={styles.questionText}>{q.question}</p>
+          {/* Bandeau résultat */}
+          {submitted && (
+            <div style={{
+              background: score >= 4 ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+              border: score >= 4 ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(239,68,68,0.4)',
+              borderRadius: 10,
+              padding: '1rem',
+              textAlign: 'center',
+              marginBottom: '1.5rem',
+              color: score >= 4 ? '#22C55E' : '#EF4444',
+              fontWeight: 600,
+            }}>
+              {score >= 4
+                ? `✅ Félicitations ! ${score}/6 — Redirection en cours…`
+                : `❌ Score insuffisant : ${score}/6 (minimum 4/6 requis)`}
+              {score < 4 && (
+                <>
+                  <br />
+                  <button
+                    onClick={handleRetry}
+                    style={{
+                      marginTop: '0.8rem',
+                      padding: '0.5rem 1.5rem',
+                      background: '#EF4444',
+                      border: 'none',
+                      borderRadius: 8,
+                      color: '#fff',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    Recommencer
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
-          {/* Options */}
-          <div className={styles.options}>
-            {q.options.map((opt, idx) => (
-              <button
-                key={idx}
-                className={`${styles.option} ${selected === idx ? styles.optionSelected : ''}`}
-                onClick={() => handleSelect(idx)}
+          {/* Questions — dans un seul bloc */}
+          <div style={{
+            background: 'rgba(15,23,42,0.85)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 16,
+            overflow: 'hidden',
+            marginBottom: '1rem',
+          }}>
+            {questions.map((q, qi) => (
+              <div
+                key={q.id}
+                style={{
+                  padding: '1.2rem 1.5rem',
+                  borderBottom: qi < questions.length - 1
+                    ? '1px solid rgba(255,255,255,0.06)'
+                    : 'none',
+                  background: submitted
+                    ? reponses[q.id] === q.correct
+                      ? 'rgba(34,197,94,0.05)'
+                      : 'rgba(239,68,68,0.05)'
+                    : 'transparent',
+                }}
               >
-                <span className={`${styles.optionCircle} ${selected === idx ? styles.optionCircleSelected : ''}`} />
-                <span className={styles.optionText}>{opt}</span>
-              </button>
+                <p style={{
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '0.92rem',
+                  marginBottom: '0.8rem',
+                  lineHeight: 1.5,
+                }}>
+                  {qi + 1}. {q.question}
+                </p>
+
+                <div className={styles.options}>
+                  {q.options.map((opt, oi) => {
+                    const isSelected = reponses[q.id] === oi
+                    const isCorrect  = submitted && oi === q.correct
+                    const isWrong    = submitted && isSelected && oi !== q.correct
+
+                    return (
+                      <button
+                        key={oi}
+                        className={[
+                          styles.option,
+                          isSelected && !submitted ? styles.optionSelected : '',
+                          isCorrect               ? styles.optionCorrect  : '',
+                          isWrong                 ? styles.optionWrong    : '',
+                        ].join(' ')}
+                        onClick={() => handleSelect(q.id, oi)}
+                      >
+                        <span className={`${styles.optionCircle} ${isSelected ? styles.optionCircleSelected : ''}`} />
+                        <span className={styles.optionText}>{opt}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             ))}
           </div>
 
-          {/* Bouton suivant — apparaît après sélection */}
-          {selected !== null && (
-            <button className={styles.btnNext} onClick={handleNext}>
-              {isLast ? 'Voir le résultat' : 'Suivant →'}
+          {/* Bouton Valider */}
+          {!submitted && (
+            <button
+              className={styles.btnNext}
+              onClick={handleValider}
+              disabled={!toutesRepondues}
+              style={{
+                opacity: toutesRepondues ? 1 : 0.4,
+                cursor: toutesRepondues ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {toutesRepondues
+                ? 'Valider mes réponses ✓'
+                : `Répondez à toutes les questions (${Object.keys(reponses).length}/6)`}
             </button>
           )}
+
         </div>
       </div>
     </div>

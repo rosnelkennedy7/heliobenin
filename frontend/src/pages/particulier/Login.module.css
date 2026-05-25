@@ -237,3 +237,10 @@
   .card { padding: 1.8rem 1.25rem; }
   .title { font-size: 2rem; }
 }
+
+/* -- Mobile -- */
+@media (max-width: 480px) {
+  .card { padding: 1.25rem !important; border-radius: 8px !important; }
+  .btnPrimary, .btnBiometric { width: 100% !important; font-size: 0.9rem !important; }
+  input { font-size: 16px !important; min-height: 44px !important; }
+}

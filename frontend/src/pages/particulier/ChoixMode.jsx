@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Wallet, Calculator } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.png'
 import Avatar from '../../components/Avatar'
-import { saveParticulier } from '../../utils/storage'
+import { saveParticulier, setCurrentModeParticulier } from '../../utils/storage'
 import styles from './ChoixMode.module.css'
 
 export default function ChoixMode() {
@@ -12,6 +12,7 @@ export default function ChoixMode() {
 
   const handleContinuer = () => {
     if (!mode) return
+    setCurrentModeParticulier(mode)
     saveParticulier({ mode })
     navigate('/qcm')
   }

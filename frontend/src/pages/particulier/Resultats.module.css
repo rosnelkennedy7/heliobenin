@@ -39,8 +39,6 @@
   display: flex;
   align-items: center;
 }
-.stepLine { display: none; }
-.stepLineDone { display: none; }
 .stepItem {
   display: flex;
   flex-direction: column;
@@ -267,6 +265,97 @@
 .tfLabelTotal { text-align: right; color: rgba(255, 255, 255, 0.7); }
 .tfValTotal   { text-align: right; color: #F59E0B; font-size: 0.95rem; }
 
+/* ── Carte budget ── */
+.budgetCard {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.budgetRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.budgetVal {
+  font-weight: 700;
+  color: #fff;
+}
+
+.coutVal {
+  font-weight: 700;
+  color: #F59E0B;
+}
+
+.budgetDiff {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.diffVert  { background: rgba(34, 197, 94, 0.08);  color: #22C55E; }
+.diffRouge { background: rgba(239, 68, 68, 0.08);  color: #EF4444; }
+
+/* ── Budget insuffisant ── */
+.insuffCard {
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  padding: 1.5rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  text-align: center;
+}
+
+.insuffCard p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.insuffBtns {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btnAugmenter {
+  padding: 0.6rem 1.2rem;
+  background: #F59E0B;
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.btnAugmenter:hover { background: #D97706; }
+
+.btnReduire {
+  padding: 0.6rem 1.2rem;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btnReduire:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.5); }
+
 /* ── Disclaimer ── */
 .disclaimer {
   background: rgba(245, 158, 11, 0.06);
@@ -386,4 +475,22 @@
   .sysBlock { flex-direction: row; justify-content: space-between; width: 100%; }
   .th, .td { padding: 0.4rem 0.5rem; font-size: 0.78rem; }
   .thDes { min-width: 150px; }
+}
+
+/* -- Mobile -- */
+@media (max-width: 480px) {
+  .inner { padding: 0.75rem !important; }
+  .tableWrap { overflow-x: scroll !important; }
+  .table { min-width: 500px !important; }
+  .contactCard { padding: 1rem !important; }
+  .contactBtns { flex-direction: column !important; }
+  .btnWa, .btnMail { width: 100% !important; }
+  .btnSuivant, .btnRetour { width: 100% !important; font-size: 0.9rem !important; }
+  .bottomNav { flex-direction: column !important; gap: 0.5rem !important; }
+  input, select { font-size: 16px !important; min-height: 44px !important; }
+  .card, .section { padding: 0.75rem !important; border-radius: 8px !important; }
+}
+/* -- Tablette -- */
+@media (max-width: 768px) {
+  .tableWrap { overflow-x: auto !important; }
 }

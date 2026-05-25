@@ -262,17 +262,17 @@
   padding: 0.65rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.85);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   white-space: nowrap;
   vertical-align: top;
   display: table-cell;
 }
 
-.thApp { min-width: 210px; }
+.thApp { min-width: 210px; text-align: left; }
 
 .thSub {
   display: block;
@@ -288,6 +288,8 @@
   padding: 0.5rem 0.65rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .tdApp {
@@ -295,9 +297,12 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
   min-width: 210px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-.rowError { background: rgba(239, 68, 68, 0.06); }
+.rowError     { background: rgba(239, 68, 68, 0.06); }
+.rowHighlight { background: rgba(245, 158, 11, 0.10); }
 
 .emptyMsg {
   text-align: center;
@@ -310,18 +315,20 @@
 /* ── Inputs dans les cellules ── */
 .cellInput {
   width: 100%;
-  background: rgba(255, 255, 255, 0.07);
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 7px;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.9rem;
   font-family: inherit;
   padding: 0.4rem 0.5rem;
   outline: none;
+  text-align: center;
   transition: border-color 0.15s;
 }
 
 .cellInput:focus { border-color: rgba(245, 158, 11, 0.5); }
+.cellInput::placeholder { color: rgba(255, 255, 255, 0.4); }
 .cellInputError  { border-color: #EF4444 !important; background: rgba(239, 68, 68, 0.08) !important; }
 .cellNum         { max-width: 72px; }
 
@@ -338,50 +345,15 @@
   white-space: nowrap;
 }
 
-/* ── Dropdown trigger dans la cellule ── */
-.ddTrigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.42rem 0.6rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 7px;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.9rem;
-  font-family: inherit;
-  cursor: pointer;
-  min-height: 34px;
-  transition: border-color 0.15s;
-  text-align: left;
-}
-
-.ddTrigger:hover      { border-color: rgba(255, 255, 255, 0.3); }
-.ddTriggerOpen        { border-color: rgba(245, 158, 11, 0.6); }
-
+/* ── Nom appareil (non manuel) ── */
 .ddValue {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  color: rgba(255, 255, 255, 0.85);
 }
-
-.ddPlaceholder {
-  color: rgba(255, 255, 255, 0.28);
-  font-size: 0.88rem;
-  flex: 1;
-}
-
-.ddChevron {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.4);
-  transition: transform 0.18s;
-}
-
-.ddChevronOpen { transform: rotate(180deg); }
 
 /* ── Bouton poubelle ── */
 .trashBtn {
@@ -441,116 +413,24 @@
 
 .btnSuivant:hover:not(.btnDisabled) { background: #D97706; }
 
+.btnRecalculer {
+  padding: 0.65rem 1.2rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1.5px solid rgba(245, 158, 11, 0.5);
+  border-radius: 9px;
+  color: #F59E0B;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btnRecalculer:hover:not(:disabled) { background: rgba(245, 158, 11, 0.28); }
+
 .btnDisabled {
   background: rgba(255, 255, 255, 0.1) !important;
   color: rgba(255, 255, 255, 0.28) !important;
   cursor: not-allowed;
-}
-
-/* ══════════════════════════════════════
-   Dropdown global (position: fixed)
-══════════════════════════════════════ */
-.ddBackdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 400;
-}
-
-.ddPanel {
-  position: fixed;
-  width: 320px;
-  z-index: 9999;
-  background: #1E293B;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  max-height: 280px;
-}
-
-.ddSearchRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  flex-shrink: 0;
-}
-
-.ddSearchInput {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #fff;
-  font-size: 0.9rem;
-  font-family: inherit;
-  padding: 0.2rem 0;
-}
-
-.ddSearchInput::placeholder { color: rgba(255, 255, 255, 0.28); }
-
-.ddList {
-  overflow-y: auto;
-  flex: 1;
-}
-
-.catHeader {
-  padding: 0.45rem 0.85rem 0.3rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.35);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  background: rgba(255, 255, 255, 0.03);
-  position: sticky;
-  top: 0;
-}
-
-.catItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.52rem 0.85rem;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.88rem;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  gap: 0.75rem;
-  transition: background 0.12s;
-}
-
-.catItem:hover {
-  background: rgba(245, 158, 11, 0.1);
-  color: #fff;
-}
-
-.catName {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.catPower {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.35);
-  flex-shrink: 0;
-}
-
-.noResult {
-  padding: 1.2rem 0.85rem;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 0.88rem;
-  font-style: italic;
 }
 
 /* ══════════════════════════════════════
@@ -580,4 +460,24 @@
 @media (max-width: 480px) {
   .stepLabel { display: none; }
   .stepDot { width: 30px !important; height: 30px !important; }
+}
+
+/* -- Mobile -- */
+@media (max-width: 480px) {
+  .inner { padding: 0.75rem !important; }
+  .actionsRow { flex-direction: column !important; width: 100% !important; }
+  .btnAddLigne, .btnAddManual { width: 100% !important; }
+  .tableWrap { overflow-x: scroll !important; -webkit-overflow-scrolling: touch !important; }
+  .table { min-width: 600px !important; }
+  .btnSuivant, .btnRetour, .btnRecalculer { width: 100% !important; font-size: 0.9rem !important; }
+  .bottomNav { flex-direction: column !important; gap: 0.5rem !important; }
+  .stepper { gap: 0.3rem !important; }
+  .stepLabel { font-size: 0.65rem !important; }
+  .stepDot { width: 24px !important; height: 24px !important; font-size: 0.72rem !important; }
+  input, select { font-size: 16px !important; min-height: 44px !important; }
+}
+/* -- Tablette -- */
+@media (max-width: 768px) {
+  .tableWrap { overflow-x: auto !important; }
+  .stepLabel { font-size: 0.72rem !important; }
 }

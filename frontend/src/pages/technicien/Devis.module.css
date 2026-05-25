@@ -117,11 +117,13 @@
 .logoZoneWrap {
   display: flex;
   justify-content: center;
+  align-items: center;
+  min-height: 180px;
 }
 
 .logoZone {
-  width: 140px;
-  height: 80px;
+  width: 220px;
+  height: 140px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px dashed rgba(255, 255, 255, 0.3);
   border-radius: 8px;
@@ -141,8 +143,8 @@
 }
 
 .logoImg {
-  max-width: 120px;
-  max-height: 64px;
+  max-width: 200px;
+  max-height: 120px;
   object-fit: contain;
 }
 
@@ -186,34 +188,37 @@
   color: rgba(255, 255, 255, 0.33);
 }
 
-/* Titre + N° */
+/* Titre + N° — section standalone entre l'entête et techClient */
 .enteteBottom {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 12px;
+  padding: 0.6rem 1rem;
+  background: white;
+  border-bottom: 0.5px solid #E2E8F0;
 }
 
 .devisTitle {
-  font-size: 22px;
-  font-weight: 500;
-  color: #F59E0B;
-  letter-spacing: 0.08em;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  letter-spacing: 0.04em;
   display: flex;
   align-items: center;
 }
 
 .numInput {
   border: none;
-  border-bottom: 1.5px solid #F59E0B;
+  border-bottom: 1.5px solid #94A3B8;
   border-radius: 0;
   background: transparent;
-  color: #F59E0B;
-  font-size: 14px;
-  font-weight: 600;
+  color: #000;
+  font-size: 16px;
+  font-weight: 400;
   font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
   padding: 0.18rem 0.4rem;
-  width: 150px;
+  width: 160px;
   text-align: left;
 }
 
@@ -223,14 +228,17 @@
 .techClient {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: start;
   border-bottom: 0.5px solid #E2E8F0;
 }
 
 .partyCol {
-  padding: 0.85rem 1.1rem;
+  padding: 0.5rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 0.2rem;
+  height: auto;
+  min-height: unset;
 }
 
 .partyCol:first-child {
@@ -259,6 +267,25 @@
   line-height: 1.5;
   margin: 0;
 }
+
+/* Select civilité */
+.civiliteSelect {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  font-size: 0.88rem;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  color: #1E293B;
+  padding: 0.2rem 0.2rem;
+  cursor: pointer;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.civiliteSelect:focus { outline: none; }
+
+/* Span civilité visible uniquement à l'impression */
+.civilitePrint { display: none; }
 
 .clientInput {
   font-size: 11px;
@@ -473,6 +500,36 @@
   font-weight: 500;
 }
 
+/* Ligne extra (main d'œuvre, etc.) */
+.extraLabelInput {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 0.88rem;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  width: 100%;
+  color: #64748B;
+  padding: 0.1rem 0;
+}
+
+.extraLabelInput:focus { outline: none; border-color: #F59E0B; }
+.extraLabelInput::placeholder { color: #CBD5E1; }
+
+.extraMontantInput {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 0.88rem;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  width: 100px;
+  text-align: right;
+  color: #1E293B;
+  padding: 0.1rem 0.2rem;
+}
+
+.extraMontantInput:focus { outline: none; border-color: #F59E0B; }
+.extraMontantInput::placeholder { color: #CBD5E1; }
+
 /* ════ Section 5 — Notes ════ */
 .sec5 {
   padding: 0.5rem 1rem;
@@ -638,6 +695,22 @@
 
 .btnSuivant:hover { background: #D97706; }
 
+/* ══ Navbar wrapper ══ */
+.header { /* visible en mode écran, masqué à l'impression */ }
+
+/* Masqué à l'impression si vide */
+.hidePrint { /* rien en mode écran */ }
+
+/* Page 1/1 — visible uniquement à l'impression */
+.pageNum {
+  display: none;
+  text-align: center;
+  font-size: 10px;
+  color: #94A3B8;
+  padding: 0.35rem 1rem;
+  border-top: 0.5px solid #E2E8F0;
+}
+
 /* ══ @media print ════════════════════════ */
 @media print {
   * {
@@ -656,7 +729,8 @@
     background-image: none !important;
   }
 
-  .overlay { display: none !important; }
+  .overlay  { display: none !important; }
+  .header   { display: none !important; }
 
   .inner {
     padding: 0 !important;
@@ -703,12 +777,18 @@
   .tdDes,
   .tdQty,
   .tdPu,
-  .notes {
+  .notes,
+  .extraLabelInput,
+  .extraMontantInput {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     -webkit-text-fill-color: inherit !important;
   }
+
+  /* Civilité : select masqué, span texte visible */
+  .civiliteSelect { display: none !important; }
+  .civilitePrint  { display: inline !important; font-size: 11px; color: #1E293B; margin-right: 2px; }
 
   /* En-tête bleu conservé */
   .enteteDevis {
@@ -732,7 +812,21 @@
   .signatures,
   .piedPage { page-break-inside: avoid !important; }
 
-  /* Notes masquées si vides — déjà géré JSX */
+  /* Éléments vides masqués */
+  .hidePrint    { display: none !important; }
+  .sec5Empty    { display: none !important; }
+
+  /* Numéro de page visible */
+  .pageNum { display: block !important; }
+
+  /* En-tête titre Devis N° */
+  .enteteBottom { border-bottom: none !important; }
+  .devisTitle   { color: #000 !important; }
+  .numInput     { color: #000 !important; border-bottom: none !important; }
+
+  /* Cartes technicien/client adaptatives */
+  .techClient { align-items: start !important; }
+  .partyCol   { height: auto !important; min-height: unset !important; }
 }
 
 /* ══ Responsive mobile ═══════════════════ */
@@ -755,4 +849,23 @@
     flex-wrap: wrap;
     justify-content: center;
   }
+}
+
+/* -- Mobile -- */
+@media (max-width: 480px) {
+  .inner, .content, .carteDevis { padding: 0.75rem !important; border-radius: 8px !important; }
+  .techClient { flex-direction: column !important; }
+  .tableWrap { overflow-x: auto !important; }
+  .table { min-width: 500px !important; font-size: 0.75rem !important; }
+  .totTable { width: 100% !important; }
+  .signatures, .sigGrid { flex-direction: column !important; grid-template-columns: 1fr !important; }
+  .btnSuivant, .btnRetour, .btnPrimary { width: 100% !important; font-size: 0.9rem !important; }
+  .bottomNav { flex-direction: column !important; gap: 0.5rem !important; }
+  input, select { font-size: 16px !important; min-height: 44px !important; }
+}
+/* -- Tablette -- */
+@media (max-width: 768px) {
+  .tableWrap { overflow-x: auto !important; }
+  .techClient { grid-template-columns: 1fr !important; }
+  .carteDevis { padding: 1rem !important; }
 }

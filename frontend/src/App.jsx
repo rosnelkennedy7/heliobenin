@@ -1,18 +1,21 @@
 import { Routes, Route } from 'react-router-dom'
+import DevTools from './components/DevTools'
 import Accueil from './pages/Accueil'
-import Inscription from './pages/Inscription'
-import Login from './pages/Login'
-import Profil from './pages/Profil'
-import Paiement from './pages/Paiement'
+import LoginParticulier from './pages/particulier/Login'
+import InscriptionParticulier from './pages/particulier/Inscription'
+import PaiementParticulier from './pages/particulier/Paiement'
+import Profil from './pages/particulier/Profil'
 import ChoixMode from './pages/particulier/ChoixMode'
 import QCM from './pages/particulier/QCM'
 import Localisation from './pages/particulier/Localisation'
 import Appareils from './pages/particulier/Appareils'
 import Resultats from './pages/particulier/Resultats'
-import Contacts from './pages/Contacts'
+import Budget from './pages/particulier/Budget'
+import LoginTech from './pages/technicien/Login'
+import InscriptionTech from './pages/technicien/Inscription'
+import PaiementTech from './pages/technicien/Paiement'
+import LocalisationTech from './pages/technicien/Localisation'
 import QCMTech from './pages/technicien/QCMTech'
-import PaiementTech from './pages/technicien/PaiementTech'
-import LocalisationTech from './pages/technicien/LocalisationTech'
 import AppareilsTech from './pages/technicien/AppareilsTech'
 import Etude from './pages/technicien/Etude'
 import DevisTech from './pages/technicien/Devis'
@@ -20,30 +23,35 @@ import RapportTech from './pages/technicien/Rapport'
 
 export default function App() {
   return (
+    <>
     <Routes>
-      {/* Commun */}
+      {/* Accueil */}
       <Route path="/" element={<Accueil />} />
-      <Route path="/inscription" element={<Inscription />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/profil" element={<Profil />} />
 
       {/* Particulier */}
-      <Route path="/paiement" element={<Paiement />} />
-      <Route path="/qcm" element={<QCM />} />
-      <Route path="/choix-mode" element={<ChoixMode />} />
+      <Route path="/login"        element={<LoginParticulier />} />
+      <Route path="/inscription"  element={<InscriptionParticulier />} />
+      <Route path="/paiement"     element={<PaiementParticulier />} />
+      <Route path="/profil"       element={<Profil />} />
+      <Route path="/choix-mode"   element={<ChoixMode />} />
+      <Route path="/qcm"          element={<QCM />} />
       <Route path="/localisation" element={<Localisation />} />
-      <Route path="/appareils" element={<Appareils />} />
-      <Route path="/resultats" element={<Resultats />} />
-      <Route path="/contacts" element={<Contacts />} />
+      <Route path="/appareils"    element={<Appareils />} />
+      <Route path="/resultats"    element={<Resultats />} />
+      <Route path="/budget"       element={<Budget />} />
 
       {/* Technicien */}
-      <Route path="/qcm-tech" element={<QCMTech />} />
-      <Route path="/paiement-tech" element={<PaiementTech />} />
+      <Route path="/login-tech"        element={<LoginTech />} />
+      <Route path="/inscription-tech"  element={<InscriptionTech />} />
+      <Route path="/paiement-tech"     element={<PaiementTech />} />
       <Route path="/localisation-tech" element={<LocalisationTech />} />
-      <Route path="/appareils-tech" element={<AppareilsTech />} />
-      <Route path="/etude-tech" element={<Etude />} />
-      <Route path="/devis-tech" element={<DevisTech />} />
-      <Route path="/rapport-tech" element={<RapportTech />} />
+      <Route path="/qcm-tech"          element={<QCMTech />} />
+      <Route path="/appareils-tech"    element={<AppareilsTech />} />
+      <Route path="/etude-tech"        element={<Etude />} />
+      <Route path="/devis-tech"        element={<DevisTech />} />
+      <Route path="/rapport-tech"      element={<RapportTech />} />
     </Routes>
+    <DevTools />
+    </>
   )
 }

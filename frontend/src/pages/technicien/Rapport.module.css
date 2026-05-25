@@ -91,6 +91,10 @@
   font-weight: 700;
   color: #1E3A5F;
 }
+.enteteVide {
+  height: 80px;
+  width: 100%;
+}
 
 /* ══ Titre central page 1 ══════════════════════════════════ */
 .titreZone {
@@ -103,11 +107,14 @@
   text-align: center;
 }
 .titrePrincipal {
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: #1E3A5F;
-  letter-spacing: 0.08em;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  text-align: center;
+  color: #000;
+  margin-bottom: 8px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
 }
 .titreSous {
   font-size: 1.35rem;
@@ -144,13 +151,16 @@
   overflow: hidden;
 }
 .infoBlockTitle {
-  background: #1E3A5F;
+  background: #1a2744;
   color: #ffffff;
+  font-size: 11px;
   font-weight: 700;
-  font-size: 0.82rem;
-  padding: 0.45rem 0.75rem;
-  letter-spacing: 0.05em;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
 }
 .infoRow {
   display: flex;
@@ -189,25 +199,40 @@
 
 /* ══ Section titles ═══════════════════════════════════════ */
 .secTitle {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: #1E3A5F;
-  margin-bottom: 0.2rem;
-  padding-bottom: 0.45rem;
-  border-bottom: 3px solid #F59E0B;
+  background: #1a2744;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 7px 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
 }
 .secSubtitle {
-  font-size: 0.9rem;
-  color: #6B7280;
-  margin-bottom: 0.75rem;
-  font-style: italic;
+  background: #1a2744;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
 }
 .secSubA {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #374151;
-  margin-bottom: 0.4rem;
-  margin-top: 0.3rem;
+  background: #1a2744;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 6px;
 }
 
 /* ══ Tables communes ═══════════════════════════════════════ */
@@ -218,30 +243,32 @@
   margin-bottom: 0.75rem;
 }
 .table th {
-  background: #1E3A5F;
-  color: #ffffff;
-  padding: 0.45rem 0.55rem;
-  text-align: left;
-  font-size: 0.8rem;
-  font-weight: 600;
+  text-align: center;
+  background: #f5f5f5;
+  color: #000;
+  border: 0.5px solid #ccc;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 700;
 }
 .table td {
-  padding: 0.38rem 0.55rem;
-  border-bottom: 1px solid #F3F4F6;
-  color: #374151;
-  font-size: 0.82rem;
+  text-align: center;
+  border: 0.5px solid #e0e0e0;
+  padding: 5px 8px;
+  font-size: 11px;
+  color: #000;
   vertical-align: top;
 }
-.table tbody tr:nth-child(even) td { background: #F9FAFB; }
+.table tbody tr:nth-child(even) td { background: #fafafa; }
 
 .tdCenter { text-align: center !important; }
 .tdRight  { text-align: right !important; }
+.tdLeft   { text-align: left !important; }
 
 .trTotal td {
-  background: #EFF6FF !important;
+  background: #f0f0f0 !important;
+  color: #000 !important;
   font-weight: 700;
-  border-top: 2px solid #3B82F6;
-  color: #1E3A5F;
 }
 
 /* ══ Bilan summary ════════════════════════════════════════ */
@@ -267,13 +294,13 @@
   color: #1E3A5F;
 }
 .bilanRowHL {
-  background: #FFFBEB;
+  background: #f0f0f0;
   padding: 0.32rem 0.4rem;
   border-radius: 4px;
   margin-top: 0.2rem;
   border-bottom: none !important;
 }
-.bilanRowHL .bilanVal { color: #D97706; }
+.bilanRowHL .bilanVal { color: #000; }
 
 /* ══ Equipment cards ═══════════════════════════════════════ */
 .equipGrid {
@@ -290,10 +317,10 @@
   flex-direction: column;
   gap: 0.2rem;
 }
-.equipBlue   { background: #EFF6FF; border-left-color: #3B82F6; }
-.equipGreen  { background: #F0FDF4; border-left-color: #22C55E; }
-.equipOrange { background: #FFFBEB; border-left-color: #F59E0B; }
-.equipPurple { background: #F5F3FF; border-left-color: #8B5CF6; }
+.equipBlue   { background: #fff; border-left-color: #ccc; }
+.equipGreen  { background: #fff; border-left-color: #ccc; }
+.equipOrange { background: #fff; border-left-color: #ccc; }
+.equipPurple { background: #fff; border-left-color: #ccc; }
 
 .equipCardTitle {
   font-size: 0.73rem;
@@ -320,28 +347,34 @@
   margin-bottom: 0.75rem;
 }
 .tableMaint th {
-  background: #1E3A5F;
-  color: #ffffff;
-  padding: 0.38rem 0.45rem;
-  text-align: left;
-  font-weight: 600;
-  font-size: 0.75rem;
+  text-align: center;
+  background: #f5f5f5;
+  color: #000;
+  border: 0.5px solid #ccc;
+  padding: 6px 8px;
+  font-weight: 700;
+  font-size: 11px;
 }
 .tableMaint td {
-  padding: 0.32rem 0.45rem;
-  border-bottom: 1px solid #F3F4F6;
-  color: #374151;
+  text-align: center;
+  border: 0.5px solid #e0e0e0;
+  padding: 5px 8px;
+  color: #000;
   vertical-align: top;
-  font-size: 0.75rem;
+  font-size: 11px;
 }
-.tableMaint tbody tr:nth-child(even) td:not(.maintSecHeader) { background: #F9FAFB; }
+.tableMaint tbody tr:nth-child(even) td:not(.maintSecHeader) { background: #fafafa; }
 .maintSecHeader td {
-  background: #F59E0B !important;
+  background: #1a2744 !important;
   color: #ffffff !important;
-  font-weight: 700 !important;
-  font-size: 0.78rem !important;
-  padding: 0.35rem 0.45rem !important;
-  letter-spacing: 0.04em;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 6px 8px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 /* ══ Signatures page 6 ════════════════════════════════════ */
@@ -358,11 +391,16 @@
   gap: 0.7rem;
 }
 .sigRole {
-  font-size: 1.05rem;
+  background: #1a2744;
+  color: #ffffff;
+  font-size: 12px;
   font-weight: 700;
-  color: #1E3A5F;
-  border-bottom: 2px solid #1E3A5F;
-  padding-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
 }
 .sigText {
   font-size: 0.87rem;
@@ -440,6 +478,16 @@
 }
 .btnPrint:hover { background: #D97706; }
 
+/* ══ Page breaks (écran + impression) ══════════════════════ */
+.table { page-break-inside: avoid; }
+.a4Page { page-break-after: always; }
+tr { page-break-inside: avoid; }
+
+@page {
+  size: A4;
+  margin: 1.5cm;
+}
+
 /* ══ Print ══════════════════════════════════════════════════ */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -485,8 +533,22 @@
     font-size: 10px !important;
   }
 
-  .titrePrincipal { font-size: 1.8rem !important; }
-  .titreSous      { font-size: 1.1rem !important; }
+  .titrePrincipal { font-size: 28px !important; }
+  .enteteVide { border: none !important; background: none !important; }
+
+  .secTitle, .secSubA, .secSubtitle, .infoBlockTitle, .sigRole {
+    background: #1a2744 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .maintSecHeader td {
+    background: #1a2744 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 
   thead { display: table-header-group !important; }
   tr    { page-break-inside: avoid !important; }
@@ -498,5 +560,25 @@
 
   .a4Page:not(.lastPage) { margin-bottom: 0 !important; }
 
-  @page { size: A4 portrait; margin: 2cm; }
+  @page { size: A4; margin: 1.5cm; }
+}
+
+/* -- Mobile -- */
+@media (max-width: 480px) {
+  .a4Page { padding: 0.75rem !important; }
+  .infoGrid { grid-template-columns: 1fr !important; }
+  .sigGrid { grid-template-columns: 1fr !important; }
+  .table { font-size: 0.72rem !important; min-width: 400px !important; }
+  .tableWrap { overflow-x: auto !important; }
+  .btnSuivant, .btnRetour, .btnPrimary { width: 100% !important; font-size: 0.9rem !important; }
+  .bottomNav { flex-direction: column !important; gap: 0.5rem !important; }
+  input, select { font-size: 16px !important; min-height: 44px !important; }
+  .stepper { gap: 0.3rem !important; }
+  .stepLabel { font-size: 0.65rem !important; }
+}
+/* -- Tablette -- */
+@media (max-width: 768px) {
+  .tableWrap { overflow-x: auto !important; }
+  .carteRapport { padding: 1rem !important; }
+  .sigGrid { grid-template-columns: repeat(2, 1fr) !important; }
 }

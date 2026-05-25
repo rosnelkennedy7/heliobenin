@@ -88,12 +88,6 @@
   align-items: center;
 }
 
-.stepLine {
-  display: none;
-}
-
-.stepLineDone { display: none; }
-
 .stepItem {
   display: flex;
   flex-direction: column;
@@ -440,4 +434,20 @@
 @media (max-width: 480px) {
   .stepLabel { display: none; }
   .stepDot { width: 30px !important; height: 30px !important; }
+}
+
+/* -- Mobile -- */
+@media (max-width: 480px) {
+  .inner, .content { padding: 0.75rem !important; }
+  .mapWrap { height: 250px !important; }
+  .infoRow { flex-direction: column !important; }
+  .infoCard { width: 100% !important; }
+  .searchRow { flex-direction: column !important; }
+  .btnSuivant, .btnRetour { width: 100% !important; font-size: 0.9rem !important; }
+  .bottomNav { flex-direction: column !important; gap: 0.5rem !important; }
+  input, select { font-size: 16px !important; min-height: 44px !important; }
+}
+/* -- Tablette -- */
+@media (max-width: 768px) {
+  .tableWrap { overflow-x: auto !important; }
 }

@@ -217,6 +217,22 @@
   margin: 0;
 }
 
+.optionCorrect {
+  border-color: #22C55E !important;
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22C55E !important;
+}
+
+.optionWrong {
+  border-color: #EF4444 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #EF4444 !important;
+}
+
+.content {
+  padding-top: 5rem !important;
+}
+
 /* ── Responsive ── */
 @media (max-width: 520px) {
   .card {

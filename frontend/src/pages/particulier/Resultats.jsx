@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Check, Phone, Mail, AlertCircle } from 'lucide-react'
 import Navbar from '../../components/Navbar'
 import Avatar from '../../components/Avatar'
 import vitreImg from '../../assets/images/vitre.png'
-import { getParticulier, saveParticulier } from '../../utils/storage'
+import { getParticulier, saveParticulier, getCurrentModeParticulier } from '../../utils/storage'
+import { API_BASE } from '../../utils/api'
 import { PRIX } from '../../data/prix'
 import styles from './Resultats.module.css'
 
@@ -18,9 +20,6 @@ function Stepper({ active }) {
     <div className={styles.stepper}>
       {steps.map((step, i) => (
         <div key={step} className={styles.stepWrap}>
-          {i > 0 && (
-            <div className={`${styles.stepLine} ${i <= active ? styles.stepLineDone : ''}`} />
-          )}
           <div className={styles.stepItem}>
             <div className={`
               ${styles.stepDot}
@@ -39,36 +38,6 @@ function Stepper({ active }) {
   )
 }
 
-/* ── Défauts de calcul ── */
-function defaultCs(appareils) {
-  const n = appareils.reduce((acc, a) => acc + (a.quantite || 1), 0)
-  if (n <= 3)  return 0.95
-  if (n <= 6)  return 0.88
-  if (n <= 12) return 0.80
-  return 0.75
-}
-
-function defaultK(appareils) {
-  const inductifs = appareils.filter(a =>
-    (a.typeCharge || '').toLowerCase().includes('inductif')
-  ).length
-  if (inductifs === 0) return 1.15
-  if (inductifs <= 5)  return 1.25
-  return 1.50
-}
-
-function defaultPr(lat) {
-  if ((lat || 6.4) < 8.0)  return 0.70
-  if ((lat || 6.4) < 10.0) return 0.73
-  return 0.70
-}
-
-/* ── Panel type par tension système (pour appel API) ── */
-const DEFAULT_PANEL = {
-  12: { puissance: 400,  voc: 37.0,  vmp: 31.0,  isc: 13.72 },
-  24: { puissance: 550,  voc: 49.8,  vmp: 41.95, isc: 13.98 },
-  48: { puissance: 550,  voc: 49.8,  vmp: 41.95, isc: 13.98 },
-}
 
 /* ── Format milliers avec espace insécable ── */
 const fmt = (n) =>
@@ -78,8 +47,9 @@ const fmt = (n) =>
 const PC = PRIX['Protection & Câble']
 
 function lookupPanneau(usys) {
+  const tension = usys === 48 ? 24 : usys
   return PRIX['Panneaux Solaires']
-    .find(p => p['Puissance / Tension'].endsWith(`/ ${usys}V`))?.['Prix FCFA'] ?? 0
+    .find(p => p['Puissance / Tension'].endsWith(`/ ${tension}V`))?.['Prix FCFA'] ?? 0
 }
 
 function lookupOnduleur(usys, pondW) {
@@ -147,32 +117,30 @@ function lookupParafoudre(designation) {
 }
 
 /* ── Construire les lignes du devis ── */
-function buildLignes(res) {
-  const { usys, etape1, etape2, etape3 } = res
-  if (!etape1 || !etape2 || !etape3) return []
+function buildLignes(result) {
+  const { bilan, onduleur, panneaux, batteries, cables } = result
+  if (!bilan || !panneaux || !batteries || !cables) return []
 
-  const { panneaux, batteries } = etape2
-  const { troncons = [], parafoudres = [], porte_fusibles = [] } = etape3
+  const usys = bilan.usys
+  const { troncons = [], parafoudres = [], porte_fusibles = [] } = cables
   const rows = []
 
   // Panneaux
   rows.push({
     key: 'pann',
-    designation: `Panneau solaire monocristallin PERC/TOPCon (${usys}V)`,
+    designation: `Panneau solaire monocristallin PERC/TOPCon (${usys === 48 ? 24 : usys}V)`,
     qty: panneaux.np_final,
     pu: lookupPanneau(usys),
     unite: 'pce',
   })
 
   // Onduleur All-in-One
-  const nbOnd    = etape1.nb_onduleurs || 1
-  const pondUnit = (etape1.pond || 0) / nbOnd
-  const pondKw   = (Math.round(pondUnit / 100) / 10).toFixed(1)
+  const pondKw = (Math.round((onduleur?.puissance || bilan.pond) / 100) / 10).toFixed(1)
   rows.push({
     key: 'ond',
     designation: `Onduleur All-in-One ${pondKw} kW / ${usys}V (monophasé)`,
-    qty: nbOnd,
-    pu: lookupOnduleur(usys, pondUnit),
+    qty: 1,
+    pu: lookupOnduleur(usys, bilan.pond),
     unite: 'pce',
   })
 
@@ -239,13 +207,19 @@ function buildLignes(res) {
 
 /* ═══════════════════════════════════════════ COMPOSANT ══ */
 export default function Resultats() {
-  const [loading,   setLoading]   = useState(false)
-  const [error,     setError]     = useState(null)
-  const [resultats, setResultats] = useState(null)
+  const navigate = useNavigate()
+  const [loading,     setLoading]     = useState(false)
+  const [error,       setError]       = useState(null)
+  const [resultats,   setResultats]   = useState(null)
+  const [modeBudget,  setModeBudget]  = useState('sans_budget')
+  const [budget,      setBudget]      = useState(0)
+  const [modifie,     setModifie]     = useState(false)
 
   useEffect(() => {
     const data = getParticulier()
-    if (data.resultats) {
+    setModeBudget(data.mode || 'sans_budget')
+    setBudget(data.budget || 0)
+    if (data.resultats?.bilan) {
       setResultats(data.resultats)
     } else if (data.appareils?.length) {
       compute(data)
@@ -258,68 +232,54 @@ export default function Resultats() {
     setLoading(true)
     setError(null)
     try {
-      const appareils = data.appareils || []
-      const loc       = data.localisation || {}
+      const appareils   = data.appareils || []
+      const loc         = data.localisation || {}
+      const grille      = data.grille_coupure || null
+      const mode_budget = data.mode || 'sans_budget'
+      const budget_val  = data.budget || 0
 
-      const paramsBase = {
+      const mode = (data.cas === 'A' && grille?.heures?.length > 0) ? 'sbee' : 'solaire'
+      const heures  = grille?.heures || []
+      const t_matin = heures.filter(h => h >= 6 && h <= 11).length
+      const t_midi  = heures.filter(h => h >= 12 && h <= 17).length
+      const t_soir  = heures.filter(h => h >= 18 || h <= 5).length
+
+      const body = {
+        mode,
         appareils: appareils.map(a => ({
-          nom:            a.nom,
-          puissance:      a.puissance,
-          quantite:       a.quantite,
-          h_jour:         a.hJour  ?? 0,
-          h_nuit:         a.hNuit  ?? 0,
-          facteur_pointe: a.facteurPointe ?? 1.0,
+          nom:         a.nom,
+          puissance:   a.puissance,
+          quantite:    a.quantite,
+          h_jour:      a.hJour ?? 0,
+          h_nuit:      a.hNuit ?? 0,
+          prioritaire: a.priorite !== false,
         })),
-        cs:  defaultCs(appareils),
-        k:   defaultK(appareils),
-        eta: 0.80,
-        n_jours:  2.0,
-        dod:      0.90,
-        eta_bat:  0.95,
-        irradiation:          loc.irradiation  || 5.0,
-        latitude:             loc.latitude     || 6.4,
-        pr:                   defaultPr(loc.latitude),
-        longueur_panneau_ond: 10,
-        longueur_reg_bat:      2,
-        longueur_bat_ond:      2,
-        longueur_ond_tableau:  10,
-        type_regulateur:      'AIO',
+        irradiation: loc.irradiation || 5.0,
+        latitude:    loc.latitude    || 6.4,
+        t_matin,
+        t_midi,
+        t_soir,
+        ...(mode_budget === 'avec_budget' ? { budget: budget_val } : {}),
       }
 
-      /* Étape 1 */
-      const r1 = await fetch('/api/calcul/particulier/etape1', {
+      const endpoint = `${API_BASE}${mode_budget === 'avec_budget'
+        ? '/api/calcul/particulier/avec-budget'
+        : '/api/calcul/particulier/sans-budget'}`
+
+      const r = await fetch(endpoint, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(paramsBase),
+        body:    JSON.stringify(body),
       })
-      if (!r1.ok) throw new Error(`Serveur ${r1.status}: ${await r1.text()}`)
-      const etape1 = await r1.json()
+      if (!r.ok) throw new Error(`Serveur ${r.status}: ${await r.text()}`)
+      const result = await r.json()
 
-      const usys     = etape1.usys || 48
-      const onduleur = etape1.onduleur_suggere?.onduleur
-      const panneau  = DEFAULT_PANEL[usys] || DEFAULT_PANEL[48]
-
-      /* Étape 2 */
-      const r2 = await fetch('/api/calcul/particulier/etape2', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ etape1, params: paramsBase, panneau, onduleur, type_regulateur: 'AIO' }),
-      })
-      if (!r2.ok) throw new Error(`Serveur ${r2.status}: ${await r2.text()}`)
-      const etape2 = await r2.json()
-
-      /* Étape 3 */
-      const r3 = await fetch('/api/calcul/particulier/etape3', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ etape1, etape2, params: paramsBase, panneau, type_regulateur: 'AIO' }),
-      })
-      if (!r3.ok) throw new Error(`Serveur ${r3.status}: ${await r3.text()}`)
-      const etape3 = await r3.json()
-
-      const res = { usys, etape1, etape2, etape3, panneau }
-      saveParticulier({ resultats: res })
-      setResultats(res)
+      const tmpLignes = buildLignes(result)
+      const tmpSous   = tmpLignes.reduce((s, l) => s + Math.round(l.pu * MARGE) * l.qty, 0)
+      const tmpTotal  = Math.round(tmpSous * MARGE_TOTAL)
+      saveParticulier({ resultats: result, dernier_total: tmpTotal })
+      setResultats(result)
+      setModifie(true)
     } catch (e) {
       setError(e instanceof TypeError
         ? 'Impossible de joindre le serveur. Veuillez réessayer plus tard.'
@@ -329,13 +289,17 @@ export default function Resultats() {
     }
   }
 
-  /* ── Calculs ── */
-  const lignes     = resultats ? buildLignes(resultats) : []
-  const sousTotal  = lignes.reduce((s, l) => s + Math.round(l.pu * MARGE) * l.qty, 0)
-  const totalFinal = Math.round(sousTotal * MARGE_TOTAL)
+  /* ── Calculs prix ── */
+  const lignes          = resultats ? buildLignes(resultats) : []
+  const sousTotal       = lignes.reduce((s, l) => s + Math.round(l.pu * MARGE) * l.qty, 0)
+  const totalFinal      = Math.round(sousTotal * MARGE_TOTAL)
+  const cout_estime     = totalFinal
+  const budget_suffisant = budget <= 0 || budget >= cout_estime
+  const manque          = budget_suffisant ? 0 : cout_estime - budget
+  const reste           = budget_suffisant ? budget - cout_estime : 0
 
   /* ── Contact dynamique ── */
-  const user   = JSON.parse(localStorage.getItem('helio_user') || '{}')
+  const user   = JSON.parse(localStorage.getItem('helio_user_particulier') || '{}')
   const waMsg  = encodeURIComponent(
     `Bonjour Mr Kennedy, je suis ` +
     `${user.prenom || ''} ${user.nom || ''}. ` +
@@ -362,8 +326,22 @@ export default function Resultats() {
     `${user.prenom || ''} ${user.nom || ''}`
   )
 
-  const handleWa   = () => window.open(`https://wa.me/2290194438907?text=${waMsg}`, '_blank')
-  const handleMail = () => window.open(`mailto:rosnelkennedy7@gmail.com?subject=${sujet}&body=${corps}`, '_blank')
+  const dernierTotal  = getParticulier().dernier_total || 0
+  const boutonsActifs = budget_suffisant && (totalFinal !== dernierTotal || modifie)
+  const tooltipBtn    = !budget_suffisant
+    ? "Résolvez d'abord le budget"
+    : !boutonsActifs ? "Aucune modification détectée" : undefined
+
+  const handleWa = () => {
+    saveParticulier({ dernier_total: totalFinal })
+    setModifie(false)
+    window.open(`https://wa.me/2290194438907?text=${waMsg}`, '_blank')
+  }
+  const handleMail = () => {
+    saveParticulier({ dernier_total: totalFinal })
+    setModifie(false)
+    window.open(`mailto:rosnelkennedy7@gmail.com?subject=${sujet}&body=${corps}`, '_blank')
+  }
 
   /* ═══════════════════════════════ RENDER ══ */
   return (
@@ -393,7 +371,53 @@ export default function Resultats() {
         {/* ── Résultats ── */}
         {!loading && !error && resultats && (
           <>
-            {/* Tableau devis */}
+            {/* ── Carte budget (mode avec_budget) ── */}
+            {modeBudget === 'avec_budget' && budget > 0 && (
+              <div className={styles.budgetCard}>
+                <div className={styles.budgetRow}>
+                  <span>Votre budget</span>
+                  <span className={styles.budgetVal}>{fmt(budget)} FCFA</span>
+                </div>
+                <div className={styles.budgetRow}>
+                  <span>Coût estimé</span>
+                  <span className={styles.coutVal}>{fmt(cout_estime)} FCFA</span>
+                </div>
+                <div className={`${styles.budgetRow} ${styles.budgetDiff} ${budget_suffisant ? styles.diffVert : styles.diffRouge}`}>
+                  <span>{budget_suffisant ? 'Reste budget' : 'Manque'}</span>
+                  <span>
+                    {budget_suffisant
+                      ? `+ ${fmt(reste)} FCFA`
+                      : `- ${fmt(manque)} FCFA`}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* ── Budget insuffisant ── */}
+            {modeBudget === 'avec_budget' && budget > 0 && !budget_suffisant && (
+              <div className={styles.insuffCard}>
+                <p>Votre budget ne couvre pas cette installation. Que souhaitez-vous faire ?</p>
+                <div className={styles.insuffBtns}>
+                  <button
+                    className={styles.btnAugmenter}
+                    onClick={() => navigate('/budget')}
+                  >
+                    Augmenter mon budget
+                  </button>
+                  <button
+                    className={styles.btnReduire}
+                    onClick={() => {
+                      saveParticulier({ cout_estime, manque })
+                      navigate('/appareils')
+                    }}
+                  >
+                    Réduire mes charges
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Tableau devis — toujours affiché */}
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
@@ -439,11 +463,21 @@ export default function Resultats() {
             <div className={styles.contactCard}>
               <p className={styles.contactName}>Rosnel Kennedy DOSSA</p>
               <div className={styles.contactBtns}>
-                <button className={styles.btnWa} onClick={handleWa}>
+                <button
+                  className={styles.btnWa}
+                  onClick={boutonsActifs ? handleWa : undefined}
+                  title={tooltipBtn}
+                  style={{ opacity: boutonsActifs ? 1 : 0.4, cursor: boutonsActifs ? 'pointer' : 'not-allowed', pointerEvents: boutonsActifs ? 'auto' : 'none' }}
+                >
                   <Phone size={16} />
                   WhatsApp
                 </button>
-                <button className={styles.btnMail} onClick={handleMail}>
+                <button
+                  className={styles.btnMail}
+                  onClick={boutonsActifs ? handleMail : undefined}
+                  title={tooltipBtn}
+                  style={{ opacity: boutonsActifs ? 1 : 0.4, cursor: boutonsActifs ? 'pointer' : 'not-allowed', pointerEvents: boutonsActifs ? 'auto' : 'none' }}
+                >
                   <Mail size={16} />
                   Email
                 </button>

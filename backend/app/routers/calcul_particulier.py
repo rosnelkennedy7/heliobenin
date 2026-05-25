@@ -1,11 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
-from typing import List, Optional
-from ..moteur.moteur_particulier import (
-    calculer_etape1,
-    calculer_etape2,
-    calculer_etape3,
-)
+from typing import List
+import traceback
+
+from app.moteur.moteur_particulier_sans_budget import calculer_sans_budget
+from app.moteur.moteur_particulier_avec_budget import calculer_avec_budget
+from app.services.supabase_client import get_supabase
 
 router = APIRouter(prefix="/api/calcul/particulier", tags=["calcul-particulier"])
 
@@ -14,99 +14,103 @@ class Appareil(BaseModel):
     nom: str
     puissance: float
     quantite: int
-    h_jour: float
-    h_nuit: float
-    facteur_pointe: float = 1.0
+    h_jour: float = 0
+    h_nuit: float = 0
+    prioritaire: bool = False
 
 
-class Panneau(BaseModel):
-    puissance: float
-    voc: float
-    vmp: float
-    isc: float
-
-
-class Onduleur(BaseModel):
-    puissance: int
-    usys: int
-    mppt_min: float
-    mppt_max: float
-    pv_max: float
-
-
-class ParamsEtape1(BaseModel):
+class ParamsSansBudget(BaseModel):
+    mode: str
     appareils: List[Appareil]
-    cs: float
-    k: float
-    eta: float = 0.80
-    n_jours: float = 2.0
-    dod: float = 0.90
-    eta_bat: float = 0.95
     irradiation: float
     latitude: float
-    pr: Optional[float] = None
-    longueur_panneau_ond: float = 10.0
-    longueur_reg_bat: float = 2.0
-    longueur_bat_ond: float = 2.0
-    longueur_ond_tableau: float = 10.0
-    type_regulateur: str = "AIO"
+    t_matin: float = 0
+    t_midi: float = 0
+    t_soir: float = 0
 
 
-class ParamsEtape2(BaseModel):
-    etape1: dict
-    params: ParamsEtape1
-    panneau: Panneau
-    onduleur: Optional[Onduleur] = None
-    type_regulateur: str = "AIO"
-    usys: Optional[int] = None
-    vmax_mppt: Optional[float] = None
+class ParamsAvecBudget(BaseModel):
+    mode: str
+    appareils: List[Appareil]
+    budget: float
+    irradiation: float
+    latitude: float
+    t_matin: float = 0
+    t_midi: float = 0
+    t_soir: float = 0
 
 
-class ParamsEtape3(BaseModel):
-    etape1: dict
-    etape2: dict
-    params: ParamsEtape1
-    panneau: Panneau
-    type_regulateur: str = "AIO"
+def _save_etude(mode_budget: str, mode: str, appareils: list, resultat: dict,
+                irradiation: float, latitude: float, budget: float = None):
+    try:
+        supabase = get_supabase()
+        row = {
+            "mode_budget": mode_budget,
+            "mode": mode,
+            "appareils": appareils,
+            "resultat": resultat,
+            "irradiation": irradiation,
+            "latitude": latitude,
+        }
+        if budget is not None:
+            row["budget"] = budget
+        supabase.table("etudes_particulier").insert(row).execute()
+    except Exception:
+        pass
 
 
-@router.post("/etape1")
-def calcul_etape1(params: ParamsEtape1):
-    appareils_dict = [a.model_dump() for a in params.appareils]
-    params_dict = params.model_dump()
-    params_dict["appareils"] = appareils_dict
-    return calculer_etape1(params_dict)
+@router.post("/sans-budget")
+async def calcul_sans_budget(params: ParamsSansBudget, background_tasks: BackgroundTasks):
+    try:
+        appareils = [a.model_dump() for a in params.appareils]
+        appareils_prioritaires = [a for a in appareils if a.get("prioritaire")]
+        result = calculer_sans_budget(
+            mode=params.mode,
+            appareils=appareils,
+            irradiation=params.irradiation,
+            latitude=params.latitude,
+            appareils_prioritaires=appareils_prioritaires,
+            t_matin=params.t_matin,
+            t_midi=params.t_midi,
+            t_soir=params.t_soir,
+        )
+        background_tasks.add_task(
+            _save_etude, "sans_budget", params.mode, appareils, result,
+            params.irradiation, params.latitude,
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/etape2")
-def calcul_etape2(params: ParamsEtape2):
-    equipements = {
-        "panneau": params.panneau.model_dump(),
-        "type_regulateur": params.type_regulateur,
-    }
-    if params.onduleur:
-        equipements["onduleur"] = params.onduleur.model_dump()
-    if params.usys:
-        equipements["usys"] = params.usys
-    if params.vmax_mppt:
-        equipements["vmax_mppt"] = params.vmax_mppt
-
-    return calculer_etape2(
-        params.etape1,
-        params.params.model_dump(),
-        equipements,
-    )
-
-
-@router.post("/etape3")
-def calcul_etape3(params: ParamsEtape3):
-    equipements = {
-        "panneau": params.panneau.model_dump(),
-        "type_regulateur": params.type_regulateur,
-    }
-    return calculer_etape3(
-        params.etape1,
-        params.etape2,
-        params.params.model_dump(),
-        equipements,
-    )
+@router.post("/avec-budget")
+async def calcul_avec_budget_route(params: ParamsAvecBudget, background_tasks: BackgroundTasks):
+    try:
+        appareils = [a.model_dump() for a in params.appareils]
+        appareils_prioritaires = [a for a in appareils if a.get("prioritaire")]
+        result = calculer_avec_budget(
+            mode=params.mode,
+            appareils=appareils,
+            budget=params.budget,
+            irradiation=params.irradiation,
+            latitude=params.latitude,
+            appareils_prioritaires=(
+                appareils_prioritaires if params.mode == "sbee" else None
+            ),
+            t_matin=params.t_matin,
+            t_midi=params.t_midi,
+            t_soir=params.t_soir,
+        )
+        background_tasks.add_task(
+            _save_etude, "avec_budget", params.mode, appareils, result,
+            params.irradiation, params.latitude, params.budget,
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))

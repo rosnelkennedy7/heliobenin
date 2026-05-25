@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, Fingerprint } from 'lucide-react'
-import vitreImg from '../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.png'
 import styles from './Login.module.css'
 
 export default function Login() {
@@ -14,7 +14,6 @@ export default function Login() {
   const [error,     setError]     = useState('')
   const [biometric, setBiometric] = useState(false)
 
-  /* Détection WebAuthn */
   useEffect(() => {
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
       window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
@@ -22,12 +21,6 @@ export default function Login() {
         .catch(() => {})
     }
   }, [])
-
-  const redirectByRole = () => {
-    const role = localStorage.getItem('heliobenin_role')
-    if (role === 'technicien') navigate('/qcm-tech')
-    else navigate('/paiement')
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -38,21 +31,17 @@ export default function Login() {
 
     setLoading(true)
     try {
-      /* Simulation — remplacer par appel API réel */
       await new Promise(r => setTimeout(r, 900))
-      const stored = localStorage.getItem('helio_user')
+      const stored = localStorage.getItem('helio_user_particulier')
       const user   = stored ? JSON.parse(stored) : null
 
+      localStorage.setItem('heliobenin_role', 'particulier')
       if (user && user.email === email) {
-        /* Synchro : le rôle stocké dans helio_user prime si présent */
-        if (user.role) localStorage.setItem('heliobenin_role', user.role)
-        redirectByRole()
+        navigate('/paiement')
       } else {
-        /* Fallback demo : conserve le rôle choisi sur l'accueil */
-        const role = localStorage.getItem('heliobenin_role') || 'particulier'
-        const demo = { prenom: email.split('@')[0], nom: '', email, role }
-        localStorage.setItem('helio_user', JSON.stringify(demo))
-        redirectByRole()
+        const demo = { prenom: email.split('@')[0], nom: '', email, role: 'particulier' }
+        localStorage.setItem('helio_user_particulier', JSON.stringify(demo))
+        navigate('/paiement')
       }
     } catch {
       setError('Identifiants incorrects. Veuillez réessayer.')
@@ -75,11 +64,8 @@ export default function Login() {
           rpId: window.location.hostname,
         }
       })
-      /* Succès biométrique — charger l'utilisateur stocké */
-      const stored = localStorage.getItem('helio_user')
-      const user   = stored ? JSON.parse(stored) : null
-      if (user?.role) localStorage.setItem('heliobenin_role', user.role)
-      redirectByRole()
+      localStorage.setItem('heliobenin_role', 'particulier')
+      navigate('/paiement')
     } catch {
       setError('Authentification biométrique annulée ou non disponible.')
     } finally {
@@ -93,7 +79,6 @@ export default function Login() {
 
       <div className={styles.center}>
         <div className={styles.card}>
-          {/* Logo */}
           <div className={styles.logo}>
             <span className={styles.logoText}>Hélio<span className={styles.logoAccent}>Bénin</span></span>
           </div>
@@ -102,7 +87,6 @@ export default function Login() {
           <p className={styles.subtitle}>Connectez-vous à votre espace solaire</p>
 
           <form onSubmit={handleSubmit} className={styles.form} noValidate>
-            {/* Email */}
             <div className={styles.field}>
               <div className={styles.inputWrap}>
                 <Mail size={17} className={styles.inputIcon} color="rgba(255,255,255,0.38)" />
@@ -117,7 +101,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Mot de passe */}
             <div className={styles.field}>
               <div className={styles.inputWrap}>
                 <Lock size={17} className={styles.inputIcon} color="rgba(255,255,255,0.38)" />
@@ -143,15 +126,12 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Erreur */}
             {error && <p className={styles.error}>{error}</p>}
 
-            {/* Bouton connexion */}
             <button type="submit" className={styles.btnPrimary} disabled={loading}>
               {loading ? <span className={styles.spinner} /> : 'Se connecter'}
             </button>
 
-            {/* Biométrie */}
             {biometric && (
               <button
                 type="button"

@@ -74,7 +74,7 @@ export default function Accueil() {
               <p className={styles.cardDesc}>
                 Connectez-vous et accédez à votre espace de travail.
               </p>
-              <Link to="/login" className={styles.btnDark}>
+              <Link to={role === 'technicien' ? '/login-tech' : '/login'} className={styles.btnDark}>
                 Se connecter ›
               </Link>
             </div>
@@ -87,7 +87,7 @@ export default function Accueil() {
               <p className={styles.cardDesc}>
                 Créez un compte et commencez votre dimensionnement.
               </p>
-              <Link to="/inscription" className={styles.btnOrange}>
+              <Link to={role === 'technicien' ? '/inscription-tech' : '/inscription'} className={styles.btnOrange}>
                 Créer un compte ›
               </Link>
             </div>

@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronDown, User, FolderOpen, LogOut, Plus } from 'lucide-react'
+import { clearTechnicien, getUserTechnicien } from '../utils/storage'
 import styles from './Avatar.module.css'
 
 export default function AvatarTech() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
 
-  const raw  = localStorage.getItem('helio_user')
-  const user = raw ? JSON.parse(raw) : { prenom: 'Tech', nom: 'Nicien', email: 'tech@exemple.bj', role: 'technicien' }
+  const _u   = getUserTechnicien()
+  const user = _u.email ? _u : { prenom: 'Tech', nom: 'Nicien', email: 'tech@exemple.bj', role: 'technicien' }
   const nomInitial = (user.nom?.[0] || 'U').toUpperCase()
   const fullName   = [user.prenom, user.nom].filter(Boolean).join(' ')
   const email      = user.email || ''
@@ -57,13 +58,18 @@ export default function AvatarTech() {
               <FolderOpen size={15} /> Mes Projets
             </button>
             <button className={styles.menuItem} onClick={() => {
-              localStorage.removeItem('heliobenin_technicien')
+              clearTechnicien()
               go('/localisation-tech')
             }}>
               <Plus size={15} /> Nouveau projet
             </button>
             <div className={styles.divider} />
-            <button className={`${styles.menuItem} ${styles.logout}`} onClick={() => go('/')}>
+            <button className={`${styles.menuItem} ${styles.logout}`} onClick={() => {
+              clearTechnicien()
+              localStorage.removeItem('helio_user_technicien')
+              localStorage.removeItem('heliobenin_role')
+              go('/')
+            }}>
               <LogOut size={15} /> Se déconnecter
             </button>
           </div>
