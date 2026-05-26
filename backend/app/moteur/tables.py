@@ -1,4 +1,4 @@
-from .loader import load_all_equipements
+from .loader import load_all_equipements, load_appareils, load_prix
 
 # ── Sections câbles H1Z2Z2K (PV DC)
 SECTIONS_H1Z2Z2K = [
@@ -84,3 +84,21 @@ def get_equipements() -> dict:
     if _cache is None:
         _cache = load_all_equipements()
     return _cache
+
+
+_appareils_cache = None
+
+def get_appareils() -> list:
+    global _appareils_cache
+    if _appareils_cache is None:
+        _appareils_cache = load_appareils()
+    return _appareils_cache
+
+
+_prix_cache = None
+
+def get_prix() -> dict:
+    global _prix_cache
+    if _prix_cache is None:
+        _prix_cache = load_prix()
+    return _prix_cache

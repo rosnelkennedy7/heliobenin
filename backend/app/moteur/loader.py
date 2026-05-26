@@ -3,22 +3,22 @@ import os
 import glob
 
 
-def find_excel_equipements() -> str:
+def _find_excel(keyword: str):
     data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
-    patterns = [
-        os.path.join(data_dir, '*.xlsx'),
-        os.path.join(data_dir, '**/*.xlsx'),
-    ]
-    for pattern in patterns:
+    for pattern in [os.path.join(data_dir, '*.xlsx'), os.path.join(data_dir, '**/*.xlsx')]:
         for f in glob.glob(pattern):
             name = os.path.basename(f).lower()
-            if 'equipement' in name or 'equipment' in name:
-                print(f"Excel trouvé : {repr(f)}")
+            if keyword in name:
                 return f
-    raise FileNotFoundError("Fichier HélioBénin Equipement.xlsx introuvable dans data/")
+    return None
 
 
-EXCEL_PATH = find_excel_equipements()
+EXCEL_PATH           = _find_excel('equipement') or _find_excel('equipment')
+EXCEL_APPAREILS_PATH = _find_excel('appareils')
+EXCEL_PRIX_PATH      = _find_excel('prix')
+
+if not EXCEL_PATH:
+    raise FileNotFoundError("HélioBénin Equipement.xlsx introuvable dans data/")
 
 
 def _parse_plage(s):
@@ -30,19 +30,28 @@ def _parse_plage(s):
         return 0.0, 500.0
 
 
-def load_sheet(sheet_name: str) -> list:
-    wb = openpyxl.load_workbook(EXCEL_PATH, read_only=True, data_only=True)
+def _load_sheet_from(path: str, sheet_name: str) -> list:
+    if not path:
+        return []
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    if sheet_name not in wb.sheetnames:
+        wb.close()
+        return []
     ws = wb[sheet_name]
     rows = list(ws.iter_rows(values_only=True))
     wb.close()
     if not rows:
         return []
-    headers = [str(h).strip() for h in rows[0]]
-    result = []
-    for row in rows[1:]:
-        if any(v is not None for v in row):
-            result.append(dict(zip(headers, row)))
-    return result
+    headers = [str(h).strip() if h is not None else '' for h in rows[0]]
+    return [
+        dict(zip(headers, row))
+        for row in rows[1:]
+        if any(v is not None for v in row)
+    ]
+
+
+def load_sheet(sheet_name: str) -> list:
+    return _load_sheet_from(EXCEL_PATH, sheet_name)
 
 
 def _normalize_panneaux(rows):
@@ -127,6 +136,35 @@ def _normalize_regulateurs(rows):
     return result
 
 
+def _normalize_appareils(rows):
+    result = []
+    for i, r in enumerate(rows, 1):
+        try:
+            nom = str(r.get('Désignation') or '').strip()
+            if not nom:
+                continue
+            id_ = i
+            for key, val in r.items():
+                kstr = str(key)
+                if kstr.startswith('N') and len(kstr) <= 3 and val is not None:
+                    try:
+                        id_ = int(val)
+                    except (ValueError, TypeError):
+                        pass
+                    break
+            result.append({
+                'id': id_,
+                'nom': nom,
+                'categorie': str(r.get('Catégorie') or '').strip(),
+                'puissance': float(r.get('Puissance (W)') or 0),
+                'typeCharge': str(r.get('Type de charge') or '').strip(),
+                'facteurPointe': float(r.get('Facteur pointe') or 1.0),
+            })
+        except Exception:
+            continue
+    return result
+
+
 def load_all_equipements() -> dict:
     return {
         'panneaux':             _normalize_panneaux(load_sheet('Panneaux Solaires')),
@@ -140,4 +178,19 @@ def load_all_equipements() -> dict:
         'fusibles':             load_sheet('Fusibles DC'),
         'porte_fusibles':       load_sheet('Porte-fusibles'),
         'parafoudres':          load_sheet('Parafoudres'),
+    }
+
+
+def load_appareils() -> list:
+    rows = _load_sheet_from(EXCEL_APPAREILS_PATH, 'Appareils')
+    return _normalize_appareils(rows)
+
+
+def load_prix() -> dict:
+    if not EXCEL_PRIX_PATH:
+        return {}
+    sheets = ['Protection & Câble', 'Onduleurs All-in-One', 'Batteries LiFePO4', 'Panneaux Solaires']
+    return {
+        sheet: [{str(k): v for k, v in row.items()} for row in _load_sheet_from(EXCEL_PRIX_PATH, sheet)]
+        for sheet in sheets
     }

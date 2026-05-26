@@ -1,12 +1,23 @@
 from fastapi import APIRouter
 from ..moteur.loader import load_all_equipements
+from ..moteur.tables import get_appareils, get_prix
 
 router = APIRouter(tags=["equipements"])
 
 
 @router.get("/api/equipements")
-def get_equipements():
+def list_equipements():
     return load_all_equipements()
+
+
+@router.get("/api/appareils")
+def list_appareils():
+    return get_appareils()
+
+
+@router.get("/api/prix")
+def list_prix():
+    return get_prix()
 
 
 @router.get("/api/debug/equipements")

@@ -6,7 +6,6 @@ import Avatar from '../../components/Avatar'
 import vitreImg from '../../assets/images/vitre.png'
 import { getParticulier, saveParticulier, getCurrentModeParticulier } from '../../utils/storage'
 import { API_BASE } from '../../utils/api'
-import { PRIX } from '../../data/prix'
 import styles from './Resultats.module.css'
 
 /* ── Marges ── */
@@ -44,55 +43,55 @@ const fmt = (n) =>
   Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 
 /* ── Lookups dans le catalogue PRIX ── */
-const PC = PRIX['Protection & Câble']
-
-function lookupPanneau(usys) {
+function lookupPanneau(prix, usys) {
   const tension = usys === 48 ? 24 : usys
-  return PRIX['Panneaux Solaires']
-    .find(p => p['Puissance / Tension'].endsWith(`/ ${tension}V`))?.['Prix FCFA'] ?? 0
+  return prix?.['Panneaux Solaires']
+    ?.find(p => p['Puissance / Tension']?.endsWith(`/ ${tension}V`))?.['Prix FCFA'] ?? 0
 }
 
-function lookupOnduleur(usys, pondW) {
+function lookupOnduleur(prix, usys, pondW) {
   const pondKw = pondW / 1000
-  return PRIX['Onduleurs All-in-One']
-    .filter(o => o['Puissance / Tension'].includes(`/ ${usys}V`))
+  return prix?.['Onduleurs All-in-One']
+    ?.filter(o => o['Puissance / Tension']?.includes(`/ ${usys}V`))
     .map(o => ({ ...o, _kw: parseFloat(o['Puissance / Tension']) }))
     .sort((a, b) => a._kw - b._kw)
     .find(o => o._kw >= pondKw)?.['Prix FCFA'] ?? 0
 }
 
-function lookupBatterie(usys, cUnitaire) {
-  return PRIX['Batteries LiFePO4']
-    .find(b => b['Tension / Capacité'] === `${usys}V / ${cUnitaire}Ah`)?.['Prix FCFA'] ?? 0
+function lookupBatterie(prix, usys, cUnitaire) {
+  return prix?.['Batteries LiFePO4']
+    ?.find(b => b['Tension / Capacité'] === `${usys}V / ${cUnitaire}Ah`)?.['Prix FCFA'] ?? 0
 }
 
-function lookupCable(typeCable, section) {
+function lookupCable(prix, typeCable, section) {
+  const PC = prix?.['Protection & Câble'] ?? []
   const s1 = `1×${section}mm²`
   if (typeCable.includes('H1Z2Z2K')) {
-    return PC.find(c => c['Désignation'].includes('H1Z2Z2K') && c['Calibre/Section'] === s1)?.['Prix FCFA'] ?? 0
+    return PC.find(c => c['Désignation']?.includes('H1Z2Z2K') && c['Calibre/Section'] === s1)?.['Prix FCFA'] ?? 0
   }
   if (typeCable.includes('rouge') || typeCable.includes('Souple')) {
-    return PC.find(c => c['Désignation'].includes('rouge/noir') && c['Calibre/Section'] === s1)?.['Prix FCFA'] ?? 0
+    return PC.find(c => c['Désignation']?.includes('rouge/noir') && c['Calibre/Section'] === s1)?.['Prix FCFA'] ?? 0
   }
   if (typeCable.includes('H07RN-F')) {
     const s3 = `3×${section}mm²`
-    return PC.find(c => c['Désignation'].includes('H07RN-F') && c['Calibre/Section'] === s3)?.['Prix FCFA'] ?? 0
+    return PC.find(c => c['Désignation']?.includes('H07RN-F') && c['Calibre/Section'] === s3)?.['Prix FCFA'] ?? 0
   }
   return 0
 }
 
-function lookupProtection(type, calibre) {
+function lookupProtection(prix, type, calibre) {
+  const PC = prix?.['Protection & Câble'] ?? []
   if (type.includes('Disjoncteur DC') || type.includes('Fusible gPV')) {
     return PC.find(c =>
       c['Catégorie'] === 'Disjoncteur DC' &&
-      c['Désignation'].includes('2P') &&
+      c['Désignation']?.includes('2P') &&
       c['Calibre/Section'] === `1000V/${calibre}A`
     )?.['Prix FCFA'] ?? 0
   }
   if (type.toLowerCase().includes('différentiel') || type.toLowerCase().includes('differentiel')) {
     return PC.find(c =>
       c['Catégorie'] === 'Différentiel' &&
-      c['Désignation'].includes('2P 30mA') &&
+      c['Désignation']?.includes('2P 30mA') &&
       c['Calibre/Section'] === `${calibre}A`
     )?.['Prix FCFA'] ?? 0
   }
@@ -102,9 +101,10 @@ function lookupProtection(type, calibre) {
   )?.['Prix FCFA'] ?? 0
 }
 
-function lookupPorteFusible(designation) {
+function lookupPorteFusible(prix, designation) {
+  const PC = prix?.['Protection & Câble'] ?? []
   return PC.find(c =>
-    c['Désignation'].toLowerCase().includes(
+    c['Désignation']?.toLowerCase().includes(
       designation.toLowerCase().split(' ').slice(0, 3).join(' ')
     )
   )?.['Prix FCFA'] ?? 0
@@ -117,7 +117,7 @@ function lookupParafoudre(designation) {
 }
 
 /* ── Construire les lignes du devis ── */
-function buildLignes(result) {
+function buildLignes(result, prix) {
   const { bilan, onduleur, panneaux, batteries, cables } = result
   if (!bilan || !panneaux || !batteries || !cables) return []
 
@@ -130,7 +130,7 @@ function buildLignes(result) {
     key: 'pann',
     designation: `Panneau solaire monocristallin PERC/TOPCon (${usys === 48 ? 24 : usys}V)`,
     qty: panneaux.np_final,
-    pu: lookupPanneau(usys),
+    pu: lookupPanneau(prix, usys),
     unite: 'pce',
   })
 
@@ -140,7 +140,7 @@ function buildLignes(result) {
     key: 'ond',
     designation: `Onduleur All-in-One ${pondKw} kW / ${usys}V (monophasé)`,
     qty: 1,
-    pu: lookupOnduleur(usys, bilan.pond),
+    pu: lookupOnduleur(prix, usys, bilan.pond),
     unite: 'pce',
   })
 
@@ -149,7 +149,7 @@ function buildLignes(result) {
     key: 'bat',
     designation: `Batterie LiFePO4 BMS intégré ${usys}V / ${batteries.c_unitaire}Ah`,
     qty: batteries.nb_batteries,
-    pu: lookupBatterie(usys, batteries.c_unitaire),
+    pu: lookupBatterie(prix, usys, batteries.c_unitaire),
     unite: 'pce',
   })
 
@@ -159,7 +159,7 @@ function buildLignes(result) {
       key: `cable_${i}`,
       designation: `Câble ${t.type_cable} ${t.section}mm² — ${t.troncon}`,
       qty: Math.round(t.longueur),
-      pu: lookupCable(t.type_cable, t.section),
+      pu: lookupCable(prix, t.type_cable, t.section),
       unite: 'm',
     })
   })
@@ -175,7 +175,7 @@ function buildLignes(result) {
       key: `prot_${i}`,
       designation: `${t.protection} ${t.calibre}A`,
       qty: 1,
-      pu: lookupProtection(t.protection, t.calibre),
+      pu: lookupProtection(prix, t.protection, t.calibre),
       unite: 'pce',
     })
   })
@@ -186,7 +186,7 @@ function buildLignes(result) {
       key: `pfus_${i}`,
       designation: pf.designation,
       qty: pf.quantite,
-      pu: lookupPorteFusible(pf.designation),
+      pu: lookupPorteFusible(prix, pf.designation),
       unite: 'pce',
     })
   })
@@ -214,6 +214,14 @@ export default function Resultats() {
   const [modeBudget,  setModeBudget]  = useState('sans_budget')
   const [budget,      setBudget]      = useState(0)
   const [modifie,     setModifie]     = useState(false)
+  const [prix,        setPrix]        = useState(null)
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/prix`)
+      .then(r => r.json())
+      .then(setPrix)
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const data = getParticulier()
@@ -290,7 +298,7 @@ export default function Resultats() {
   }
 
   /* ── Calculs prix ── */
-  const lignes          = resultats ? buildLignes(resultats) : []
+  const lignes          = resultats ? buildLignes(resultats, prix) : []
   const sousTotal       = lignes.reduce((s, l) => s + Math.round(l.pu * MARGE) * l.qty, 0)
   const totalFinal      = Math.round(sousTotal * MARGE_TOTAL)
   const cout_estime     = totalFinal

@@ -1,23 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trash2, Plus, Search, Check } from 'lucide-react'
 import Navbar from '../../components/Navbar'
 import vitreImg from '../../assets/images/vitre.png'
 import AvatarTech from '../../components/AvatarTech'
-import { APPAREILS } from '../../data/appareils'
 import { defaultHours } from '../../utils/defaultHours'
+import { saveTechnicien, getTechnicien } from '../../utils/storage'
+import { API_BASE } from '../../utils/api'
 import styles from './AppareilsTech.module.css'
 
 /* ── Catégories ──────────────────────────────────────── */
 const CATEGORIES = ['Eclairage','Climatisation','Audiovisuel','Cuisine','Informatique','Electroménager','Autre']
 const CAT_ICONS  = { Eclairage:'🔆', Climatisation:'❄️', Audiovisuel:'📺', Cuisine:'🍳', Informatique:'💻', Electroménager:'🏠', Autre:'⚡' }
-
-
-/* ── Sauvegarde technicien ───────────────────────────── */
-const saveTechnicien = (newData) => {
-  const existing = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
-  localStorage.setItem('heliobenin_technicien', JSON.stringify({ ...existing, ...newData }))
-}
 
 /* ── Stepper 5 étapes ────────────────────────────────── */
 const STEPS = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
@@ -40,11 +34,11 @@ function Stepper({ active }) {
 }
 
 /* ── Modale appareils ────────────────────────────────── */
-function AppareilsModal({ open, onClose, onSelect }) {
+function AppareilsModal({ open, onClose, onSelect, appareils }) {
   const [q, setQ] = useState('')
   if (!open) return null
 
-  const filtered = APPAREILS.filter(a =>
+  const filtered = appareils.filter(a =>
     !q.trim() || a.nom.toLowerCase().includes(q.toLowerCase())
   )
 
@@ -119,7 +113,7 @@ export default function AppareilsTech() {
   const navigate = useNavigate()
 
   const [rows, setRows] = useState(() => {
-    const sv = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
+    const sv = getTechnicien()
     return (sv.appareils || []).map(a => ({
       id: Date.now() + Math.random(),
       nom: a.nom || '',
@@ -133,6 +127,14 @@ export default function AppareilsTech() {
     }))
   })
   const [modalOpen, setModalOpen] = useState(false)
+  const [appareils, setAppareils] = useState([])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/appareils`)
+      .then(r => r.json())
+      .then(setAppareils)
+      .catch(() => {})
+  }, [])
 
   /* ── Dérivés ── */
   const hasOverflow  = rows.some(r => (r.hJour || 0) + (r.hNuit || 0) > 24)
@@ -401,6 +403,7 @@ export default function AppareilsTech() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSelect={selectFromModal}
+        appareils={appareils}
       />
 
     </div>

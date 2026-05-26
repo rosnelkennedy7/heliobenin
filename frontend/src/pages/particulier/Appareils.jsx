@@ -6,7 +6,7 @@ import vitreImg from '../../assets/images/vitre.png'
 import Avatar from '../../components/Avatar'
 import { saveParticulier, getParticulier, getCurrentModeParticulier } from '../../utils/storage'
 import { defaultHours } from '../../utils/defaultHours'
-import { APPAREILS } from '../../data/appareils'
+import { API_BASE } from '../../utils/api'
 import styles from './Appareils.module.css'
 
 /* ── Catégories ─────────────────────────────────────── */
@@ -43,11 +43,11 @@ function Stepper({ active }) {
 }
 
 /* ── Modale appareils ────────────────────────────────── */
-function AppareilsModal({ open, onClose, onSelect }) {
+function AppareilsModal({ open, onClose, onSelect, appareils }) {
   const [q, setQ] = useState('')
   if (!open) return null
 
-  const filtered = APPAREILS.filter(a =>
+  const filtered = appareils.filter(a =>
     !q.trim() || a.nom.toLowerCase().includes(q.toLowerCase())
   )
 
@@ -148,6 +148,14 @@ export default function Appareils() {
   })
   const [budgetDisplay,setBudgetDisplay] = useState('')
   const [modalOpen,    setModalOpen]    = useState(false)
+  const [appareils,    setAppareils]    = useState([])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/appareils`)
+      .then(r => r.json())
+      .then(setAppareils)
+      .catch(() => {})
+  }, [])
 
   /* ── Dérivés ── */
   const budgetNum   = parseInt(budgetDisplay.replace(/\s/g, ''), 10) || 0
@@ -491,6 +499,7 @@ export default function Appareils() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSelect={selectFromModal}
+        appareils={appareils}
       />
     </div>
   )
