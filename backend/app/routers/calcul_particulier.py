@@ -17,6 +17,7 @@ class Appareil(BaseModel):
     h_jour: float = 0
     h_nuit: float = 0
     prioritaire: bool = False
+    facteur_pointe: float = 1.0
 
 
 class ParamsSansBudget(BaseModel):

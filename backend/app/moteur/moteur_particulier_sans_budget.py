@@ -185,22 +185,19 @@ def choisir_onduleur(pond: float, usys: int) -> dict:
 # PANNEAUX AUTO
 # ════════════════════════════
 def calculer_panneaux(pc: float, usys: int, onduleur: dict) -> dict:
-    panneau  = PANNEAUX_PAR_USYS[usys]
-    mppt_max = onduleur.get("mppt_max", 500)
+    panneau          = PANNEAUX_PAR_USYS[usys]
+    mppt_max         = onduleur.get("mppt_max", 500)
+    tension_nominale = panneau["tension_nominale"]
 
-    if usys in [12, 24]:
-        ns    = 1
-        n_par = arrondi_sup(pc / panneau["puissance"])
-        if n_par < 1:
-            n_par = 1
-    else:
-        vmp_cible = mppt_max * 0.70
-        ns = arrondi_sup(vmp_cible / panneau["vmp"])
-        while ns * panneau["voc"] >= mppt_max and ns > 1:
-            ns -= 1
-        n_par = arrondi_sup(pc / (ns * panneau["puissance"]))
-        if n_par < 1:
-            n_par = 1
+    ns = math.ceil(usys / tension_nominale)
+    if ns < 1:
+        ns = 1
+    while ns > 1 and ns * panneau["voc"] > mppt_max * 0.95:
+        ns -= 1
+
+    n_par = arrondi_sup(pc / (ns * panneau["puissance"]))
+    if n_par < 1:
+        n_par = 1
 
     np_final = ns * n_par
     return {
@@ -223,40 +220,30 @@ def choisir_batteries(
     dod: float,
     eta_bat: float,
 ) -> dict:
-    equip     = get_equipements()
-    batteries = sorted(
+    equip = get_equipements()
+    batteries_filtrees = sorted(
         [b for b in equip.get("batteries", [])
-         if b.get("tension") == usys and b.get("capacite")],
+         if b.get("tension") == usys
+         and b.get("capacite")
+         and ("lifepo4" in str(b.get("technologie", "")).lower()
+              or "lithium" in str(b.get("technologie", "")).lower())],
         key=lambda b: b["capacite"],
     )
 
-    if not batteries:
+    if not batteries_filtrees:
         c_unitaire = 200
-        nbp = arrondi_sup(c_calculee / c_unitaire)
-        if nbp < 1: nbp = 1
-        return {
-            "c_calculee":    round(c_calculee, 2),
-            "c_unitaire":    c_unitaire,
-            "nb_batteries":  nbp,
-            "nb_serie":      1,
-            "nb_parallele":  nbp,
-            "energie_totale": round(nbp * c_unitaire * usys / 1000, 2),
-        }
+    else:
+        c_unitaire = batteries_filtrees[0]["capacite"]
 
-    bat = next(
-        (b for b in batteries if b["capacite"] >= c_calculee),
-        batteries[-1],
-    )
-    c_unitaire = bat["capacite"]
     nbp = arrondi_sup(c_calculee / c_unitaire)
     if nbp < 1: nbp = 1
 
     return {
-        "c_calculee":    round(c_calculee, 2),
-        "c_unitaire":    c_unitaire,
-        "nb_batteries":  nbp,
-        "nb_serie":      1,
-        "nb_parallele":  nbp,
+        "c_calculee":     round(c_calculee, 2),
+        "c_unitaire":     c_unitaire,
+        "nb_batteries":   nbp,
+        "nb_serie":       1,
+        "nb_parallele":   nbp,
         "energie_totale": round(nbp * c_unitaire * usys / 1000, 2),
     }
 
