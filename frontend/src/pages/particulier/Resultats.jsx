@@ -81,11 +81,25 @@ function lookupCable(prix, typeCable, section) {
 
 function lookupProtection(prix, type, calibre) {
   const PC = prix?.['Protection & Câble'] ?? []
-  if (type.includes('Disjoncteur DC') || type.includes('Fusible gPV')) {
+  if (type.includes('Fusible gPV')) {
+    // Catégorie 'Fusible gPV', Calibre/Section = '10A' (ampérage seul)
+    return PC.find(c =>
+      c['Catégorie'] === 'Fusible gPV' &&
+      c['Calibre/Section'] === `${calibre}A`
+    )?.['Prix FCFA'] ?? 0
+  }
+  if (type.includes('Disjoncteur DC')) {
     return PC.find(c =>
       c['Catégorie'] === 'Disjoncteur DC' &&
       c['Désignation']?.includes('2P') &&
       c['Calibre/Section'] === `1000V/${calibre}A`
+    )?.['Prix FCFA'] ?? 0
+  }
+  if (type.includes('Fusible NH')) {
+    // Catégorie 'Fusible NH', Calibre/Section = '100A/500V'
+    return PC.find(c =>
+      c['Catégorie'] === 'Fusible NH' &&
+      c['Calibre/Section'] === `${calibre}A/500V`
     )?.['Prix FCFA'] ?? 0
   }
   if (type.toLowerCase().includes('différentiel') || type.toLowerCase().includes('differentiel')) {
@@ -95,34 +109,41 @@ function lookupProtection(prix, type, calibre) {
       c['Calibre/Section'] === `${calibre}A`
     )?.['Prix FCFA'] ?? 0
   }
-  return PC.find(c =>
-    c['Catégorie'] === 'Disjoncteur AC' &&
-    c['Calibre/Section'] === `${calibre}A`
-  )?.['Prix FCFA'] ?? 0
+  return 0
 }
 
 function lookupPorteFusible(prix, designation) {
   const PC = prix?.['Protection & Câble'] ?? []
+  // "Porte-fusible gPV 10×38mm 1000V DC" → Catégorie 'Porte-fusible gPV' (unique)
+  if (designation.toLowerCase().includes('gpv')) {
+    return PC.find(c => c['Catégorie'] === 'Porte-fusible gPV')?.['Prix FCFA'] ?? 0
+  }
+  // "Porte-fusible NH000" → correspondance exacte sur la désignation
   return PC.find(c =>
-    c['Désignation']?.toLowerCase().includes(
-      designation.toLowerCase().split(' ').slice(0, 3).join(' ')
-    )
+    c['Catégorie'] === 'Porte-fusible' &&
+    (c['Désignation'] ?? '').toLowerCase() === designation.toLowerCase()
   )?.['Prix FCFA'] ?? 0
 }
 
 function lookupParafoudre(prix, designation) {
   const PC = prix?.['Protection & Câble'] ?? []
-  const row = PC.find(c => {
-    const d = (c['Désignation'] ?? '').toLowerCase()
-    if (designation.includes('1000V') || (designation.includes('DC') && !designation.includes('AC'))) {
-      return d.includes('parafoudre') && d.includes('dc')
-    }
-    if (designation.includes('230V') || designation.includes('AC')) {
-      return d.includes('parafoudre') && (d.includes('ac') || d.includes('230'))
-    }
-    return false
-  })
-  return row?.['Prix FCFA'] ?? 0
+  if (designation.includes('1000V') || (designation.includes('DC') && !designation.includes('AC'))) {
+    // Parafoudre DC type 2 × 2P, 1000V/40kA
+    return PC.find(c =>
+      c['Catégorie'] === 'Parafoudre' &&
+      (c['Désignation'] ?? '').toLowerCase().includes('dc') &&
+      c['Calibre/Section'] === '1000V/40kA'
+    )?.['Prix FCFA'] ?? 0
+  }
+  if (designation.includes('230V') || designation.includes('AC')) {
+    // Parafoudre AC type 2 × 2P, 230V/40kA
+    return PC.find(c =>
+      c['Catégorie'] === 'Parafoudre' &&
+      (c['Désignation'] ?? '').toLowerCase().includes('ac') &&
+      c['Calibre/Section'] === '230V/40kA'
+    )?.['Prix FCFA'] ?? 0
+  }
+  return 0
 }
 
 /* ── Construire les lignes du devis ── */
@@ -166,7 +187,9 @@ function buildLignes(result, prix) {
   troncons.forEach((t, i) => {
     rows.push({
       key: `cable_${i}`,
-      designation: `Câble ${t.type_cable} ${t.section}mm² — ${t.troncon}`,
+      designation: t.type_cable.includes('mm²')
+        ? `Câble ${t.type_cable} : ${t.troncon}`
+        : `Câble ${t.type_cable} ${t.section}mm² : ${t.troncon}`,
       qty: Math.round(t.longueur),
       pu: lookupCable(prix, t.type_cable, t.section),
       unite: 'm',
@@ -178,7 +201,7 @@ function buildLignes(result, prix) {
     if (!t.protection || !t.calibre) return
     rows.push({
       key: `prot_${i}`,
-      designation: `${t.protection} ${t.calibre}A`,
+      designation: t.protection,
       qty: t.quantite ?? 1,
       pu: lookupProtection(prix, t.protection, t.calibre),
       unite: 'pce',
@@ -224,7 +247,10 @@ export default function Resultats() {
   useEffect(() => {
     fetch(`${API_BASE}/api/prix`)
       .then(r => r.json())
-      .then(setPrix)
+      .then(data => {
+        console.log('[prix] Protection & Câble:', data?.['Protection & Câble'])
+        setPrix(data)
+      })
       .catch(() => {})
   }, [])
 
@@ -468,7 +494,7 @@ export default function Resultats() {
 
             {/* Message estimatif */}
             <p className={styles.disclaimer}>
-              Ceci n'est qu'un devis estimatif.<br />
+              Ceci n'est qu'un devis estimatif qui n'inclut pas la main d'oeuvre.<br />
               Contactez-nous pour une étude plus avancée et un devis plus détaillé.
             </p>
 
