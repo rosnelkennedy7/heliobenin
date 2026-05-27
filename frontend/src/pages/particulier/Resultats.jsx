@@ -283,16 +283,19 @@ export default function Resultats() {
       const t_midi  = heures.filter(h => h >= 12 && h <= 17).length
       const t_soir  = heures.filter(h => h >= 18 || h <= 5).length
 
+      const mapAppareil = a => ({
+        nom:         a.nom,
+        puissance:   a.puissance,
+        quantite:    a.quantite,
+        h_jour:      a.hJour ?? 0,
+        h_nuit:      a.hNuit ?? 0,
+        prioritaire: a.priorite === true,
+      })
+
       const body = {
         mode,
-        appareils: appareils.map(a => ({
-          nom:         a.nom,
-          puissance:   a.puissance,
-          quantite:    a.quantite,
-          h_jour:      a.hJour ?? 0,
-          h_nuit:      a.hNuit ?? 0,
-          prioritaire: a.priorite !== false,
-        })),
+        appareils:               appareils.map(mapAppareil),
+        appareils_prioritaires:  appareils.filter(a => a.priorite === true).map(mapAppareil),
         irradiation: loc.irradiation || 5.0,
         latitude:    loc.latitude    || 6.4,
         t_matin,
