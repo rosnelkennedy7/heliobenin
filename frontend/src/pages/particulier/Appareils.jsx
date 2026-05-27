@@ -146,7 +146,9 @@ export default function Appareils() {
       priorite: a.priorite !== false,
     }))
   })
-  const [budgetDisplay,setBudgetDisplay] = useState('')
+  const [budgetDisplay,setBudgetDisplay] = useState(
+    fmtBudget((stored.budget || '').toString())
+  )
   const [modalOpen,    setModalOpen]    = useState(false)
   const [appareils,    setAppareils]    = useState([])
 
