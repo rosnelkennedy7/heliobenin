@@ -110,10 +110,19 @@ function lookupPorteFusible(prix, designation) {
   )?.['Prix FCFA'] ?? 0
 }
 
-function lookupParafoudre(designation) {
-  if (designation.includes('1000V') || (designation.includes('DC') && !designation.includes('AC'))) return 22500
-  if (designation.includes('230V') || designation.includes('AC')) return 15500
-  return 0
+function lookupParafoudre(prix, designation) {
+  const PC = prix?.['Protection & Câble'] ?? []
+  const row = PC.find(c => {
+    const d = (c['Désignation'] ?? '').toLowerCase()
+    if (designation.includes('1000V') || (designation.includes('DC') && !designation.includes('AC'))) {
+      return d.includes('parafoudre') && d.includes('dc')
+    }
+    if (designation.includes('230V') || designation.includes('AC')) {
+      return d.includes('parafoudre') && (d.includes('ac') || d.includes('230'))
+    }
+    return false
+  })
+  return row?.['Prix FCFA'] ?? 0
 }
 
 /* ── Construire les lignes du devis ── */
@@ -164,17 +173,13 @@ function buildLignes(result, prix) {
     })
   })
 
-  // Protections (dédupliquées par tronçon)
-  const seen = new Set()
+  // Protections (quantité depuis le moteur)
   troncons.forEach((t, i) => {
     if (!t.protection || !t.calibre) return
-    const key = `${t.protection}_${t.calibre}`
-    if (seen.has(key)) return
-    seen.add(key)
     rows.push({
       key: `prot_${i}`,
       designation: `${t.protection} ${t.calibre}A`,
-      qty: 1,
+      qty: t.quantite ?? 1,
       pu: lookupProtection(prix, t.protection, t.calibre),
       unite: 'pce',
     })
@@ -197,7 +202,7 @@ function buildLignes(result, prix) {
       key: `para_${i}`,
       designation: `Parafoudre ${pf.designation}`,
       qty: pf.quantite,
-      pu: lookupParafoudre(pf.designation),
+      pu: lookupParafoudre(prix, pf.designation),
       unite: 'pce',
     })
   })

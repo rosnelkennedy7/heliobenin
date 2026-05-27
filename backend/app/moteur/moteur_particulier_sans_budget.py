@@ -185,15 +185,12 @@ def choisir_onduleur(pond: float, usys: int) -> dict:
 # PANNEAUX AUTO
 # ════════════════════════════
 def calculer_panneaux(pc: float, usys: int, onduleur: dict) -> dict:
-    panneau          = PANNEAUX_PAR_USYS[usys]
-    mppt_max         = onduleur.get("mppt_max", 500)
-    tension_nominale = panneau["tension_nominale"]
+    panneau  = PANNEAUX_PAR_USYS[usys]
+    voc_lim  = onduleur.get("mppt_max", 500) * 0.95
 
-    ns = math.ceil(usys / tension_nominale)
+    ns = int(voc_lim / panneau["voc"])
     if ns < 1:
         ns = 1
-    while ns > 1 and ns * panneau["voc"] > mppt_max * 0.95:
-        ns -= 1
 
     n_par = arrondi_sup(pc / (ns * panneau["puissance"]))
     if n_par < 1:
@@ -236,15 +233,14 @@ def choisir_batteries(
         if nbp < 1: nbp = 1
     else:
         meilleure = None
-        meilleur_gaspillage = float("inf")
+        min_nb = float("inf")
         nbp = 1
         for bat in batteries_filtrees:
             c_unit = bat["capacite"]
             nbp_test = math.ceil(c_calculee / c_unit)
             if nbp_test < 1: nbp_test = 1
-            gaspillage = (nbp_test * c_unit) - c_calculee
-            if gaspillage < meilleur_gaspillage:
-                meilleur_gaspillage = gaspillage
+            if nbp_test < min_nb:
+                min_nb = nbp_test
                 meilleure = bat
                 nbp = nbp_test
         c_unitaire = meilleure["capacite"]
@@ -282,7 +278,7 @@ def calculer_cables_protections(
     parafoudres    = [
         {
             "designation": "Type 2 DC 1000V",
-            "quantite":    n_par,
+            "quantite":    1,
             "position":    "Côté panneaux",
         },
         {
@@ -308,14 +304,15 @@ def calculer_cables_protections(
         "section":          S1,
         "protection":       f"Fusible gPV {cal_gpv}A",
         "calibre":          cal_gpv,
+        "quantite":         n_par * 2,
         "fusible_gpv":      True,
-        "qt_fusible_gpv":   n_par,
+        "qt_fusible_gpv":   n_par * 2,
         "parafoudre_dc":    "Type 2 DC 1000V",
-        "qt_parafoudre_dc": n_par,
+        "qt_parafoudre_dc": 1,
     })
     porte_fusibles.append({
         "designation": "Porte-fusible gPV 10×38mm 1000V DC",
-        "quantite":    n_par,
+        "quantite":    n_par * 2,
     })
 
     # T2 — Onduleur → Batterie
@@ -327,11 +324,13 @@ def calculer_cables_protections(
         protection2 = "Disjoncteur DC 2P"
         calibre2    = calibre_disj_dc(Ip2)
         fusible_nh2 = None
+        quantite2   = 1
     else:
         nh          = get_fusible_nh(Ip2)  # Ip2 déjà majoré
         protection2 = f"Fusible {nh['type']}"
         calibre2    = nh["calibre"]
         fusible_nh2 = nh
+        quantite2   = 2  # positif + négatif
 
     troncons.append({
         "troncon":    "Onduleur → Batterie",
@@ -341,12 +340,13 @@ def calculer_cables_protections(
         "section":    S2,
         "protection": protection2,
         "calibre":    calibre2,
+        "quantite":   quantite2,
         "fusible_nh": fusible_nh2,
     })
     if fusible_nh2:
         porte_fusibles.append({
             "designation": fusible_nh2["porte_fusible"],
-            "quantite":    1,
+            "quantite":    2,
         })
 
     # T3 — Onduleur → Tableau AC (monophasé, pas de cos φ)
@@ -365,6 +365,7 @@ def calculer_cables_protections(
         "section":    S3,
         "protection": protection3,
         "calibre":    calibre3,
+        "quantite":   1,
     })
 
     return {
