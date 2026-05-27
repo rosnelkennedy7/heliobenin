@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import Avatar from '../../components/Avatar'
 import { saveParticulier, getCurrentModeParticulier } from '../../utils/storage'
 import styles from './QCM.module.css'

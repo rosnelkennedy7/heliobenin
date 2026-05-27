@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "HélioBénin — Application locale React + FastAPI",
   "devDependencies": {
+    "sharp": "^0.34.5",
     "xlsx": "^0.18.5"
   }
 }

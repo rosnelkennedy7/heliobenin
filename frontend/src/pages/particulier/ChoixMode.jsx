@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Wallet, Calculator } from 'lucide-react'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import Avatar from '../../components/Avatar'
 import { saveParticulier, setCurrentModeParticulier } from '../../utils/storage'
 import styles from './ChoixMode.module.css'

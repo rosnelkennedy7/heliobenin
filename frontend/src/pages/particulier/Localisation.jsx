@@ -6,7 +6,7 @@ import Navbar from '../../components/Navbar'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import Avatar from '../../components/Avatar'
 import styles from './Localisation.module.css'
 

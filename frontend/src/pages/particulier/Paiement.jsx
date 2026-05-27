@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Loader } from 'lucide-react'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import mtnImg from '../../assets/images/MTN.jpg'
 import moovImg from '../../assets/images/MOOV.png'
 import celtiisImg from '../../assets/images/Celtiis.jpg'

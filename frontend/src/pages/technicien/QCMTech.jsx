@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import AvatarTech from '../../components/AvatarTech'
 import { saveTechnicien } from '../../utils/storage'
 import styles from './QCMTech.module.css'

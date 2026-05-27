@@ -5,7 +5,7 @@ import {
   AlertCircle, AlertTriangle, CheckCircle, Plus,
 } from 'lucide-react'
 import Navbar from '../../components/Navbar'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import AvatarTech from '../../components/AvatarTech'
 import { supabase } from '../../utils/supabaseClient'
 import { saveTechnicien, getTechnicien } from '../../utils/storage'

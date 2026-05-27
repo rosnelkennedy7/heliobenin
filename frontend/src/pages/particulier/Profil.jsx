@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sun, Eye, EyeOff, Check, ChevronLeft } from 'lucide-react'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import styles from './Profil.module.css'
 
 export default function Profil() {

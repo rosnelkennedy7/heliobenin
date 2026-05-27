@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../../components/Navbar'
 import Avatar from '../../components/Avatar'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import { getParticulier, saveParticulier } from '../../utils/storage'
 
 function fmtBudget(raw) {

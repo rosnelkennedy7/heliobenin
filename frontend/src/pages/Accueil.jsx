@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { User, UserPlus, Wrench } from 'lucide-react'
-import vitreImg from '../assets/images/vitre.png'
+import vitreImg from '../assets/images/vitre.webp'
 import flaagImg from '../assets/images/flaag.jpg'
 import styles from './Accueil.module.css'
 

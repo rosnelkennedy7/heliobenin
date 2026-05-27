@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Check, Printer, ArrowLeft } from 'lucide-react'
 import Navbar from '../../components/Navbar'
 import AvatarTech from '../../components/AvatarTech'
-import vitreImg from '../../assets/images/vitre.png'
+import vitreImg from '../../assets/images/vitre.webp'
 import { getTechnicien } from '../../utils/storage'
 import s from './Rapport.module.css'
 
