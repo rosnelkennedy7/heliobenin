@@ -18,9 +18,9 @@ export default function Budget() {
   const data       = getParticulier()
   const manque     = data.manque     || 0
   const cout       = data.cout_estime || 0
-  const initBudget = data.budget     || 500000
-
-  const [budgetDisplay, setBudgetDisplay] = useState(fmtBudget(initBudget.toString()))
+  const [budgetDisplay, setBudgetDisplay] = useState(
+    fmtBudget((data.budget || '').toString())
+  )
 
   const budgetNum = parseInt(budgetDisplay.replace(/\s/g, ''), 10) || 0
   const budgetOk  = budgetNum >= 500000
