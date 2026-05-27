@@ -24,6 +24,11 @@ const fmt = n => Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, 
 
 /* ── Stepper ─────────────────────────────────────────── */
 const STEPS = ['Localisation', 'Appareils', 'Résultats']
+const SHORT_LABELS = {
+  'Localisation': 'Local.',
+  'Appareils':    'App.',
+  'Résultats':    'Résult.',
+}
 
 function Stepper({ active }) {
   return (
@@ -34,7 +39,7 @@ function Stepper({ active }) {
             <div className={`${styles.stepDot} ${i === active ? styles.stepDotActive : ''} ${i < active ? styles.stepDotDone : ''}`}>
               {i < active ? <Check size={20} strokeWidth={3} /> : i + 1}
             </div>
-            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`}>{step}</span>
+            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`} data-short={SHORT_LABELS[step] ?? step}>{step}</span>
           </div>
         </div>
       ))}

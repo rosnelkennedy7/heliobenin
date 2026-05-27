@@ -570,11 +570,15 @@ tr { page-break-inside: avoid; }
   .sigGrid { grid-template-columns: 1fr !important; }
   .table { font-size: 0.72rem !important; min-width: 400px !important; }
   .tableWrap { overflow-x: auto !important; }
-  .btnSuivant, .btnRetour, .btnPrimary { width: 100% !important; font-size: 0.9rem !important; }
+  .btnActions { flex-direction: column !important; gap: 0.5rem !important; }
+  .btnSuivant, .btnRetour, .btnPrimary, .btnPrint { width: 100% !important; font-size: 0.9rem !important; }
   .bottomNav { flex-direction: column !important; gap: 0.5rem !important; }
   input, select { font-size: 16px !important; min-height: 44px !important; }
   .stepper { gap: 0.3rem !important; }
-  .stepLabel { font-size: 0.65rem !important; }
+  .stepLabel { font-size: 0; }
+  .stepLabel::after { content: attr(data-short); font-size: 0.58rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .stepLabelActive::after { color: #F59E0B; font-weight: 700; }
+  .stepDot { width: 30px !important; height: 30px !important; font-size: 0.72rem !important; }
 }
 /* -- Tablette -- */
 @media (max-width: 768px) {

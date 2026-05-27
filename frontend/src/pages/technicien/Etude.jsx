@@ -13,6 +13,13 @@ import { API_BASE } from '../../utils/api'
 import s from './Etude.module.css'
 
 const STEPS = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
+const SHORT_LABELS = {
+  'Localisation': 'Local.',
+  'Appareils':    'App.',
+  'Étude':        'Étude',
+  'Devis':        'Devis',
+  'Rapport':      'Rapp.',
+}
 
 /* ─── helpers ────────────────────────────────────────────── */
 const totalUnits = (appareils) => appareils.reduce((acc, a) => acc + (a.quantite || 1), 0)
@@ -121,7 +128,7 @@ function Stepper({ active }) {
           <div className={`${s.stepDot} ${i === active ? s.stepDotActive : ''} ${i < active ? s.stepDotDone : ''}`}>
             {i < active ? <Check size={20} strokeWidth={3} /> : i + 1}
           </div>
-          <span className={`${s.stepLabel} ${i === active ? s.stepLabelActive : ''}`}>{step}</span>
+          <span className={`${s.stepLabel} ${i === active ? s.stepLabelActive : ''}`} data-short={SHORT_LABELS[step] ?? step}>{step}</span>
         </div>
       ))}
     </div>

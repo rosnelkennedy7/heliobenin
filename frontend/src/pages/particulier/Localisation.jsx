@@ -62,6 +62,12 @@ function MapFlyTo({ target }) {
   return null
 }
 
+const SHORT_LABELS = {
+  'Localisation': 'Local.',
+  'Appareils':    'App.',
+  'Résultats':    'Résult.',
+}
+
 /* ── Stepper 3 étapes ── */
 function Stepper({ active }) {
   const steps = ['Localisation', 'Appareils', 'Résultats']
@@ -77,7 +83,8 @@ function Stepper({ active }) {
             `}>
               {i < active ? '✓' : i + 1}
             </div>
-            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`}>
+            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`}
+                  data-short={SHORT_LABELS[step] ?? step}>
               {step}
             </span>
           </div>

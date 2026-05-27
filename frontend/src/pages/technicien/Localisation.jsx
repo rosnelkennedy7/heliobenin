@@ -60,6 +60,14 @@ function MapFlyTo({ target }) {
   return null
 }
 
+const SHORT_LABELS = {
+  'Localisation': 'Local.',
+  'Appareils':    'App.',
+  'Étude':        'Étude',
+  'Devis':        'Devis',
+  'Rapport':      'Rapp.',
+}
+
 function Stepper({ active }) {
   const steps = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
   return (
@@ -77,7 +85,8 @@ function Stepper({ active }) {
             `}>
               {i < active ? '✓' : i + 1}
             </div>
-            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`}>
+            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`}
+                  data-short={SHORT_LABELS[step] ?? step}>
               {step}
             </span>
           </div>

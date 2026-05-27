@@ -7,6 +7,13 @@ import { getTechnicien } from '../../utils/storage'
 import s from './Rapport.module.css'
 
 const STEPS = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
+const SHORT_LABELS = {
+  'Localisation': 'Local.',
+  'Appareils':    'App.',
+  'Étude':        'Étude',
+  'Devis':        'Devis',
+  'Rapport':      'Rapp.',
+}
 
 function Stepper({ active }) {
   return (
@@ -16,7 +23,7 @@ function Stepper({ active }) {
           <div className={`${s.stepDot} ${i === active ? s.stepDotActive : ''} ${i < active ? s.stepDotDone : ''}`}>
             {i < active ? <Check size={20} strokeWidth={3} /> : i + 1}
           </div>
-          <span className={`${s.stepLabel} ${i === active ? s.stepLabelActive : ''}`}>{step}</span>
+          <span className={`${s.stepLabel} ${i === active ? s.stepLabelActive : ''}`} data-short={SHORT_LABELS[step] ?? step}>{step}</span>
         </div>
       ))}
     </div>

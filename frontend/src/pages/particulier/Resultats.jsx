@@ -12,6 +12,12 @@ import styles from './Resultats.module.css'
 const MARGE       = 1.015
 const MARGE_TOTAL = 1.005
 
+const SHORT_LABELS = {
+  'Localisation': 'Local.',
+  'Appareils':    'App.',
+  'Résultats':    'Résult.',
+}
+
 /* ── Stepper 3 étapes — copie exacte de Localisation.jsx ── */
 function Stepper({ active }) {
   const steps = ['Localisation', 'Appareils', 'Résultats']
@@ -27,7 +33,8 @@ function Stepper({ active }) {
             `}>
               {i < active ? '✓' : i + 1}
             </div>
-            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`}>
+            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`}
+                  data-short={SHORT_LABELS[step] ?? step}>
               {step}
             </span>
           </div>

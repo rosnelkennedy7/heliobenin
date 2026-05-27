@@ -853,6 +853,11 @@
 
 /* -- Mobile -- */
 @media (max-width: 480px) {
+  .stepper { gap: 0.3rem !important; }
+  .stepLabel { font-size: 0; }
+  .stepLabel::after { content: attr(data-short); font-size: 0.58rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .stepLabelActive::after { color: #F59E0B; font-weight: 700; }
+  .stepDot { width: 30px !important; height: 30px !important; font-size: 0.72rem !important; }
   .inner, .content, .carteDevis { padding: 0.75rem !important; border-radius: 8px !important; }
   .techClient { flex-direction: column !important; }
   .tableWrap { overflow-x: auto !important; }

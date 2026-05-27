@@ -571,6 +571,8 @@
 }
 
 @media (max-width: 480px) {
-  .stepLabel { display: none; }
+  .stepLabel { font-size: 0 !important; }
+  .stepLabel::after { content: attr(data-short); font-size: 0.58rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .stepLabelActive::after { color: #F59E0B; font-weight: 700; }
   .stepDot { width: 30px !important; height: 30px !important; }
 }

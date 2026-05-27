@@ -169,3 +169,10 @@
 .logout:hover {
   background: rgba(239, 68, 68, 0.09);
 }
+
+@media (max-width: 480px) {
+  .avatarBtn { padding: 4px; border-radius: 50%; }
+  .fullName  { display: none; }
+  .arrow     { display: none; }
+  .circle    { width: 34px; height: 34px; font-size: 0.92rem; }
+}

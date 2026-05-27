@@ -15,6 +15,13 @@ const CAT_ICONS  = { Eclairage:'🔆', Climatisation:'❄️', Audiovisuel:'📺
 
 /* ── Stepper 5 étapes ────────────────────────────────── */
 const STEPS = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
+const SHORT_LABELS = {
+  'Localisation': 'Local.',
+  'Appareils':    'App.',
+  'Étude':        'Étude',
+  'Devis':        'Devis',
+  'Rapport':      'Rapp.',
+}
 
 function Stepper({ active }) {
   return (
@@ -25,7 +32,7 @@ function Stepper({ active }) {
             <div className={`${styles.stepDot} ${i === active ? styles.stepDotActive : ''} ${i < active ? styles.stepDotDone : ''}`}>
               {i < active ? <Check size={20} strokeWidth={3} /> : i + 1}
             </div>
-            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`}>{step}</span>
+            <span className={`${styles.stepLabel} ${i === active ? styles.stepLabelActive : ''}`} data-short={SHORT_LABELS[step] ?? step}>{step}</span>
           </div>
         </div>
       ))}
