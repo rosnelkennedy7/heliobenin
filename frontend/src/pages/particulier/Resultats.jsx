@@ -299,10 +299,11 @@ export default function Resultats() {
         prioritaire: a.priorite === true,
       })
 
+      const prioritaires = appareils.filter(a => a.priorite === true)
       const body = {
         mode,
         appareils:               appareils.map(mapAppareil),
-        appareils_prioritaires:  appareils.filter(a => a.priorite === true).map(mapAppareil),
+        appareils_prioritaires:  prioritaires.length > 0 ? prioritaires.map(mapAppareil) : appareils.map(mapAppareil),
         irradiation: loc.irradiation || 5.0,
         latitude:    loc.latitude    || 6.4,
         t_matin,

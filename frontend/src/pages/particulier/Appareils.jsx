@@ -173,13 +173,17 @@ export default function Appareils() {
   /* Énergie d'un appareil (Wh/j) */
   const rowEnergy = r => r.puissance * r.quantite * ((r.hJour || 0) + (r.hNuit || 0))
 
-  /* Énergies initiales des top-3 au moment où le bandeau rouge apparaît */
+  /* Énergies initiales des appareils ciblés au moment où le bandeau rouge apparaît.
+     SBEE (cas=A) : prioritaires uniquement. Solaire : top-3 énergivores. */
   const initEnergiesRef = useRef(null)
   useEffect(() => {
     if (!showBudgetBanner || initEnergiesRef.current !== null || rows.length === 0) return
-    const top3 = [...rows].sort((a, b) => rowEnergy(b) - rowEnergy(a)).slice(0, 3)
+    const targets = cas === 'A'
+      ? rows.filter(r => r.priorite === true)
+      : [...rows].sort((a, b) => rowEnergy(b) - rowEnergy(a)).slice(0, 3)
+    if (targets.length === 0) return
     initEnergiesRef.current = {}
-    top3.forEach(r => { initEnergiesRef.current[r.id] = rowEnergy(r) })
+    targets.forEach(r => { initEnergiesRef.current[r.id] = rowEnergy(r) })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Lignes ── */
