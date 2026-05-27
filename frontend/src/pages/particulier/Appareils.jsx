@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trash2, Plus, Search, Check } from 'lucide-react'
 import Navbar from '../../components/Navbar'
@@ -165,16 +165,17 @@ export default function Appareils() {
   const budgetOk    = mode !== 'avec_budget' || budgetNum >= 500000
   const canProceed  = rows.length > 0 && !hasOverflow && budgetOk
 
-  /* Top 3 appareils les plus énergivores */
-  const topEnergivoresIds = showBudgetBanner
-    ? [...rows]
-        .sort((a, b) =>
-          (b.puissance * b.quantite * ((b.hJour || 0) + (b.hNuit || 0)))
-          - (a.puissance * a.quantite * ((a.hJour || 0) + (a.hNuit || 0)))
-        )
-        .slice(0, 3)
-        .map(r => r.id)
-    : []
+  /* Énergie d'un appareil (Wh/j) */
+  const rowEnergy = r => r.puissance * r.quantite * ((r.hJour || 0) + (r.hNuit || 0))
+
+  /* Énergies initiales des top-3 au moment où le bandeau rouge apparaît */
+  const initEnergiesRef = useRef(null)
+  useEffect(() => {
+    if (!showBudgetBanner || initEnergiesRef.current !== null || rows.length === 0) return
+    const top3 = [...rows].sort((a, b) => rowEnergy(b) - rowEnergy(a)).slice(0, 3)
+    initEnergiesRef.current = {}
+    top3.forEach(r => { initEnergiesRef.current[r.id] = rowEnergy(r) })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Lignes ── */
   const updateRow = (id, key, val) =>
@@ -365,15 +366,17 @@ export default function Appareils() {
                 </tr>
               )}
               {rows.map(row => {
-                const overflow    = (row.hJour || 0) + (row.hNuit || 0) > 24
-                const isEnergivore = topEnergivoresIds.includes(row.id)
+                const overflow = (row.hJour || 0) + (row.hNuit || 0) > 24
+                const initE    = initEnergiesRef.current?.[row.id]
+                const intensity = initE > 0 ? Math.min(1, rowEnergy(row) / initE) : 0
+                const highlightBg = initE != null && intensity > 0
+                  ? `rgba(245,158,11,${(0.35 * intensity).toFixed(2)})`
+                  : undefined
                 return (
                   <tr
                     key={row.id}
-                    className={
-                      overflow      ? styles.rowError     :
-                      isEnergivore  ? styles.rowHighlight  : ''
-                    }
+                    className={overflow ? styles.rowError : ''}
+                    style={highlightBg ? { background: highlightBg } : undefined}
                   >
 
                     {/* APPAREIL */}

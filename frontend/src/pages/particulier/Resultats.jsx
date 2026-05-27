@@ -337,8 +337,7 @@ export default function Resultats() {
   const totalFinal      = Math.round(sousTotal * MARGE_TOTAL)
   const cout_estime     = totalFinal
   const budget_suffisant = budget <= 0 || budget >= cout_estime
-  const manque          = budget_suffisant ? 0 : cout_estime - budget
-  const reste           = budget_suffisant ? budget - cout_estime : 0
+  const manque           = budget_suffisant ? 0 : cout_estime - budget
 
   /* ── Contact dynamique ── */
   const user   = JSON.parse(localStorage.getItem('helio_user_particulier') || '{}')
@@ -424,14 +423,12 @@ export default function Resultats() {
                   <span>Coût estimé</span>
                   <span className={styles.coutVal}>{fmt(cout_estime)} FCFA</span>
                 </div>
-                <div className={`${styles.budgetRow} ${styles.budgetDiff} ${budget_suffisant ? styles.diffVert : styles.diffRouge}`}>
-                  <span>{budget_suffisant ? 'Reste budget' : 'Manque'}</span>
-                  <span>
-                    {budget_suffisant
-                      ? `+ ${fmt(reste)} FCFA`
-                      : `- ${fmt(manque)} FCFA`}
-                  </span>
-                </div>
+                {manque > 0 && (
+                  <div className={`${styles.budgetRow} ${styles.budgetDiff} ${styles.diffRouge}`}>
+                    <span>Manque</span>
+                    <span>- {fmt(manque)} FCFA</span>
+                  </div>
+                )}
               </div>
             )}
 
