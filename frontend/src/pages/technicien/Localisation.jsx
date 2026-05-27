@@ -7,6 +7,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import vitreImg from '../../assets/images/vitre.png'
 import AvatarTech from '../../components/AvatarTech'
+import { saveTechnicien, getTechnicien } from '../../utils/storage'
 import styles from '../particulier/Localisation.module.css'
 
 /* ── Limites strictes du Bénin ── */
@@ -86,11 +87,6 @@ function Stepper({ active }) {
   )
 }
 
-const saveTechnicien = (newData) => {
-  const existing = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
-  localStorage.setItem('heliobenin_technicien', JSON.stringify({ ...existing, ...newData }))
-}
-
 export default function Localisation() {
   const navigate = useNavigate()
 
@@ -154,7 +150,7 @@ export default function Localisation() {
   }, [])
 
   useEffect(() => {
-    const sv = JSON.parse(localStorage.getItem('heliobenin_technicien') || '{}')
+    const sv = getTechnicien()
     const loc = sv.localisation
     if (!loc || loc.latitude == null || loc.longitude == null) return
     setPosition({ lat: loc.latitude, lng: loc.longitude })
@@ -222,6 +218,7 @@ export default function Localisation() {
         longitude:   position.lng,
         irradiation: irradiation ? parseFloat(irradiation.value) : null,
         moisMin:     irradiation ? irradiation.month : null,
+        locality:    locality || null,
       },
     })
     navigate('/appareils-tech')

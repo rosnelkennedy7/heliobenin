@@ -18,9 +18,18 @@ frontend/.vite/
 .venv/
 venv/
 
+# Logs uvicorn
+*.log
+
+# Données exportées (se régénèrent)
+backend/equipements_data.json
+
 # Système
 .DS_Store
 Thumbs.db
+
+# Fichiers temporaires Excel/Office
+~$*
 
 .vercel
 

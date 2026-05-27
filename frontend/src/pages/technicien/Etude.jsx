@@ -35,7 +35,7 @@ function defaultK(appareils) {
 }
 
 function defaultPr(lat) {
-  if ((lat || 6.4) < 8.0)  return 0.70
+  if ((lat || 6.4) < 8.0)  return 0.75
   if ((lat || 6.4) < 10.0) return 0.73
   return 0.70
 }
@@ -1008,7 +1008,7 @@ export default function Etude() {
             <div className={`${s.sectionNum} ${resE1 ? s.sectionNumDone : ''}`}>
               {resE1 ? <Check size={16} strokeWidth={3} /> : '1'}
             </div>
-            <span className={s.sectionTitle}>1ère Étape — Paramètres de calcul</span>
+            <span className={s.sectionTitle}>Paramètres de calcul</span>
             <span className={s.sectionStatus}>{resE1 ? '✅ Calculé' : '⏳ En attente'}</span>
             <ChevronDown size={16} className={`${s.sectionChevron} ${openS1 ? s.sectionChevronOpen : ''}`} />
           </div>
@@ -1017,7 +1017,10 @@ export default function Etude() {
             <div className={s.sectionBody}>
               <div className={s.irrCard}>
                 <div>
-                  <span className={s.irrLabel}>Irradiation solaire</span>
+                  <span className={s.irrLabel}>
+                    Irradiation solaire
+                    {loc.locality && ` | ${loc.locality}`}
+                  </span>
                   {loc.moisMin && <div className={s.irrSub}>{loc.moisMin}</div>}
                 </div>
                 <span className={s.irrVal}>{loc.irradiation ?? '—'} kWh/m²/j</span>
@@ -1125,7 +1128,7 @@ export default function Etude() {
               <div className={`${s.sectionNum} ${resE2 ? s.sectionNumDone : ''}`}>
                 {resE2 ? <Check size={16} strokeWidth={3} /> : '2'}
               </div>
-              <span className={s.sectionTitle}>2ème Étape — Choix des équipements</span>
+              <span className={s.sectionTitle}>Choix des équipements</span>
               <span className={s.sectionStatus}>{resE2 ? '✅ Validé' : '⏳ En attente'}</span>
               <ChevronDown size={16} className={`${s.sectionChevron} ${openS2 ? s.sectionChevronOpen : ''}`} />
             </div>
@@ -1362,7 +1365,7 @@ export default function Etude() {
                       <div className={s.e2Row}><span className={s.e2Label}>Nombre de batteries</span><span className={s.e2Val}>{resE2.batteries.nb_batteries}</span></div>
                       <div className={s.e2Row}><span className={s.e2Label}>Connexion</span><span className={s.e2Val}>{resE2.batteries.nb_serie}S / {resE2.batteries.nb_parallele}P</span></div>
                       <div className={s.e2Row}><span className={s.e2Label}>Énergie totale</span><span className={s.e2Val}>{resE2.batteries.energie_totale} kWh</span></div>
-                      <div className={s.e2Row}><span className={s.e2Label}>Courant régulateur</span><span className={s.e2Val}>{resE2.courant_regulateur} A</span></div>
+                      <div className={s.e2Row}><span className={s.e2Label}>Courant régulateur</span><span className={s.e2Val}>{resE1.courant_regulateur} A</span></div>
                     </div>
                   </div>
                 )}
@@ -1378,7 +1381,7 @@ export default function Etude() {
               <div className={`${s.sectionNum} ${resE3 ? s.sectionNumDone : ''}`}>
                 {resE3 ? <Check size={16} strokeWidth={3} /> : '3'}
               </div>
-              <span className={s.sectionTitle}>3ème Étape — Câbles et protections</span>
+              <span className={s.sectionTitle}>Câbles et protections</span>
               <span className={s.sectionStatus}>{resE3 ? '✅ Calculé' : '⏳ En attente'}</span>
               <ChevronDown size={16} className={`${s.sectionChevron} ${openS3 ? s.sectionChevronOpen : ''}`} />
             </div>

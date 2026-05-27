@@ -99,7 +99,7 @@ def choisir_onduleur_aio(
 ) -> dict:
     """
     Choisit le plus petit AIO ≥ pond.
-    Si pond > 12kW → 3 onduleurs triphasés.
+    Si pond > 12kW → 3 onduleurs monophasés.
     Filtre par usys.
     """
     onduleurs = sorted(
@@ -154,27 +154,24 @@ def calculer_panneaux_aio(
     panneau: dict,
     nb_onduleurs: int = 1,
 ) -> dict:
-    """
-    AIO : Voc_string ≤ Vmax_MPPT × 0.95
-    12/24V → ns = 1
-    48V → ns visant Vmin MPPT
-    n_par calculé par onduleur
-    """
-    usys     = onduleur["usys"]
     mppt_max = onduleur["mppt_max"]
     voc_lim  = mppt_max * 0.95
 
-    if usys in [12, 24]:
+    ns = int(voc_lim / panneau["voc"])
+    if ns < 1:
         ns = 1
-    else:
-        mppt_min = onduleur.get("mppt_min", usys * 2)
-        ns = arrondi_sup(mppt_min / panneau["vmp"])
 
-    while ns * panneau["voc"] >= voc_lim and ns > 1:
-        ns -= 1
+    warning = None
+    if panneau["voc"] > voc_lim:
+        warning = (
+            f"Panneau incompatible : Voc={panneau['voc']}V "
+            f"> Vmax MPPT={voc_lim:.1f}V. "
+            "Choisissez un panneau avec Voc plus petit "
+            "ou un onduleur avec Vmax plus grand."
+        )
 
     pc_unit = pc / nb_onduleurs if nb_onduleurs > 1 else pc
-    n_par = arrondi_sup(pc_unit / (ns * panneau["puissance"]))
+    n_par = math.ceil(pc_unit / (ns * panneau["puissance"]))
     if n_par < 1:
         n_par = 1
 
@@ -187,9 +184,8 @@ def calculer_panneaux_aio(
         "vmp_string": round(ns * panneau["vmp"], 2),
         "voc_string": round(ns * panneau["voc"], 2),
         "pc_reel": round(np_final * panneau["puissance"], 2),
-        "pc_reel_total": round(
-            np_final * nb_onduleurs * panneau["puissance"], 2
-        ),
+        "pc_reel_total": round(np_final * nb_onduleurs * panneau["puissance"], 2),
+        "warning": warning,
     }
 
 
@@ -198,23 +194,34 @@ def calculer_panneaux_mppt(
     usys: int,
     vmax_mppt: float,
     panneau: dict,
+    regulateur: dict = None,
 ) -> dict:
-    """
-    MPPT : Ns max sans dépasser Vmax × 0.95
-    """
     voc_lim = vmax_mppt * 0.95
 
     ns = int(voc_lim / panneau["voc"])
     if ns < 1:
         ns = 1
 
-    while ns * panneau["vmp"] < usys and ns < 10:
-        ns += 1
+    warning = None
+    if panneau["voc"] > voc_lim:
+        warning = (
+            f"Panneau incompatible : Voc={panneau['voc']}V "
+            f"> Vmax MPPT={voc_lim:.1f}V."
+        )
 
-    while ns * panneau["voc"] >= voc_lim and ns > 1:
-        ns -= 1
+    if regulateur:
+        p_max_reg = regulateur.get("courant_max", float("inf")) * vmax_mppt
+        while ns > 1 and ns * panneau["vmp"] * panneau["isc"] > p_max_reg:
+            ns -= 1
+        if ns * panneau["vmp"] * panneau["isc"] > p_max_reg:
+            warning = (
+                f"Régulateur insuffisant : "
+                f"P_champ={ns * panneau['vmp'] * panneau['isc']:.0f}W "
+                f"> P_max_reg={p_max_reg:.0f}W. "
+                "Choisissez un régulateur plus puissant."
+            )
 
-    n_par = arrondi_sup(pc / (ns * panneau["puissance"]))
+    n_par = math.ceil(pc / (ns * panneau["puissance"]))
     if n_par < 1:
         n_par = 1
 
@@ -228,6 +235,7 @@ def calculer_panneaux_mppt(
         "voc_string": round(ns * panneau["voc"], 2),
         "pc_reel": round(np_final * panneau["puissance"], 2),
         "pc_reel_total": round(np_final * panneau["puissance"], 2),
+        "warning": warning,
     }
 
 
@@ -235,16 +243,31 @@ def calculer_panneaux_pwm(
     pc: float,
     usys: int,
     panneau: dict,
+    regulateur: dict = None,
 ) -> dict:
-    """PWM : Vmp_string ≈ Usys × 1.20"""
-    vmp_min = usys * 1.20
-    ns = arrondi_sup(vmp_min / panneau["vmp"])
+    ns = math.ceil(usys / panneau["tension_nominale"])
     if ns < 1:
         ns = 1
 
-    n_par = arrondi_sup(pc / (ns * panneau["puissance"]))
+    n_par = math.ceil(pc / (ns * panneau["puissance"]))
     if n_par < 1:
         n_par = 1
+
+    warning = None
+    if regulateur:
+        imax_reg = regulateur.get("courant_max", float("inf"))
+        while panneau["isc"] * n_par > imax_reg:
+            ns += 1
+            n_par = math.ceil(pc / (ns * panneau["puissance"]))
+            if n_par < 1:
+                n_par = 1
+        if panneau["isc"] * n_par > imax_reg:
+            warning = (
+                f"Régulateur insuffisant : "
+                f"Isc×N//={panneau['isc'] * n_par:.1f}A "
+                f"> Imax={imax_reg}A. "
+                "Choisissez un régulateur avec Imax plus grand."
+            )
 
     np_final = ns * n_par
     return {
@@ -256,6 +279,7 @@ def calculer_panneaux_pwm(
         "voc_string": round(ns * panneau["voc"], 2),
         "pc_reel": round(np_final * panneau["puissance"], 2),
         "pc_reel_total": round(np_final * panneau["puissance"], 2),
+        "warning": warning,
     }
 
 
@@ -315,24 +339,18 @@ def troncon_panneau_regulateur(
     Câble : H1Z2Z2K
     I = 1.25 × Isc × N//
     ΔU = 3%
-    Fusible gPV si N// ≥ 2
+    Fusible gPV + parafoudre DC systématiques (même N//=1)
     """
     I = 1.25 * panneau["isc"] * n_par
     S_calc = calculer_section_dc(longueur, I, 0.03, vmp_string)
     S_norm = section_h1z2z2k(S_calc)
 
-    if n_par == 1:
-        protection    = None
-        calibre       = None
-        fusible_gpv   = False
-        qt_fusible    = 0
-    else:
-        Ip       = 1.25 * panneau["isc"]
-        cal_gpv  = calibre_gpv(Ip)
-        protection  = f"Fusible gPV {cal_gpv}A"
-        calibre     = cal_gpv
-        fusible_gpv = True
-        qt_fusible  = n_par
+    Ip         = 1.25 * panneau["isc"]
+    cal_gpv    = calibre_gpv(Ip)
+    protection = f"Fusible gPV {cal_gpv}A"
+    calibre    = cal_gpv
+    fusible_gpv = True
+    qt_fusible  = n_par * 2  # positif + négatif par string
 
     return {
         "troncon": "Panneau → Onduleur",
@@ -345,8 +363,8 @@ def troncon_panneau_regulateur(
         "calibre": calibre,
         "fusible_gpv": fusible_gpv,
         "qt_fusible_gpv": qt_fusible,
-        "parafoudre_dc": "Type 2 DC 1000V" if n_par >= 2 else None,
-        "qt_parafoudre_dc": n_par if n_par >= 2 else 0,
+        "parafoudre_dc": "Type 2 DC 1000V",
+        "qt_parafoudre_dc": n_par,
     }
 
 
@@ -372,11 +390,13 @@ def troncon_dc(
         protection = "Disjoncteur DC 2P"
         calibre    = calibre_disj_dc(Ip_min)
         fusible_nh = None
+        quantite   = 1
     else:
         nh         = get_fusible_nh(Ip_min)
         protection = f"Fusible {nh['type']}"
         calibre    = nh["calibre"]
         fusible_nh = nh
+        quantite   = 2  # positif + négatif
 
     return {
         "troncon": nom,
@@ -387,6 +407,7 @@ def troncon_dc(
         "section": S_norm,
         "protection": protection,
         "calibre": calibre,
+        "quantite": quantite,
         "fusible_nh": fusible_nh,
     }
 
@@ -511,7 +532,11 @@ def calculer_etape2(
     warnings = []
 
     if type_reg == "AIO":
-        onduleur     = equipements["onduleur"]
+        onduleur = equipements.get("onduleur")
+        if not onduleur:
+            raise ValueError(
+                "Un onduleur AIO est requis pour type_regulateur='AIO'"
+            )
         nb_onduleurs = etape1["nb_onduleurs"]
         phase        = etape1["phase"]
 
@@ -533,17 +558,22 @@ def calculer_etape2(
         phase        = "monophasé"
         vmax_mppt    = equipements.get("vmax_mppt", 150)
         panneaux_calc = calculer_panneaux_mppt(
-            pc, usys, vmax_mppt, panneau
+            pc, usys, vmax_mppt, panneau, equipements.get("regulateur")
         )
 
     else:  # PWM
         nb_onduleurs = 1
         phase        = "monophasé"
-        panneaux_calc = calculer_panneaux_pwm(pc, usys, panneau)
+        panneaux_calc = calculer_panneaux_pwm(
+            pc, usys, panneau, equipements.get("regulateur")
+        )
 
         techno = (batterie.get("technologie") or "").lower()
         if "lifepo4" in techno or "lithium" in techno:
             warnings.append("PWM incompatible avec LiFePO4 !")
+
+    if panneaux_calc.get("warning"):
+        warnings.append(panneaux_calc["warning"])
 
     batteries_calc = calculer_batteries(
         ej, n_jours, usys, batterie, type_reg

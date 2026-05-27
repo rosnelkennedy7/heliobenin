@@ -232,11 +232,22 @@ def choisir_batteries(
 
     if not batteries_filtrees:
         c_unitaire = 200
+        nbp = math.ceil(c_calculee / c_unitaire)
+        if nbp < 1: nbp = 1
     else:
-        c_unitaire = batteries_filtrees[0]["capacite"]
-
-    nbp = arrondi_sup(c_calculee / c_unitaire)
-    if nbp < 1: nbp = 1
+        meilleure = None
+        meilleur_gaspillage = float("inf")
+        nbp = 1
+        for bat in batteries_filtrees:
+            c_unit = bat["capacite"]
+            nbp_test = math.ceil(c_calculee / c_unit)
+            if nbp_test < 1: nbp_test = 1
+            gaspillage = (nbp_test * c_unit) - c_calculee
+            if gaspillage < meilleur_gaspillage:
+                meilleur_gaspillage = gaspillage
+                meilleure = bat
+                nbp = nbp_test
+        c_unitaire = meilleure["capacite"]
 
     return {
         "c_calculee":     round(c_calculee, 2),

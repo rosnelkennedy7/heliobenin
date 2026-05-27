@@ -5,6 +5,7 @@ import vitreImg from "../../assets/images/vitre.png";
 import mtnImg from "../../assets/images/MTN.jpg";
 import moovImg from "../../assets/images/MOOV.png";
 import celtiisImg from "../../assets/images/Celtiis.jpg";
+import { saveTechnicien } from "../../utils/storage";
 import styles from "./Paiement.module.css";
 
 const RESEAUX = [
@@ -48,16 +49,6 @@ const FORMULES = [
 const formatPhone10 = (raw) => {
   const digits = raw.replace(/\D/g, "").slice(0, 10);
   return digits.replace(/(\d{2})(?=\d)/g, "$1 ");
-};
-
-const saveTechnicien = (newData) => {
-  const existing = JSON.parse(
-    localStorage.getItem("heliobenin_technicien") || "{}",
-  );
-  localStorage.setItem(
-    "heliobenin_technicien",
-    JSON.stringify({ ...existing, ...newData }),
-  );
 };
 
 export default function Paiement() {

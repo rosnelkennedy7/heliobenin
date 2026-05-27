@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from ..moteur.moteur_technicien import (
@@ -12,10 +12,11 @@ router = APIRouter(prefix="/api/calcul/technicien", tags=["calcul-technicien"])
 
 def normaliser_panneau(p: dict) -> dict:
     return {
-        "puissance": p.get("puissance") or p.get("Puissance (Wc)") or 0,
-        "voc":       p.get("voc")       or p.get("Voc (V)")        or 0,
-        "vmp":       p.get("vmp")       or p.get("Vmp (V)")        or 0,
-        "isc":       p.get("isc")       or p.get("Isc (A)")        or 0,
+        "puissance":       p.get("puissance")       or p.get("Puissance (Wc)")        or 0,
+        "voc":             p.get("voc")             or p.get("Voc (V)")               or 0,
+        "vmp":             p.get("vmp")             or p.get("Vmp (V)")               or 0,
+        "isc":             p.get("isc")             or p.get("Isc (A)")               or 0,
+        "tension_nominale": p.get("tension_nominale") or p.get("Tension nominale (V)") or 24,
     }
 
 
@@ -54,6 +55,7 @@ class Panneau(BaseModel):
     voc: float
     vmp: float
     isc: float
+    tension_nominale: float = 24.0
 
 
 class Onduleur(BaseModel):
@@ -132,11 +134,14 @@ def calcul_etape2(params: ParamsEtape2):
     if params.vmax_mppt:
         equipements["vmax_mppt"] = params.vmax_mppt
 
-    return calculer_etape2(
-        params.etape1,
-        params.params.model_dump(),
-        equipements,
-    )
+    try:
+        return calculer_etape2(
+            params.etape1,
+            params.params.model_dump(),
+            equipements,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/etape3")
@@ -145,9 +150,12 @@ def calcul_etape3(params: ParamsEtape3):
         "panneau": normaliser_panneau(params.panneau.model_dump()),
         "type_regulateur": params.type_regulateur,
     }
-    return calculer_etape3(
-        params.etape1,
-        params.etape2,
-        params.params.model_dump(),
-        equipements,
-    )
+    try:
+        return calculer_etape3(
+            params.etape1,
+            params.etape2,
+            params.params.model_dump(),
+            equipements,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

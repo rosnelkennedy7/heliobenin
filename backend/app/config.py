@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     ]
 
     # Admin
-    ADMIN_EMAIL: str = "admin@heliobenin.com"
+    ADMIN_EMAIL: str = "rosnelkennedy7@heliobenin.com"
     ADMIN_PASSWORD: str = "HelioAdmin2024!"
     ADMIN_JWT_SECRET: str = "heliobenin-admin-secret-key-2024"
     ADMIN_JWT_EXPIRE_HOURS: int = 24
