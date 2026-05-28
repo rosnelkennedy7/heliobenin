@@ -2,15 +2,17 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import EtudeModal from './EtudeModal'
 import vitreImg from '../../assets/images/vitre.webp'
+import { supabase } from '../../utils/supabaseClient'
 
 const API = import.meta.env.VITE_API_URL || 'https://heliobenin.com'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const [stats, setStats]       = useState(null)
-  const [etudes, setEtudes]     = useState([])
-  const [selected, setSelected] = useState(null)
-  const [error, setError]       = useState('')
+  const [stats, setStats]         = useState(null)
+  const [etudes, setEtudes]       = useState([])
+  const [selected, setSelected]   = useState(null)
+  const [error, setError]         = useState('')
+  const [noteInfo, setNoteInfo]   = useState(null)
 
   const load = useCallback(async () => {
     try {
@@ -23,6 +25,15 @@ export default function AdminDashboard() {
     } catch {
       setError('Erreur de chargement')
     }
+    try {
+      if (supabase) {
+        const { data } = await supabase.from('avis').select('note')
+        if (data?.length) {
+          const avg = data.reduce((sum, row) => sum + (row.note || 0), 0) / data.length
+          setNoteInfo({ avg: avg.toFixed(1), count: data.length })
+        }
+      }
+    } catch {}
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -57,10 +68,11 @@ export default function AdminDashboard() {
         )}
 
         {/* Stats */}
-        {stats && (
+        {(stats || noteInfo) && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            <StatCard label="Études" value={stats.nb_etudes} color="#F59E0B" />
-            <StatCard label="Utilisateurs" value={stats.nb_utilisateurs} color="#10B981" />
+            {stats && <StatCard label="Études" value={stats.nb_etudes} color="#F59E0B" />}
+            {stats && <StatCard label="Utilisateurs" value={stats.nb_utilisateurs} color="#10B981" />}
+            {noteInfo && <StatCard label="Note moyenne" value={`${noteInfo.avg} ⭐`} sub={`${noteInfo.count} avis`} color="#A78BFA" />}
           </div>
         )}
 
@@ -127,7 +139,7 @@ export default function AdminDashboard() {
   )
 }
 
-function StatCard({ label, value, color }) {
+function StatCard({ label, value, color, sub }) {
   return (
     <div style={{
       background: `rgba(${hexToRgb(color)}, 0.07)`,
@@ -137,6 +149,7 @@ function StatCard({ label, value, color }) {
     }}>
       <p style={{ margin: 0, color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
       <p style={{ margin: 0, color, fontSize: '2rem', fontWeight: 800 }}>{value ?? '—'}</p>
+      {sub && <p style={{ margin: 0, color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>{sub}</p>}
     </div>
   )
 }

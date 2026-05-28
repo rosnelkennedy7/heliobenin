@@ -5,6 +5,7 @@ import AvatarTech from '../../components/AvatarTech'
 import vitreImg from '../../assets/images/vitre.webp'
 import { getTechnicien } from '../../utils/storage'
 import s from './Rapport.module.css'
+import NoteTool from '../../components/NoteTool'
 
 const STEPS = ['Localisation', 'Appareils', 'Étude', 'Devis', 'Rapport']
 const SHORT_LABELS = {
@@ -473,6 +474,7 @@ export default function Rapport() {
             <Printer size={18} /> Imprimer le rapport
           </button>
         </div>
+        <NoteTool role="technicien" />
       </div>
     </div>
   )

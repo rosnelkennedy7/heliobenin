@@ -7,6 +7,7 @@ import vitreImg from '../../assets/images/vitre.webp'
 import { getParticulier, saveParticulier, getCurrentModeParticulier } from '../../utils/storage'
 import { API_BASE } from '../../utils/api'
 import styles from './Resultats.module.css'
+import NoteTool from '../../components/NoteTool'
 
 /* ── Marges ── */
 const MARGE       = 1.015
@@ -533,6 +534,7 @@ export default function Resultats() {
           </>
         )}
 
+        <NoteTool role="particulier" />
       </div>
     </div>
   )
