@@ -58,8 +58,8 @@ def _save_etude(mode_budget: str, mode: str, appareils: list, resultat: dict,
         if budget is not None:
             row["budget"] = budget
         supabase.table("etudes_particulier").insert(row).execute()
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[Supabase ERROR] {e}")
 
 
 @router.post("/sans-budget")
