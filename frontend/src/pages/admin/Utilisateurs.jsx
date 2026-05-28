@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import vitreImg from '../../assets/images/vitre.webp'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API = import.meta.env.VITE_API_URL || 'http://51.75.35.141:8000'
 
 export default function AdminUtilisateurs() {
   const navigate = useNavigate()

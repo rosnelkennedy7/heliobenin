@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import EtudeModal from './EtudeModal'
 import vitreImg from '../../assets/images/vitre.webp'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API = import.meta.env.VITE_API_URL || 'http://51.75.35.141:8000'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
