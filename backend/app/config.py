@@ -14,8 +14,9 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://heliobenin.vercel.app",
-        "https://*.vercel.app",
+        "http://localhost:5174",
+        "http://51.75.35.141",
+        "http://51.75.35.141:8080",
     ]
 
     # Admin
