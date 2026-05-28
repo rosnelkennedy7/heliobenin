@@ -107,14 +107,15 @@ export default function Paiement() {
             ? new Date(now.getTime() + 365 * 86400000).toISOString()
             : null
           const { data: profile } = await supabase.from('profiles').select('id').eq('email', user.email).maybeSingle()
-          await supabase.from('abonnements').insert([{
+          const { error: insErr } = await supabase.from('abonnements').insert([{
             user_id: profile?.id || null,
             type: formule,
             montant: MONTANTS[formule] || 0,
             statut: 'actif',
             date_fin: dateFin,
           }])
-        } catch {}
+          if (insErr) console.error('[Supabase] abonnements insert:', insErr)
+        } catch (e) { console.error('[Supabase] paiement technicien exception:', e) }
       })()
       setTimeout(() => navigate("/localisation-tech"), 2000);
     }, 3000);

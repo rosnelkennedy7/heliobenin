@@ -102,7 +102,7 @@ export default function Inscription() {
     saveUserParticulier({ prenom: form.prenom, nom: form.nom, email: form.email, role: 'particulier' })
     supabase?.from('profiles').insert([{
       nom: form.nom, prenom: form.prenom, email: form.email, role: 'particulier',
-    }]).catch(() => {})
+    }]).catch(e => console.error('[Supabase] profiles insert (particulier):', e))
     navigate('/paiement')
   }
 

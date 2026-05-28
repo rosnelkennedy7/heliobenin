@@ -62,12 +62,13 @@ export default function Paiement() {
           if (!supabase) return
           const user = JSON.parse(localStorage.getItem('helio_user_particulier') || '{}')
           const { data: profile } = await supabase.from('profiles').select('id').eq('email', user.email).maybeSingle()
-          await supabase.from('paiements_particulier').insert([{
+          const { error: insErr } = await supabase.from('paiements_particulier').insert([{
             user_id: profile?.id || null,
             montant: 1500,
             statut: 'payé',
           }])
-        } catch {}
+          if (insErr) console.error('[Supabase] paiements_particulier insert:', insErr)
+        } catch (e) { console.error('[Supabase] paiement particulier exception:', e) }
       })()
       setTimeout(() => navigate('/choix-mode'), 2000)
     }, 3000)

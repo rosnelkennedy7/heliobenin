@@ -123,7 +123,7 @@ export default function Inscription() {
       specialite: specialiteFinal || null,
       ifu: form.ifu || null,
       rccm: form.rccm || null,
-    }]).catch(() => {})
+    }]).catch(e => console.error('[Supabase] profiles insert (technicien):', e))
     navigate('/qcm-tech')
   }
 

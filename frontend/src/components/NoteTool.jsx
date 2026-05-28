@@ -72,12 +72,13 @@ export default function NoteTool({ role }) {
     if (!note || sending) return
     setSending(true)
     try {
-      await supabase?.from('avis').insert([{
+      const { error } = await supabase?.from('avis').insert([{
         note,
         commentaire: commentaire.trim() || null,
         role,
-      }])
-    } catch {}
+      }]) ?? {}
+      if (error) console.error('[Supabase] avis insert:', error)
+    } catch (e) { console.error('[Supabase] avis exception:', e) }
     setSending(false)
     setSent(true)
   }
