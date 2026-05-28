@@ -120,12 +120,6 @@ function buildLignes(etude) {
     })
   }
 
-  // Différentiel
-  if (etape3?.differentiel) {
-    const d = etape3.differentiel
-    rows.push({ id: nid(), designation: `${d.type} ${d.calibre}A`, qty: d.quantite, pu: 0 })
-  }
-
   return rows.length > 0
     ? rows
     : Array(5).fill(null).map((_, i) => ({ id: `e${i}`, designation: '', qty: 1, pu: 0 }))
@@ -151,7 +145,17 @@ export default function Devis() {
   const dateStr = `${String(today.getDate()).padStart(2,'0')} / ${String(today.getMonth()+1).padStart(2,'0')} / ${today.getFullYear()}`
 
   const [client,       setClient]       = useState(sv?.client || { civilite: 'Mr', nom: '', telephone: '', email: '', localisation: '' })
-  const [tech,         setTech]         = useState(sv?.tech   || { civilite: 'Mr', nom: '', entreprise: '', specialite: '', ifu: '', rccm: '', whatsapp: '', email: '', localisation: '' })
+  const [tech,         setTech]         = useState(sv?.tech   || {
+    civilite: 'Mr',
+    nom: [user?.prenom, user?.nom].filter(Boolean).join(' '),
+    entreprise: '',
+    specialite: '',
+    ifu: '',
+    rccm: '',
+    whatsapp: user?.whatsapp || '',
+    email: user?.email || '',
+    localisation: '',
+  })
   const [clientErrors, setClientErrors] = useState({})
   const [lignes,       setLignes]       = useState(() => sv?.lignes || buildLignes(etude))
   const [tva,          setTva]          = useState(sv?.tva    || false)
@@ -329,65 +333,83 @@ export default function Devis() {
           <div className={s.techClient}>
             <div className={s.partyCol}>
               <div className={s.partyLabel}>Technicien</div>
-              <div className={!tech.nom?.trim() ? s.hidePrint : ''} style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                <select className={s.civiliteSelect} value={tech.civilite}
-                  onChange={e => setTech(t => ({ ...t, civilite: e.target.value }))}>
-                  <option value="Mr">Mr</option>
-                  <option value="Mme">Mme</option>
-                  <option value="Mlle">Mlle</option>
-                </select>
-                <span className={s.civilitePrint}>{tech.civilite}</span>
-                <input className={`${s.clientInput}${clientErrors.techNom ? ' ' + s.clientInputErr : ''}`}
-                  placeholder="Nom Prénom *" value={tech.nom} required
-                  onChange={e => { setTech(t => ({ ...t, nom: e.target.value })); setClientErrors(x => ({ ...x, techNom: undefined })) }} />
+              <div className={s.hidePrint}>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <select className={s.civiliteSelect} value={tech.civilite}
+                    onChange={e => setTech(t => ({ ...t, civilite: e.target.value }))}>
+                    <option value="Mr">Mr</option>
+                    <option value="Mme">Mme</option>
+                    <option value="Mlle">Mlle</option>
+                  </select>
+                  <input className={`${s.clientInput}${clientErrors.techNom ? ' ' + s.clientInputErr : ''}`}
+                    placeholder="Nom Prénom *" value={tech.nom} required
+                    onChange={e => { setTech(t => ({ ...t, nom: e.target.value })); setClientErrors(x => ({ ...x, techNom: undefined })) }} />
+                </div>
+                <input className={s.clientInput} placeholder="Entreprise"
+                  value={tech.entreprise} onChange={e => setTech(t => ({ ...t, entreprise: e.target.value }))} />
+                <input className={s.clientInput} placeholder="Spécialité"
+                  value={tech.specialite} onChange={e => setTech(t => ({ ...t, specialite: e.target.value }))} />
+                <input className={s.clientInput} placeholder="IFU"
+                  value={tech.ifu} onChange={e => setTech(t => ({ ...t, ifu: e.target.value }))} />
+                <input className={s.clientInput} placeholder="RCCM"
+                  value={tech.rccm} onChange={e => setTech(t => ({ ...t, rccm: e.target.value }))} />
+                <input className={`${s.clientInput}${clientErrors.techContact ? ' ' + s.clientInputErr : ''}`}
+                  placeholder="WhatsApp (+229) *" value={tech.whatsapp}
+                  onChange={e => { setTech(t => ({ ...t, whatsapp: e.target.value })); setClientErrors(x => ({ ...x, techContact: undefined })) }} />
+                <input className={`${s.clientInput}${clientErrors.techContact ? ' ' + s.clientInputErr : ''}`}
+                  placeholder="Email *" value={tech.email}
+                  onChange={e => { setTech(t => ({ ...t, email: e.target.value })); setClientErrors(x => ({ ...x, techContact: undefined })) }} />
+                <input className={s.clientInput} placeholder="Localisation"
+                  value={tech.localisation} onChange={e => setTech(t => ({ ...t, localisation: e.target.value }))} />
               </div>
-              <input className={`${s.clientInput}${!tech.entreprise?.trim()  ? ' ' + s.hidePrint : ''}`} placeholder="Entreprise"
-                value={tech.entreprise}  onChange={e => setTech(t => ({ ...t, entreprise: e.target.value }))} />
-              <input className={`${s.clientInput}${!tech.specialite?.trim()  ? ' ' + s.hidePrint : ''}`} placeholder="Spécialité"
-                value={tech.specialite}  onChange={e => setTech(t => ({ ...t, specialite: e.target.value }))} />
-              <input className={`${s.clientInput}${!tech.ifu?.trim()         ? ' ' + s.hidePrint : ''}`} placeholder="IFU"
-                value={tech.ifu}         onChange={e => setTech(t => ({ ...t, ifu: e.target.value }))} />
-              <input className={`${s.clientInput}${!tech.rccm?.trim()        ? ' ' + s.hidePrint : ''}`} placeholder="RCCM"
-                value={tech.rccm}        onChange={e => setTech(t => ({ ...t, rccm: e.target.value }))} />
-              <input className={`${s.clientInput}${clientErrors.techContact ? ' ' + s.clientInputErr : ''}${!tech.whatsapp?.trim() ? ' ' + s.hidePrint : ''}`}
-                placeholder="WhatsApp (+229) *" value={tech.whatsapp}
-                onChange={e => { setTech(t => ({ ...t, whatsapp: e.target.value })); setClientErrors(x => ({ ...x, techContact: undefined })) }} />
-              <input className={`${s.clientInput}${clientErrors.techContact ? ' ' + s.clientInputErr : ''}${!tech.email?.trim() ? ' ' + s.hidePrint : ''}`}
-                placeholder="Email *" value={tech.email}
-                onChange={e => { setTech(t => ({ ...t, email: e.target.value })); setClientErrors(x => ({ ...x, techContact: undefined })) }} />
-              <input className={`${s.clientInput}${!tech.localisation?.trim() ? ' ' + s.hidePrint : ''}`} placeholder="Localisation"
-                value={tech.localisation} onChange={e => setTech(t => ({ ...t, localisation: e.target.value }))} />
+              <div className={s.showPrint}>
+                <div className={s.printLine}><span className={s.printKey}>Nom :</span> {tech.civilite} {tech.nom || '_______________'}</div>
+                {tech.entreprise && <div className={s.printLine}><span className={s.printKey}>Entreprise :</span> {tech.entreprise}</div>}
+                {tech.specialite && <div className={s.printLine}><span className={s.printKey}>Spécialité :</span> {tech.specialite}</div>}
+                {tech.ifu && <div className={s.printLine}><span className={s.printKey}>IFU :</span> {tech.ifu}</div>}
+                {tech.rccm && <div className={s.printLine}><span className={s.printKey}>RCCM :</span> {tech.rccm}</div>}
+                {tech.whatsapp && <div className={s.printLine}><span className={s.printKey}>Téléphone :</span> {tech.whatsapp}</div>}
+                {tech.email && <div className={s.printLine}><span className={s.printKey}>Email :</span> {tech.email}</div>}
+                {tech.localisation && <div className={s.printLine}><span className={s.printKey}>Localisation :</span> {tech.localisation}</div>}
+              </div>
             </div>
 
             <div className={s.partyCol}>
               <div className={s.partyLabel}>Client</div>
-              <div className={!client.nom?.trim() ? s.hidePrint : ''} style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                <select className={s.civiliteSelect} value={client.civilite}
-                  onChange={e => setClient(c => ({ ...c, civilite: e.target.value }))}>
-                  <option value="Mr">Mr</option>
-                  <option value="Mme">Mme</option>
-                  <option value="Mlle">Mlle</option>
-                </select>
-                <span className={s.civilitePrint}>{client.civilite}</span>
-                <input className={`${s.clientInput}${clientErrors.clientNom ? ' ' + s.clientInputErr : ''}`}
-                  placeholder="Nom Prénom *" value={client.nom} required
-                  onChange={e => { setClient(c => ({ ...c, nom: e.target.value })); setClientErrors(x => ({ ...x, clientNom: undefined })) }} />
+              <div className={s.hidePrint}>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <select className={s.civiliteSelect} value={client.civilite}
+                    onChange={e => setClient(c => ({ ...c, civilite: e.target.value }))}>
+                    <option value="Mr">Mr</option>
+                    <option value="Mme">Mme</option>
+                    <option value="Mlle">Mlle</option>
+                  </select>
+                  <input className={`${s.clientInput}${clientErrors.clientNom ? ' ' + s.clientInputErr : ''}`}
+                    placeholder="Nom Prénom *" value={client.nom} required
+                    onChange={e => { setClient(c => ({ ...c, nom: e.target.value })); setClientErrors(x => ({ ...x, clientNom: undefined })) }} />
+                </div>
+                <input
+                  className={`${s.clientInput}${clientErrors.clientTel ? ' ' + s.clientInputErr : ''}`}
+                  placeholder="Téléphone *" type="tel" value={client.telephone}
+                  onChange={e => { setClient(c => ({ ...c, telephone: e.target.value })); setClientErrors(x => ({ ...x, clientTel: undefined })) }}
+                />
+                <input
+                  className={s.clientInput}
+                  placeholder="Email" type="email" value={client.email}
+                  onChange={e => setClient(c => ({ ...c, email: e.target.value }))}
+                />
+                <input
+                  className={s.clientInput}
+                  placeholder="Localisation" value={client.localisation}
+                  onChange={e => setClient(c => ({ ...c, localisation: e.target.value }))}
+                />
               </div>
-              <input
-                className={`${s.clientInput}${clientErrors.clientTel ? ' ' + s.clientInputErr : ''}${!client.telephone?.trim() ? ' ' + s.hidePrint : ''}`}
-                placeholder="Téléphone *" type="tel" value={client.telephone}
-                onChange={e => { setClient(c => ({ ...c, telephone: e.target.value })); setClientErrors(x => ({ ...x, clientTel: undefined })) }}
-              />
-              <input
-                className={`${s.clientInput}${!client.email?.trim() ? ' ' + s.hidePrint : ''}`}
-                placeholder="Email" type="email" value={client.email}
-                onChange={e => setClient(c => ({ ...c, email: e.target.value }))}
-              />
-              <input
-                className={`${s.clientInput}${!client.localisation?.trim() ? ' ' + s.hidePrint : ''}`}
-                placeholder="Localisation" value={client.localisation}
-                onChange={e => setClient(c => ({ ...c, localisation: e.target.value }))}
-              />
+              <div className={s.showPrint}>
+                <div className={s.printLine}><span className={s.printKey}>Nom :</span> {client.civilite} {client.nom || '_______________'}</div>
+                {client.telephone && <div className={s.printLine}><span className={s.printKey}>Téléphone :</span> {client.telephone}</div>}
+                {client.email && <div className={s.printLine}><span className={s.printKey}>Email :</span> {client.email}</div>}
+                {client.localisation && <div className={s.printLine}><span className={s.printKey}>Localisation :</span> {client.localisation}</div>}
+              </div>
             </div>
           </div>
 

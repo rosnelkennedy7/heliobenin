@@ -505,22 +505,17 @@
 
 .tvaToggle {
   background: none;
-  border: 1px solid #E2E8F0;
-  border-radius: 4px;
-  padding: 0.15rem 0.55rem;
+  border: none;
+  padding: 0;
   font-size: 12px;
   font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
   color: #94A3B8;
   cursor: pointer;
-  transition: all .15s;
+  text-decoration: underline dotted;
+  transition: color .15s;
 }
-.tvaToggle:hover { border-color: #F59E0B; color: #D97706; }
-.tvaToggleOn {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: #F59E0B;
-  color: #D97706;
-  font-weight: 600;
-}
+.tvaToggle:hover { color: #64748B; }
+.tvaToggleOn { color: #1E293B; text-decoration: none; font-weight: 500; }
 
 .totTotalRow td {
   border-top: 0.5px solid #E2E8F0;
@@ -582,7 +577,7 @@
 
 /* ════ Section 5 — Notes ════ */
 .sec5 {
-  padding: 0.5rem 1rem;
+  padding: 0.35rem 1rem;
   border-top: 0.5px solid #E2E8F0;
 }
 
@@ -605,11 +600,11 @@
 
 /* ════ Section 6 — Signatures ════ */
 .signatures {
-  padding: 0.75rem 1rem;
+  padding: 0.4rem 1rem 0.6rem;
   border-top: 0.5px solid #E2E8F0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .signatureCol {
@@ -627,7 +622,7 @@
 }
 
 .signZone {
-  height: 70px;
+  height: 55px;
   border-bottom: 0.5px solid #94A3B8;
   margin-bottom: 6px;
 }
@@ -739,6 +734,22 @@
 
 /* Masqué à l'impression si vide */
 .hidePrint { /* rien en mode écran */ }
+
+/* Visible uniquement à l'impression */
+.showPrint { display: none; }
+
+.printLine {
+  font-size: 11px;
+  color: #1E293B;
+  line-height: 1.7;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+}
+
+.printKey {
+  font-weight: 600;
+  min-width: 82px;
+  display: inline-block;
+}
 
 /* Page 1/1 — visible uniquement à l'impression */
 .pageNum {
@@ -861,8 +872,9 @@
   .signatures,
   .piedPage { page-break-inside: avoid !important; }
 
-  /* Éléments vides masqués */
+  /* Éléments vides masqués / affichés */
   .hidePrint    { display: none !important; }
+  .showPrint    { display: block !important; }
   .sec5Empty    { display: none !important; }
 
   /* Numéro de page visible */
