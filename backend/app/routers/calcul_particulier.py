@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import List
+from datetime import datetime, timezone
 import traceback
 
 from app.moteur.moteur_particulier_sans_budget import calculer_sans_budget
@@ -52,6 +53,7 @@ def _save_etude(mode_budget: str, mode: str, appareils: list, resultat: dict,
             "resultat": resultat,
             "irradiation": irradiation,
             "latitude": latitude,
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         if budget is not None:
             row["budget"] = budget
