@@ -1360,7 +1360,24 @@ export default function Etude() {
                       <div className={s.e2BlockTitle}>☀ Champ photovoltaïque</div>
                       <div className={s.e2Row}><span className={s.e2Label}>Nb panneaux en série (Ns)</span><span className={s.e2Val}>{resE2.panneaux.ns}</span></div>
                       <div className={s.e2Row}><span className={s.e2Label}>Nb strings parallèle (N//)</span><span className={s.e2Val}>{resE2.panneaux.n_parallele}</span></div>
-                      <div className={s.e2Row}><span className={s.e2Label}>Total panneaux (Np)</span><span className={s.e2Val}>{resE2.panneaux.np_final}</span></div>
+                      {resE1?.nb_onduleurs > 1 ? (
+                        <>
+                          <div className={s.e2Row}>
+                            <span className={s.e2Label}>Par onduleur (Ns × N//)</span>
+                            <span className={s.e2Val}>{resE2.panneaux.ns} × {resE2.panneaux.n_parallele} = {resE2.panneaux.np_final} panneaux</span>
+                          </div>
+                          <div className={s.e2Row}>
+                            <span className={s.e2Label}>Total système</span>
+                            <span className={s.e2Val}>{resE2.panneaux.np_final_total} panneaux</span>
+                          </div>
+                          <div className={s.e2Row}>
+                            <span className={s.e2Label}>Puissance réelle totale</span>
+                            <span className={s.e2Val}>{resE2.panneaux.pc_reel_total} Wc</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className={s.e2Row}><span className={s.e2Label}>Total panneaux (Np)</span><span className={s.e2Val}>{resE2.panneaux.np_final}</span></div>
+                      )}
                       <div className={s.e2Row}><span className={s.e2Label}>Vmp string</span><span className={s.e2Val}>{resE2.panneaux.vmp_string} V</span></div>
                       <div className={s.e2Row}><span className={s.e2Label}>Voc string</span><span className={s.e2Val}>{resE2.panneaux.voc_string} V</span></div>
                       <div className={s.e2Row}><span className={s.e2Label}>Puissance réelle champ</span><span className={s.e2Val}>{resE2.panneaux.pc_reel} Wc</span></div>
