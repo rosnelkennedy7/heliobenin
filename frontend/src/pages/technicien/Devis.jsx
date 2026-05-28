@@ -164,17 +164,23 @@ export default function Devis() {
   const today   = new Date()
   const dateStr = `${String(today.getDate()).padStart(2,'0')} / ${String(today.getMonth()+1).padStart(2,'0')} / ${today.getFullYear()}`
 
-  const [client,       setClient]       = useState(sv?.client || { civilite: 'Mr', nom: '', telephone: '', email: '', localisation: '' })
+  const [client,       setClient]       = useState(sv?.client || {
+    civilite: 'Mr',
+    nom: '',
+    telephone: '',
+    email: '',
+    adresse: techStorage.localisation?.locality || '',
+  })
   const [tech,         setTech]         = useState(sv?.tech   || {
     civilite: 'Mr',
-    nom: [user?.prenom, user?.nom].filter(Boolean).join(' '),
-    entreprise: '',
-    specialite: '',
-    ifu: '',
-    rccm: '',
-    whatsapp: user?.whatsapp || '',
-    email: user?.email || '',
-    localisation: '',
+    nom:        [user?.prenom, user?.nom].filter(Boolean).join(' '),
+    entreprise: user?.entreprise || '',
+    specialite: user?.specialite || '',
+    ifu:        user?.ifu        || '',
+    rccm:       user?.rccm       || '',
+    whatsapp:   user?.whatsapp   || '',
+    email:      user?.email      || '',
+    adresse:    '',
   })
   const [clientErrors, setClientErrors] = useState({})
   const [lignes,       setLignes]       = useState(() => (sv?.lignes?.length ? sv.lignes : buildLignes(etude)))
@@ -379,8 +385,8 @@ export default function Devis() {
                 <input className={`${s.clientInput}${clientErrors.techContact ? ' ' + s.clientInputErr : ''}`}
                   placeholder="Email *" value={tech.email}
                   onChange={e => { setTech(t => ({ ...t, email: e.target.value })); setClientErrors(x => ({ ...x, techContact: undefined })) }} />
-                <input className={s.clientInput} placeholder="Localisation"
-                  value={tech.localisation} onChange={e => setTech(t => ({ ...t, localisation: e.target.value }))} />
+                <input className={s.clientInput} placeholder="Adresse"
+                  value={tech.adresse} onChange={e => setTech(t => ({ ...t, adresse: e.target.value }))} />
               </div>
               <div className={s.showPrint}>
                 <div className={s.printLine}><span className={s.printKey}>Nom :</span> {tech.civilite} {tech.nom || '_______________'}</div>
@@ -390,7 +396,7 @@ export default function Devis() {
                 {tech.rccm && <div className={s.printLine}><span className={s.printKey}>RCCM :</span> {tech.rccm}</div>}
                 {tech.whatsapp && <div className={s.printLine}><span className={s.printKey}>Téléphone :</span> {tech.whatsapp}</div>}
                 {tech.email && <div className={s.printLine}><span className={s.printKey}>Email :</span> {tech.email}</div>}
-                {tech.localisation && <div className={s.printLine}><span className={s.printKey}>Localisation :</span> {tech.localisation}</div>}
+                {tech.adresse && <div className={s.printLine}><span className={s.printKey}>Adresse :</span> {tech.adresse}</div>}
               </div>
             </div>
 
@@ -420,15 +426,15 @@ export default function Devis() {
                 />
                 <input
                   className={s.clientInput}
-                  placeholder="Localisation" value={client.localisation}
-                  onChange={e => setClient(c => ({ ...c, localisation: e.target.value }))}
+                  placeholder="Adresse" value={client.adresse}
+                  onChange={e => setClient(c => ({ ...c, adresse: e.target.value }))}
                 />
               </div>
               <div className={s.showPrint}>
                 <div className={s.printLine}><span className={s.printKey}>Nom :</span> {client.civilite} {client.nom || '_______________'}</div>
                 {client.telephone && <div className={s.printLine}><span className={s.printKey}>Téléphone :</span> {client.telephone}</div>}
                 {client.email && <div className={s.printLine}><span className={s.printKey}>Email :</span> {client.email}</div>}
-                {client.localisation && <div className={s.printLine}><span className={s.printKey}>Localisation :</span> {client.localisation}</div>}
+                {client.adresse && <div className={s.printLine}><span className={s.printKey}>Adresse :</span> {client.adresse}</div>}
               </div>
             </div>
           </div>
