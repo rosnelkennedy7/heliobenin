@@ -90,21 +90,18 @@ function buildLignes(etude) {
     etape3.troncons.forEach(t => {
       rows.push({
         id: nid(),
-        designation: `${t.troncon} — ${t.type_cable} ${t.section}mm²`,
+        designation: t.type_cable.includes('mm²')
+          ? `${t.troncon} : ${t.type_cable}`
+          : `${t.troncon} : ${t.type_cable} ${t.section}mm²`,
         qty: t.longueur || 1,
         pu: 0,
       })
     })
 
-    // Protections (dédupliquées)
-    const seen = new Set()
+    // Protections
     etape3.troncons.forEach(t => {
-      if (t.protection && t.calibre) {
-        const key = `${t.protection}_${t.calibre}`
-        if (!seen.has(key)) {
-          seen.add(key)
-          rows.push({ id: nid(), designation: `${t.protection} ${t.calibre}A`, qty: 1, pu: 0 })
-        }
+      if (t.protection) {
+        rows.push({ id: nid(), designation: t.protection, qty: t.quantite ?? 1, pu: 0 })
       }
     })
   }
@@ -158,13 +155,19 @@ export default function Devis() {
   const [clientErrors, setClientErrors] = useState({})
   const [lignes,       setLignes]       = useState(() => sv?.lignes || buildLignes(etude))
   const [tva,          setTva]          = useState(sv?.tva    || false)
-  const [ligneExtra,   setLigneExtra]   = useState(sv?.ligneExtra || { label: '', montant: 0 })
+  const [lignesExtras, setLignesExtras] = useState(
+    sv?.lignesExtras ??
+    (sv?.ligneExtra?.label || sv?.ligneExtra?.montant
+      ? [{ id: 'extra_0', label: sv.ligneExtra.label || '', montant: sv.ligneExtra.montant || 0 }]
+      : [])
+  )
   const [notes,        setNotes]        = useState(sv?.notes  || '')
   const [toast,        setToast]        = useState(null)
 
   const sousTotal    = lignes.reduce((a, l) => a + (l.qty || 0) * (l.pu || 0), 0)
   const montantTva   = tva ? sousTotal * 0.18 : 0
-  const totalGeneral = sousTotal + (ligneExtra.montant || 0) + montantTva
+  const totalExtras  = lignesExtras.reduce((a, e) => a + (e.montant || 0), 0)
+  const totalGeneral = sousTotal + totalExtras + montantTva
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3200) }
 
@@ -201,7 +204,7 @@ export default function Devis() {
 
   const persist = () => {
     const data = {
-      numero: numDevis, client, tech, lignes, ligneExtra, tva, notes,
+      numero: numDevis, client, tech, lignes, lignesExtras, tva, notes,
       type_entete: typeEntete, logoDataUrl, enteteDataUrl,
       sous_total: sousTotal, montant_tva: montantTva, total: totalGeneral,
     }
@@ -264,9 +267,10 @@ export default function Devis() {
         <div className={s.carteDevis}>
 
           {/* ════ Section 1 — En-tête ════ */}
-          <div className={s.enteteDevis}>
 
-            <div className={`${s.toggleEntete} ${s.toggleBtns}`}>
+          {/* Contrôles d'import — écran uniquement (masqués à l'impression via toggleBtns) */}
+          <div className={`${s.enteteControls} ${s.toggleBtns}`}>
+            <div className={s.toggleEntete}>
               <button
                 type="button"
                 className={`${s.toggleBtn} ${typeEntete === 'logo' ? s.toggleBtnActive : ''}`}
@@ -282,40 +286,34 @@ export default function Devis() {
                 En-tête
               </button>
             </div>
-
-            {typeEntete === 'logo' ? (
-              <>
-                <div className={`${s.logoZoneWrap} ${!logoDataUrl ? s.uploadEmpty : ''}`}>
-                  <div className={s.logoZone} onClick={() => fileLogoRef.current?.click()}>
-                    {logoDataUrl
-                      ? <img src={logoDataUrl} className={s.logoImg} alt="logo" />
-                      : <>
-                          <div className={s.uploadText}>Cliquer pour importer votre logo</div>
-                          <div className={s.uploadSub}>JPG / PNG / SVG max 2MB</div>
-                        </>
-                    }
-                  </div>
-                </div>
-                <input type="file" accept="image/*" ref={fileLogoRef} style={{ display: 'none' }}
-                  onChange={e => handleFileLogo(e.target.files[0])} />
-              </>
-            ) : (
-              <>
-                <div className={`${s.enteteZone} ${!enteteDataUrl ? s.uploadEmpty : ''}`} onClick={() => fileEnteteRef.current?.click()}>
-                  {enteteDataUrl
-                    ? <img src={enteteDataUrl} className={s.enteteImg} alt="entête" />
-                    : <>
-                        <div className={s.uploadText}>Cliquer pour importer votre en-tête</div>
-                        <div className={s.uploadSub}>JPG/PNG max 5MB</div>
-                      </>
-                  }
-                </div>
-                <input type="file" accept="image/*" ref={fileEnteteRef} style={{ display: 'none' }}
-                  onChange={e => handleFileEntete(e.target.files[0])} />
-              </>
-            )}
-
+            <button
+              type="button"
+              className={s.importBtn}
+              onClick={() => (typeEntete === 'logo' ? fileLogoRef : fileEnteteRef).current?.click()}
+            >
+              {typeEntete === 'logo'
+                ? (logoDataUrl ? 'Changer le logo' : '+ Importer un logo')
+                : (enteteDataUrl ? "Changer l'en-tête" : "+ Importer un en-tête")}
+            </button>
+            <input type="file" accept="image/*" ref={fileLogoRef} style={{ display: 'none' }}
+              onChange={e => handleFileLogo(e.target.files[0])} />
+            <input type="file" accept="image/*" ref={fileEnteteRef} style={{ display: 'none' }}
+              onChange={e => handleFileEntete(e.target.files[0])} />
           </div>
+
+          {/* Bande bleue — seulement si image chargée */}
+          {typeEntete === 'logo' && logoDataUrl && (
+            <div className={s.enteteDevis}>
+              <div className={s.logoZoneWrap}>
+                <img src={logoDataUrl} className={s.logoImg} alt="logo" />
+              </div>
+            </div>
+          )}
+          {typeEntete === 'entete_complete' && enteteDataUrl && (
+            <div className={s.enteteDevis} style={{ padding: 0 }}>
+              <img src={enteteDataUrl} className={s.enteteImg} alt="en-tête" />
+            </div>
+          )}
 
           <div className={s.enteteBottom}>
             <div className={s.devisTitle}>
@@ -462,40 +460,53 @@ export default function Devis() {
                   <td className={s.totLabel}>Sous-total</td>
                   <td className={s.totVal}>{fmt(sousTotal)} FCFA</td>
                 </tr>
-                <tr className={!ligneExtra.label?.trim() ? s.hidePrint : ''}>
-                  <td className={s.totLabel}>
-                    <input
-                      className={s.extraLabelInput}
-                      placeholder="Main d'œuvre, déplacement..."
-                      value={ligneExtra.label}
-                      onChange={e => setLigneExtra(l => ({ ...l, label: e.target.value }))}
-                    />
-                  </td>
-                  <td className={s.totVal} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
-                    <input
-                      className={s.extraMontantInput}
-                      type="number" min={0}
-                      placeholder="0"
-                      value={ligneExtra.montant}
-                      onChange={e => setLigneExtra(l => ({ ...l, montant: +e.target.value }))}
-                    />
-                    <span>FCFA</span>
+                {lignesExtras.map((le, idx) => (
+                  <tr key={le.id} className={!le.label?.trim() && !le.montant ? s.hidePrint : ''}>
+                    <td className={s.totLabel}>
+                      <input
+                        className={s.extraLabelInput}
+                        placeholder="Main d'œuvre, déplacement..."
+                        value={le.label}
+                        onChange={e => setLignesExtras(p => p.map((x, j) => j === idx ? { ...x, label: e.target.value } : x))}
+                      />
+                    </td>
+                    <td className={s.totVal} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
+                      <input
+                        className={s.extraMontantInput}
+                        type="number" min={0}
+                        placeholder="0"
+                        value={le.montant}
+                        onChange={e => setLignesExtras(p => p.map((x, j) => j === idx ? { ...x, montant: +e.target.value } : x))}
+                      />
+                      <span>FCFA</span>
+                      <button className={`${s.trashBtn} ${s.hidePrint}`} onClick={() => setLignesExtras(p => p.filter((_, j) => j !== idx))}>
+                        <Trash2 size={12} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                <tr className={s.hidePrint}>
+                  <td colSpan={2}>
+                    <button
+                      className={s.addExtraBtn}
+                      onClick={() => setLignesExtras(p => [...p, { id: `extra_${Date.now()}`, label: '', montant: 0 }])}
+                    >
+                      <Plus size={11} /> Ajouter une ligne
+                    </button>
                   </td>
                 </tr>
                 <tr className={!tva ? s.hidePrint : ''}>
                   <td className={s.totLabel}>
-                    <label className={s.tvaLabel}>
-                      <input
-                        type="checkbox"
-                        className={s.tvaCheck}
-                        checked={tva}
-                        onChange={e => setTva(e.target.checked)}
-                      />
+                    <button
+                      type="button"
+                      className={`${s.tvaToggle} ${tva ? s.tvaToggleOn : ''}`}
+                      onClick={() => setTva(v => !v)}
+                    >
                       TVA 18%
-                    </label>
+                    </button>
                   </td>
                   <td className={s.totVal}>
-                    {tva ? `${fmt(montantTva)} FCFA` : '—'}
+                    {tva ? `${fmt(montantTva)} FCFA` : ''}
                   </td>
                 </tr>
                 <tr className={s.totTotalRow}>
@@ -510,7 +521,6 @@ export default function Devis() {
 
           {/* ════ Section 5 — Notes ════ */}
           <div className={`${s.sec5}${!notes.trim() ? ' ' + s.hidePrint : ''}`}>
-            <div className={s.notesLabel}>Notes / Conditions</div>
             <textarea
               className={s.notes}
               value={notes}

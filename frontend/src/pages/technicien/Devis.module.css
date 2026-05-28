@@ -73,12 +73,38 @@
 }
 
 /* ════ Section 1 — En-tête ════ */
+
+/* Barre de contrôles d'import (écran uniquement, masqué à l'impression) */
+.enteteControls {
+  background: #1E3A5F;
+  padding: 0.55rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Bouton d'import de fichier */
+.importBtn {
+  padding: 0.2rem 0.65rem;
+  border-radius: 4px;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.importBtn:hover { border-color: #F59E0B; color: #F59E0B; }
+
+/* Bande bleue (rendue seulement quand une image est chargée) */
 .enteteDevis {
   background: #1E3A5F;
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Toggle */
@@ -118,7 +144,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 180px;
+  padding: 0.5rem;
 }
 
 .logoZone {
@@ -173,8 +199,9 @@
 
 .enteteImg {
   width: 100%;
-  max-height: 80px;
+  max-height: 120px;
   object-fit: contain;
+  display: block;
 }
 
 .uploadText {
@@ -226,14 +253,17 @@
 
 /* ════ Section 2 — Technicien / Client ════ */
 .techClient {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  gap: 1.5rem;
   align-items: start;
   border-bottom: 0.5px solid #E2E8F0;
+  padding: 0 0.75rem;
 }
 
 .partyCol {
-  padding: 0.5rem 0.75rem;
+  flex: 1;
+  min-width: 180px;
+  padding: 0.5rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -243,6 +273,7 @@
 
 .partyCol:first-child {
   border-right: 0.5px solid #E2E8F0;
+  padding-right: 0.75rem;
 }
 
 .partyLabel {
@@ -472,20 +503,23 @@
   min-width: 140px;
 }
 
-.tvaLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  cursor: pointer;
-  color: #64748B;
+.tvaToggle {
+  background: none;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+  padding: 0.15rem 0.55rem;
   font-size: 12px;
-}
-
-.tvaCheck {
-  accent-color: #F59E0B;
-  width: 13px;
-  height: 13px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  color: #94A3B8;
   cursor: pointer;
+  transition: all .15s;
+}
+.tvaToggle:hover { border-color: #F59E0B; color: #D97706; }
+.tvaToggleOn {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #F59E0B;
+  color: #D97706;
+  font-weight: 600;
 }
 
 .totTotalRow td {
@@ -530,20 +564,26 @@
 .extraMontantInput:focus { outline: none; border-color: #F59E0B; }
 .extraMontantInput::placeholder { color: #CBD5E1; }
 
+/* Bouton "+ Ajouter une ligne" dans les totaux extras */
+.addExtraBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  color: #94A3B8;
+  font-size: 11px;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  transition: color .15s;
+}
+.addExtraBtn:hover { color: #F59E0B; }
+
 /* ════ Section 5 — Notes ════ */
 .sec5 {
   padding: 0.5rem 1rem;
-  background: #F8FAFC;
   border-top: 0.5px solid #E2E8F0;
-}
-
-.notesLabel {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #94A3B8;
-  margin-bottom: 0.3rem;
 }
 
 .notes {
@@ -552,16 +592,15 @@
   resize: none;
   font-size: 11px;
   font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
-  background: white;
-  border: 0.5px solid #E2E8F0;
-  border-radius: 5px;
-  padding: 5px 7px;
+  background: transparent;
+  border: none;
+  border-bottom: 0.5px dashed #CBD5E1;
+  padding: 5px 0;
   color: #1E293B;
   box-sizing: border-box;
-  transition: border-color .15s;
 }
 
-.notes:focus { outline: none; border-color: #F59E0B; }
+.notes:focus { outline: none; }
 .notes::placeholder { color: #CBD5E1; }
 
 /* ════ Section 6 — Signatures ════ */
@@ -786,6 +825,16 @@
     -webkit-text-fill-color: inherit !important;
   }
 
+  /* Masquer les flèches spinner des inputs number */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { display: none !important; }
+  input[type=number] { -moz-appearance: textfield; }
+
+  /* Reset cross-navigateur */
+  * { -webkit-font-smoothing: antialiased; }
+  body { margin: 0; }
+  a { text-decoration: none !important; color: inherit !important; }
+
   /* Civilité : select masqué, span texte visible */
   .civiliteSelect { display: none !important; }
   .civilitePrint  { display: inline !important; font-size: 11px; color: #1E293B; margin-right: 2px; }
@@ -825,19 +874,26 @@
   .numInput     { color: #000 !important; border-bottom: none !important; }
 
   /* Cartes technicien/client adaptatives */
-  .techClient { align-items: start !important; }
-  .partyCol   { height: auto !important; min-height: unset !important; }
+  .techClient { align-items: start !important; flex-wrap: nowrap !important; }
+  .partyCol   { height: auto !important; min-height: unset !important; flex: 1 !important; }
 }
 
 /* ══ Responsive mobile ═══════════════════ */
 @media (max-width: 600px) {
   .techClient {
-    grid-template-columns: 1fr;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  .partyCol {
+    min-width: 100%;
   }
 
   .partyCol:first-child {
     border-right: none;
     border-bottom: 0.5px solid #E2E8F0;
+    padding-right: 0;
+    padding-bottom: 0.5rem;
   }
 
   .signatures {
@@ -871,6 +927,5 @@
 /* -- Tablette -- */
 @media (max-width: 768px) {
   .tableWrap { overflow-x: auto !important; }
-  .techClient { grid-template-columns: 1fr !important; }
   .carteDevis { padding: 1rem !important; }
 }
