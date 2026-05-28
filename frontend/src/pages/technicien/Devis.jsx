@@ -89,13 +89,16 @@ function buildLignes(etude) {
     })
   }
 
-  // Câbles et protections (fusionner les doublons triphasés)
+  // Câbles et protections (fusion des doublons triphasés — strip "(Onduleur X)")
   if (etape3?.troncons?.length) {
+    const stripOnd = name => name.replace(/ \(Onduleur \d+\)/g, '').trim()
+
     const cableMap = new Map()
     etape3.troncons.forEach(t => {
+      const base = stripOnd(t.troncon)
       const des = t.type_cable.includes('mm²')
-        ? `${t.troncon} : ${t.type_cable}`
-        : `${t.troncon} : ${t.type_cable} ${t.section}mm²`
+        ? `${base} : ${t.type_cable}`
+        : `${base} : ${t.type_cable} ${t.section}mm²`
       if (cableMap.has(des)) {
         cableMap.get(des).qty += (t.longueur || 1)
       } else {

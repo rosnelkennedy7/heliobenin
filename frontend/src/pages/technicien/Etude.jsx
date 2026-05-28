@@ -1434,25 +1434,40 @@ export default function Etude() {
                             </tr>
                           </thead>
                           <tbody>
-                            {resE3.troncons.map((t, i) => (
-                              <tr key={i} className={i % 2 !== 0 ? s.trEven : ''}>
-                                <td className={s.td}>{t.troncon}</td>
-                                <td className={s.td}>
-                                  <input
-                                    type="number" min={1} max={200}
-                                    value={longueurForTroncon(t.troncon)}
-                                    onChange={e => setLongueurForTroncon(t.troncon, +e.target.value)}
-                                    className={s.longueurInput}
-                                  />
-                                </td>
-                                <td className={`${s.td} ${s.tdOrange}`}>{t.courant}</td>
-                                <td className={s.td}>{t.type_cable}</td>
-                                <td className={`${s.td} ${s.tdOrange}`}>{t.section} mm²</td>
-                                <td className={`${s.td} ${s.tdOrange}`}>{t.quantite ?? 1}</td>
-                                <td className={s.td}>{t.protection}</td>
-                                <td className={`${s.td} ${s.tdGreen}`}>{t.calibre} A</td>
-                              </tr>
-                            ))}
+                            {(() => {
+                              const stripOnd = name => name.replace(/ \(Onduleur \d+\)/g, '').trim()
+                              const groups = new Map()
+                              resE3.troncons.forEach(t => {
+                                const base = stripOnd(t.troncon)
+                                const key = `${base}||${t.type_cable}||${t.section ?? ''}`
+                                if (groups.has(key)) {
+                                  const g = groups.get(key)
+                                  g.count += 1
+                                  g.totalQuantite += (t.quantite ?? 1)
+                                } else {
+                                  groups.set(key, { ...t, troncon: base, count: 1, totalQuantite: t.quantite ?? 1 })
+                                }
+                              })
+                              return Array.from(groups.values()).map((m, i) => (
+                                <tr key={i} className={i % 2 !== 0 ? s.trEven : ''}>
+                                  <td className={s.td}>{m.troncon}</td>
+                                  <td className={s.td}>
+                                    <input
+                                      type="number" min={1} max={200 * m.count}
+                                      value={longueurForTroncon(m.troncon) * m.count}
+                                      onChange={e => setLongueurForTroncon(m.troncon, Math.max(1, Math.round(+e.target.value / m.count)))}
+                                      className={s.longueurInput}
+                                    />
+                                  </td>
+                                  <td className={`${s.td} ${s.tdOrange}`}>{m.courant}</td>
+                                  <td className={s.td}>{m.type_cable}</td>
+                                  <td className={`${s.td} ${s.tdOrange}`}>{m.section} mm²</td>
+                                  <td className={`${s.td} ${s.tdOrange}`}>{m.totalQuantite}</td>
+                                  <td className={s.td}>{m.protection}</td>
+                                  <td className={`${s.td} ${s.tdGreen}`}>{m.calibre} A</td>
+                                </tr>
+                              ))
+                            })()}
                             {resE3.differentiel && (
                               <tr style={{ background: 'rgba(34,197,94,0.06)' }}>
                                 <td className={s.td}>{resE3.differentiel.type}</td>
