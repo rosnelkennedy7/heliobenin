@@ -41,7 +41,8 @@ function genNum() {
 
 function buildLignes(etude) {
   if (!etude) {
-    return Array(5).fill(null).map((_, i) => ({ id: `e${i}`, designation: '', qty: 1, pu: 0 }))
+    return Array(5).fill(null).map((_, i) =>
+      ({ id: `e${i}`, designation: '', qty: 1, pu: 0 }))
   }
   const { etape1, etape2, etape3, equipements } = etude
   const rows = []
@@ -53,7 +54,8 @@ function buildLignes(etude) {
     const p = equipements.panneau
     rows.push({
       id: nid(),
-      designation: ['Panneau', p.marque, p.modele, p.puissance ? `${p.puissance}Wc` : '']
+      designation: ['Panneau', p.marque, p.modele,
+        p.puissance ? `${p.puissance}Wc` : '']
         .filter(Boolean).join(' '),
       qty: etape2.panneaux.np_final,
       pu: 0,
@@ -65,7 +67,8 @@ function buildLignes(etude) {
     const o = equipements.onduleur
     rows.push({
       id: nid(),
-      designation: ['Onduleur', o.marque, o.modele, o.puissance ? `${(o.puissance / 1000).toFixed(1)}kW` : '']
+      designation: ['Onduleur', o.marque, o.modele,
+        o.puissance ? `${(o.puissance/1000).toFixed(1)}kW` : '']
         .filter(Boolean).join(' '),
       qty: etape1?.nb_onduleurs || 1,
       pu: 0,
@@ -78,14 +81,15 @@ function buildLignes(etude) {
     rows.push({
       id: nid(),
       designation: ['Batterie', b.technologie, b.marque,
-        b.capacite ? `${b.capacite}Ah` : '', b.tension ? `${b.tension}V` : '']
+        b.capacite ? `${b.capacite}Ah` : '',
+        b.tension ? `${b.tension}V` : '']
         .filter(Boolean).join(' '),
       qty: etape2.batteries.nb_batteries,
       pu: 0,
     })
   }
 
-  // Câbles (un par tronçon)
+  // Câbles et protections
   if (etape3?.troncons?.length) {
     etape3.troncons.forEach(t => {
       rows.push({
@@ -97,11 +101,14 @@ function buildLignes(etude) {
         pu: 0,
       })
     })
-
-    // Protections
     etape3.troncons.forEach(t => {
       if (t.protection) {
-        rows.push({ id: nid(), designation: t.protection, qty: t.quantite ?? 1, pu: 0 })
+        rows.push({
+          id: nid(),
+          designation: t.protection,
+          qty: t.quantite ?? 1,
+          pu: 0,
+        })
       }
     })
   }
@@ -109,20 +116,33 @@ function buildLignes(etude) {
   // Porte-fusibles
   if (etape3?.porte_fusibles?.length) {
     etape3.porte_fusibles.forEach(pf => {
-      rows.push({ id: nid(), designation: pf.designation, qty: pf.quantite, pu: 0 })
+      rows.push({
+        id: nid(),
+        designation: pf.designation,
+        qty: pf.quantite,
+        pu: 0,
+      })
     })
   }
 
   // Parafoudres
   if (etape3?.parafoudres?.length) {
     etape3.parafoudres.forEach(pf => {
-      rows.push({ id: nid(), designation: `Parafoudre ${pf.designation}`, qty: pf.quantite, pu: 0 })
+      rows.push({
+        id: nid(),
+        designation: `Parafoudre ${pf.designation}`,
+        qty: pf.quantite,
+        pu: 0,
+      })
     })
   }
 
+  // PAS de bloc différentiel séparé ici !
+
   return rows.length > 0
     ? rows
-    : Array(5).fill(null).map((_, i) => ({ id: `e${i}`, designation: '', qty: 1, pu: 0 }))
+    : Array(5).fill(null).map((_, i) =>
+        ({ id: `e${i}`, designation: '', qty: 1, pu: 0 }))
 }
 
 export default function Devis() {
@@ -157,7 +177,7 @@ export default function Devis() {
     localisation: '',
   })
   const [clientErrors, setClientErrors] = useState({})
-  const [lignes,       setLignes]       = useState(() => sv?.lignes || buildLignes(etude))
+  const [lignes,       setLignes]       = useState(() => (sv?.lignes?.length ? sv.lignes : buildLignes(etude)))
   const [tva,          setTva]          = useState(sv?.tva    || false)
   const [lignesExtras, setLignesExtras] = useState(
     sv?.lignesExtras ??
