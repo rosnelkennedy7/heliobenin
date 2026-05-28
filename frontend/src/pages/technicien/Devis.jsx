@@ -89,28 +89,32 @@ function buildLignes(etude) {
     })
   }
 
-  // Câbles et protections
+  // Câbles et protections (fusionner les doublons triphasés)
   if (etape3?.troncons?.length) {
+    const cableMap = new Map()
     etape3.troncons.forEach(t => {
-      rows.push({
-        id: nid(),
-        designation: t.type_cable.includes('mm²')
-          ? `${t.troncon} : ${t.type_cable}`
-          : `${t.troncon} : ${t.type_cable} ${t.section}mm²`,
-        qty: t.longueur || 1,
-        pu: 0,
-      })
-    })
-    etape3.troncons.forEach(t => {
-      if (t.protection) {
-        rows.push({
-          id: nid(),
-          designation: t.protection,
-          qty: t.quantite ?? 1,
-          pu: 0,
-        })
+      const des = t.type_cable.includes('mm²')
+        ? `${t.troncon} : ${t.type_cable}`
+        : `${t.troncon} : ${t.type_cable} ${t.section}mm²`
+      if (cableMap.has(des)) {
+        cableMap.get(des).qty += (t.longueur || 1)
+      } else {
+        cableMap.set(des, { id: nid(), designation: des, qty: t.longueur || 1, pu: 0 })
       }
     })
+    cableMap.forEach(row => rows.push(row))
+
+    const protMap = new Map()
+    etape3.troncons.forEach(t => {
+      if (t.protection) {
+        if (protMap.has(t.protection)) {
+          protMap.get(t.protection).qty += (t.quantite ?? 1)
+        } else {
+          protMap.set(t.protection, { id: nid(), designation: t.protection, qty: t.quantite ?? 1, pu: 0 })
+        }
+      }
+    })
+    protMap.forEach(row => rows.push(row))
   }
 
   // Porte-fusibles
