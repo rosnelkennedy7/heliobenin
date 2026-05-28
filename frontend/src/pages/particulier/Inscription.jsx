@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { saveUserParticulier } from '../../utils/storage'
+import { supabase } from '../../utils/supabaseClient'
 import styles from './Inscription.module.css'
 
 /* Formatte 10 chiffres en XX XX XX XX XX */
@@ -99,6 +100,9 @@ export default function Inscription() {
     }
     localStorage.setItem('heliobenin_role', 'particulier')
     saveUserParticulier({ prenom: form.prenom, nom: form.nom, email: form.email, role: 'particulier' })
+    supabase?.from('profiles').insert([{
+      nom: form.nom, prenom: form.prenom, email: form.email, role: 'particulier',
+    }]).catch(() => {})
     navigate('/paiement')
   }
 

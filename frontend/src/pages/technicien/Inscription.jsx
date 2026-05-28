@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { saveUserTechnicien } from '../../utils/storage'
+import { supabase } from '../../utils/supabaseClient'
 import styles from './Inscription.module.css'
 
 const SPECIALITES = [
@@ -113,7 +114,16 @@ export default function Inscription() {
       return
     }
     localStorage.setItem('heliobenin_role', 'technicien')
+    const specialiteFinal = form.specialite === 'Autre' ? form.specialiteAutre : form.specialite
     saveUserTechnicien({ prenom: form.prenom, nom: form.nom, email: form.email, role: 'technicien' })
+    supabase?.from('profiles').insert([{
+      nom: form.nom, prenom: form.prenom, email: form.email, role: 'technicien',
+      whatsapp: form.whatsapp || null,
+      entreprise: form.entreprise || null,
+      specialite: specialiteFinal || null,
+      ifu: form.ifu || null,
+      rccm: form.rccm || null,
+    }]).catch(() => {})
     navigate('/qcm-tech')
   }
 

@@ -6,6 +6,7 @@ import mtnImg from "../../assets/images/MTN.jpg";
 import moovImg from "../../assets/images/MOOV.png";
 import celtiisImg from "../../assets/images/Celtiis.jpg";
 import { saveTechnicien } from "../../utils/storage";
+import { supabase } from "../../utils/supabaseClient";
 import styles from "./Paiement.module.css";
 
 const RESEAUX = [
@@ -87,12 +88,34 @@ export default function Paiement() {
     }
   };
 
+  const MONTANTS = { unique: 3000, mensuel: 25000, annuel: 180000 }
+
   const handlePayer = () => {
     if (!canPay || statut === "loading") return;
     setStatut("loading");
     setTimeout(() => {
       saveTechnicien({ abonnement: formule, date_souscription: Date.now() });
       setStatut("success");
+      ;(async () => {
+        try {
+          if (!supabase) return
+          const user = JSON.parse(localStorage.getItem('helio_user_technicien') || '{}')
+          const now = new Date()
+          const dateFin = formule === 'mensuel'
+            ? new Date(now.getTime() + 30  * 86400000).toISOString()
+            : formule === 'annuel'
+            ? new Date(now.getTime() + 365 * 86400000).toISOString()
+            : null
+          const { data: profile } = await supabase.from('profiles').select('id').eq('email', user.email).maybeSingle()
+          await supabase.from('abonnements').insert([{
+            user_id: profile?.id || null,
+            type: formule,
+            montant: MONTANTS[formule] || 0,
+            statut: 'actif',
+            date_fin: dateFin,
+          }])
+        } catch {}
+      })()
       setTimeout(() => navigate("/localisation-tech"), 2000);
     }, 3000);
   };
