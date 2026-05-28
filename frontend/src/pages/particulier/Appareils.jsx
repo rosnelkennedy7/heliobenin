@@ -275,8 +275,8 @@ export default function Appareils() {
           }}>
             <span>⚡</span>
             <span>
-              Renseignez uniquement les appareils qui resteront allumés pendant les coupures.
-              Cliquez dans la colonne priorité pour prioriser un appareil. Le symbole ⭐ indique qu'il est prioritaire.
+              Renseignez ici vos appareils.
+              Cliquez dans la colonne priorité pour prioriser un appareil. Le symbole ⭐ indique qu'il est prioritaire et reste allumé pendant la coupure.
             </span>
           </div>
         )}
