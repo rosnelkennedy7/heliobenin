@@ -100,9 +100,14 @@ export default function Inscription() {
     }
     localStorage.setItem('heliobenin_role', 'particulier')
     saveUserParticulier({ prenom: form.prenom, nom: form.nom, email: form.email, role: 'particulier' })
-    supabase?.from('profiles').insert([{
-      nom: form.nom, prenom: form.prenom, email: form.email, role: 'particulier',
-    }]).catch(e => console.error('[Supabase] profiles insert (particulier):', e))
+    ;(async () => {
+      try {
+        const { error } = await supabase?.from('profiles').insert([{
+          nom: form.nom, prenom: form.prenom, email: form.email, role: 'particulier',
+        }]) ?? {}
+        if (error) console.error('[Supabase] profiles insert (particulier):', error)
+      } catch (e) { console.error('[Supabase] profiles exception (particulier):', e) }
+    })()
     navigate('/paiement')
   }
 

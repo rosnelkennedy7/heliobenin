@@ -116,14 +116,19 @@ export default function Inscription() {
     localStorage.setItem('heliobenin_role', 'technicien')
     const specialiteFinal = form.specialite === 'Autre' ? form.specialiteAutre : form.specialite
     saveUserTechnicien({ prenom: form.prenom, nom: form.nom, email: form.email, role: 'technicien' })
-    supabase?.from('profiles').insert([{
-      nom: form.nom, prenom: form.prenom, email: form.email, role: 'technicien',
-      whatsapp: form.whatsapp || null,
-      entreprise: form.entreprise || null,
-      specialite: specialiteFinal || null,
-      ifu: form.ifu || null,
-      rccm: form.rccm || null,
-    }]).catch(e => console.error('[Supabase] profiles insert (technicien):', e))
+    ;(async () => {
+      try {
+        const { error } = await supabase?.from('profiles').insert([{
+          nom: form.nom, prenom: form.prenom, email: form.email, role: 'technicien',
+          whatsapp: form.whatsapp || null,
+          entreprise: form.entreprise || null,
+          specialite: specialiteFinal || null,
+          ifu: form.ifu || null,
+          rccm: form.rccm || null,
+        }]) ?? {}
+        if (error) console.error('[Supabase] profiles insert (technicien):', error)
+      } catch (e) { console.error('[Supabase] profiles exception (technicien):', e) }
+    })()
     navigate('/qcm-tech')
   }
 
