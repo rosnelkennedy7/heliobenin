@@ -22,6 +22,7 @@ import DevisTech from './pages/technicien/Devis'
 import RapportTech from './pages/technicien/Rapport'
 import DashboardTech from './pages/technicien/Dashboard'
 import MesProjets from './pages/technicien/MesProjets'
+import ProfilTech from './pages/technicien/ProfilTech'
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
       <Route path="/rapport-tech"      element={<RapportTech />} />
       <Route path="/dashboard-tech"    element={<DashboardTech />} />
       <Route path="/mes-projets-tech"  element={<MesProjets />} />
+      <Route path="/profil-tech"       element={<ProfilTech />} />
     </Routes>
     <DevTools />
     </>

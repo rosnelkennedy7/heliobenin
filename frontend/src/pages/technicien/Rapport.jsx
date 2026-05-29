@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, Printer, ArrowLeft } from 'lucide-react'
 import Navbar from '../../components/Navbar'
@@ -103,6 +104,9 @@ const MAINTENANCE_DATA = [
 
 export default function Rapport() {
   const navigate = useNavigate()
+  const [toast, setToast] = useState(false)
+
+  const showToast = () => { setToast(true); setTimeout(() => setToast(false), 2500) }
 
   const techStore = getTechnicien()
   const loc       = techStore.localisation || {}
@@ -459,9 +463,17 @@ export default function Rapport() {
         </div>
 
         {/* ═══ Boutons ═══ */}
+        {toast && (
+          <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', background: '#10B981', color: '#fff', padding: '0.75rem 1.5rem', borderRadius: 10, fontWeight: 700, zIndex: 100, fontSize: '0.95rem', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+            Projet enregistré ✅
+          </div>
+        )}
         <div className={s.btnActions}>
-          <button onClick={() => navigate('/devis-tech')} className={s.btnRetour}>
-            <ArrowLeft size={18} /> Retour au Devis
+          <button onClick={() => navigate('/dashboard-tech')} className={s.btnRetour}>
+            <ArrowLeft size={18} /> Retour au Dashboard
+          </button>
+          <button onClick={showToast} className={s.btnSave}>
+            Enregistrer
           </button>
           <button onClick={() => {
             alert(
@@ -471,7 +483,7 @@ export default function Rapport() {
             )
             window.print()
           }} className={s.btnPrint}>
-            <Printer size={18} /> Imprimer le rapport
+            <Printer size={18} /> Imprimer / PDF
           </button>
         </div>
         <NoteTool role="technicien" />

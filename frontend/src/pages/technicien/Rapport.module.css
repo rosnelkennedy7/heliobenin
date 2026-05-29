@@ -477,6 +477,22 @@
   font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
 }
 .btnPrint:hover { background: #D97706; }
+.btnSave {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #10B981;
+  background: transparent;
+  color: #10B981;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+}
+.btnSave:hover { background: rgba(16,185,129,0.12); }
 
 /* ══ Page breaks (écran + impression) ══════════════════════ */
 .table { page-break-inside: avoid; }

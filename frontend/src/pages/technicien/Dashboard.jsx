@@ -158,7 +158,7 @@ export default function DashboardTech() {
                 value={nomProjet}
                 onChange={e => setNomProjet(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleCommencer()}
-                placeholder="Résidence KOKOUN Donald"
+                placeholder="Nommez votre projet"
                 autoFocus
                 style={{ width: '100%', boxSizing: 'border-box', textAlign: 'center', background: 'rgba(255,255,255,0.06)', border: '1.5px solid rgba(255,255,255,0.12)', borderRadius: 9, padding: '0.75rem 1rem', color: '#fff', fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit' }}
               />
