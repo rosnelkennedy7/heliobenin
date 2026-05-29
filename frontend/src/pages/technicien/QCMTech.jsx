@@ -97,7 +97,7 @@ export default function QCMTech() {
     setSubmitted(true)
     if (s >= 4) {
       saveTechnicien({ qcm_valide: true })
-      setTimeout(() => navigate('/dashboard-tech'), 2000)
+      setTimeout(() => navigate('/paiement-tech'), 2000)
     }
   }
 
