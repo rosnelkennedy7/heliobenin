@@ -273,7 +273,7 @@ export default function Localisation() {
         <div className={styles.mapWrap}>
           <MapContainer
             center={BENIN_CENTER}
-            zoom={10}
+            zoom={7}
             minZoom={6}
             maxZoom={18}
             maxBounds={BENIN_BOUNDS}

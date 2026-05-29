@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { getUserTechnicien, saveUserTechnicien } from '../../utils/storage'
+import { supabase } from '../../utils/supabaseClient'
 import SidebarTech from '../../components/SidebarTech'
 
 export default function ProfilTech() {
@@ -18,10 +19,41 @@ export default function ProfilTech() {
   })
   const [saved, setSaved] = useState(false)
 
+  useEffect(() => {
+    if (!supabase || !initial.email) return
+    ;(async () => {
+      try {
+        const { data } = await supabase.from('profiles').select('*').eq('email', initial.email).maybeSingle() ?? {}
+        if (data) {
+          setForm(f => ({
+            prenom:     data.prenom     || f.prenom,
+            nom:        data.nom        || f.nom,
+            email:      data.email      || f.email,
+            whatsapp:   data.whatsapp   || f.whatsapp,
+            entreprise: data.entreprise || f.entreprise,
+            specialite: data.specialite || f.specialite,
+            ifu:        data.ifu        || f.ifu,
+            rccm:       data.rccm       || f.rccm,
+          }))
+        }
+      } catch (e) { console.error('[Supabase] profil load:', e) }
+    })()
+  }, [initial.email])
+
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
-  const handleSave = () => {
+  const handleSave = async () => {
     saveUserTechnicien({ ...initial, ...form })
+    if (supabase && form.email) {
+      try {
+        const { error } = await supabase.from('profiles').update({
+          prenom: form.prenom, nom: form.nom,
+          whatsapp: form.whatsapp, entreprise: form.entreprise,
+          specialite: form.specialite, ifu: form.ifu, rccm: form.rccm,
+        }).eq('email', form.email) ?? {}
+        if (error) console.error('[Supabase] profil update:', error)
+      } catch (e) { console.error('[Supabase] profil exception:', e) }
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }

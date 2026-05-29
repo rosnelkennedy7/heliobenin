@@ -1,16 +1,24 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { User, UserPlus, Wrench } from 'lucide-react'
 import vitreImg from '../assets/images/vitre.webp'
 import flaagImg from '../assets/images/flaag.jpg'
 import styles from './Accueil.module.css'
 
 export default function Accueil() {
-  const [role, setRole] = useState(() => localStorage.getItem('heliobenin_role'))
+  const navigate = useNavigate()
+  const [role,  setRole]  = useState(null)
+  const [error, setError] = useState(false)
 
   const selectRole = (r) => {
     setRole(r)
+    setError(false)
     localStorage.setItem('heliobenin_role', r)
+  }
+
+  const handleNav = (partPath, techPath) => {
+    if (!role) { setError(true); return }
+    navigate(role === 'technicien' ? techPath : partPath)
   }
 
   return (
@@ -62,6 +70,11 @@ export default function Accueil() {
                 Technicien
               </button>
             </div>
+            {error && (
+              <p style={{ color: '#EF4444', fontWeight: 600, fontSize: '0.88rem', margin: '0.6rem 0 0', textAlign: 'center' }}>
+                Veuillez choisir votre profil pour continuer
+              </p>
+            )}
           </div>
 
           {/* Cartes */}
@@ -74,9 +87,9 @@ export default function Accueil() {
               <p className={styles.cardDesc}>
                 Connectez-vous et accédez à votre espace de travail.
               </p>
-              <Link to={role === 'technicien' ? '/login-tech' : '/login'} className={styles.btnDark}>
+              <button onClick={() => handleNav('/login', '/login-tech')} className={styles.btnDark}>
                 Se connecter ›
-              </Link>
+              </button>
             </div>
 
             <div className={styles.card}>
@@ -87,9 +100,9 @@ export default function Accueil() {
               <p className={styles.cardDesc}>
                 Créez un compte et commencez votre dimensionnement.
               </p>
-              <Link to={role === 'technicien' ? '/inscription-tech' : '/inscription'} className={styles.btnOrange}>
+              <button onClick={() => handleNav('/inscription', '/inscription-tech')} className={styles.btnOrange}>
                 Créer un compte ›
-              </Link>
+              </button>
             </div>
           </div>
         </main>

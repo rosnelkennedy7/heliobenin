@@ -48,10 +48,11 @@ function Stepper({ active }) {
 }
 
 /* ── Modale appareils ────────────────────────────────── */
-function AppareilsModal({ open, onClose, onSelect, appareils }) {
+function AppareilsModal({ open, onClose, onSelect, appareils, rows }) {
   const [q, setQ] = useState('')
   if (!open) return null
 
+  const selectedNoms = new Set(rows.map(r => r.nom))
   const filtered = appareils.filter(a =>
     !q.trim() || a.nom.toLowerCase().includes(q.toLowerCase())
   )
@@ -69,6 +70,9 @@ function AppareilsModal({ open, onClose, onSelect, appareils }) {
         <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(15,23,42,0.95)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <Plus size={16} color="#F59E0B" style={{ flexShrink: 0 }} />
           <span style={{ flex: 1, fontWeight: 600, fontSize: '0.92rem', color: '#fff' }}>Ajouter un appareil</span>
+          <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', marginRight: 8 }}>
+            {rows.length} appareil{rows.length !== 1 ? 's' : ''} sélectionné{rows.length !== 1 ? 's' : ''}
+          </span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)', fontSize: '1rem', padding: '0 2px', lineHeight: 1 }}>✕</button>
         </div>
 
@@ -96,18 +100,24 @@ function AppareilsModal({ open, onClose, onSelect, appareils }) {
                 <div style={{ padding: '6px 14px 4px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(245,158,11,0.7)', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
                   {CAT_ICONS[cat]} {cat}
                 </div>
-                {items.map(a => (
-                  <button
-                    key={a.id}
-                    onClick={() => { onSelect(a); onClose() }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 14px', border: 'none', borderBottom: '0.5px solid rgba(255,255,255,0.05)', background: 'none', cursor: 'pointer', textAlign: 'left' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-                  >
-                    <span style={{ fontSize: '0.85rem', color: '#fff' }}>{a.nom}</span>
-                    <span style={{ fontSize: '0.78rem', color: '#F59E0B', fontWeight: 500, flexShrink: 0, marginLeft: 8 }}>{a.puissance} W</span>
-                  </button>
-                ))}
+                {items.map(a => {
+                  const sel = selectedNoms.has(a.nom)
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => onSelect(a)}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 14px', border: 'none', borderBottom: '0.5px solid rgba(255,255,255,0.05)', background: sel ? 'rgba(16,185,129,0.08)' : 'none', cursor: 'pointer', textAlign: 'left' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = sel ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = sel ? 'rgba(16,185,129,0.08)' : 'none' }}
+                    >
+                      <span style={{ fontSize: '0.85rem', color: '#fff' }}>{a.nom}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                        <span style={{ fontSize: '0.78rem', color: '#F59E0B', fontWeight: 500 }}>{a.puissance} W</span>
+                        {sel && <span style={{ color: '#10B981', fontSize: '0.85rem', fontWeight: 700 }}>✓</span>}
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             )
           })}
@@ -116,6 +126,16 @@ function AppareilsModal({ open, onClose, onSelect, appareils }) {
               Aucun résultat pour « {q} »
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.08)', background: 'rgba(15,23,42,0.95)' }}>
+          <button
+            onClick={onClose}
+            style={{ width: '100%', padding: '0.65rem', background: '#F59E0B', border: 'none', borderRadius: 8, color: '#1E293B', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Terminer
+          </button>
         </div>
       </div>
     </div>
@@ -193,6 +213,8 @@ export default function Appareils() {
     setRows(prev => prev.filter(r => r.id !== id))
 
   const selectFromModal = (app) => {
+    const existing = rows.find(r => r.nom === app.nom)
+    if (existing) { updateRow(existing.id, 'quantite', existing.quantite + 1); return }
     if (rows.length >= 50) return
     const { hJour, hNuit } = defaultHours(app.nom, app.categorie)
     setRows(prev => [...prev, {
@@ -514,6 +536,7 @@ export default function Appareils() {
         onClose={() => setModalOpen(false)}
         onSelect={selectFromModal}
         appareils={appareils}
+        rows={rows}
       />
     </div>
   )
