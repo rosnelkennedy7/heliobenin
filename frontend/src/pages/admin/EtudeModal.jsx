@@ -44,24 +44,23 @@ export default function EtudeModal({ etude, onClose }) {
         {/* 4 cartes colorées */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.7rem' }}>
           <InfoCard color="#10B981" label="Onduleur" lines={[
-            onduleur.marque ? `${onduleur.marque} ${onduleur.modele || ''}` : '—',
-            onduleur.puissance_va ? `${fmt(onduleur.puissance_va)} VA` : '',
-            onduleur.tension_usys ? `${onduleur.tension_usys}V` : '',
+            onduleur.marque ? `${onduleur.marque} ${onduleur.modele || ''}`.trim() : '—',
+            onduleur.puissance ? `${fmt(onduleur.puissance)} W` : '',
+            onduleur.usys ? `${onduleur.usys}V` : '',
           ]} />
           <InfoCard color="#F59E0B" label="Panneaux" lines={[
-            panneaux.nombre ? `${panneaux.nombre} panneau${panneaux.nombre > 1 ? 'x' : ''}` : '—',
-            panneaux.puissance_unitaire ? `${panneaux.puissance_unitaire}Wc/u` : '',
-            panneaux.puissance_totale ? `Total : ${fmt(panneaux.puissance_totale)}Wc` : '',
+            panneaux.np_final ? `${panneaux.np_final} panneau${panneaux.np_final > 1 ? 'x' : ''}` : '—',
+            (panneaux.ns && panneaux.n_parallele) ? `${panneaux.ns}S × ${panneaux.n_parallele}//` : '',
+            panneaux.pc_reel ? `Pc = ${fmt(panneaux.pc_reel)} Wc` : '',
           ]} />
           <InfoCard color="#6366F1" label="Batteries" lines={[
-            batteries.nombre ? `${batteries.nombre} batterie${batteries.nombre > 1 ? 's' : ''}` : '—',
-            batteries.tension ? `${batteries.tension}V` : '',
-            batteries.capacite_unitaire ? `${batteries.capacite_unitaire}Ah/u` : '',
+            batteries.nb_batteries ? `${batteries.nb_batteries} batterie${batteries.nb_batteries > 1 ? 's' : ''}` : '—',
+            (batteries.nb_serie && batteries.nb_parallele) ? `${batteries.nb_serie}S × ${batteries.nb_parallele}P` : '',
+            batteries.c_unitaire ? `${batteries.c_unitaire} Ah/u` : '',
           ]} />
           <InfoCard color="#EC4899" label="Bilan" lines={[
             bilan.ej ? `Ej = ${fmt(bilan.ej)} Wh/j` : '—',
-            bilan.pond ? `Pond = ${fmt(bilan.pond)} Wh/j` : '',
-            bilan.pc ? `Pc = ${fmt(bilan.pc)} W` : '',
+            bilan.cs != null ? `Cs = ${bilan.cs}` : '',
           ]} />
         </div>
 
