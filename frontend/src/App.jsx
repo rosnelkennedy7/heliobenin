@@ -20,6 +20,8 @@ import AppareilsTech from './pages/technicien/AppareilsTech'
 import Etude from './pages/technicien/Etude'
 import DevisTech from './pages/technicien/Devis'
 import RapportTech from './pages/technicien/Rapport'
+import DashboardTech from './pages/technicien/Dashboard'
+import MesProjets from './pages/technicien/MesProjets'
 
 export default function App() {
   return (
@@ -50,6 +52,8 @@ export default function App() {
       <Route path="/etude-tech"        element={<Etude />} />
       <Route path="/devis-tech"        element={<DevisTech />} />
       <Route path="/rapport-tech"      element={<RapportTech />} />
+      <Route path="/dashboard-tech"    element={<DashboardTech />} />
+      <Route path="/mes-projets-tech"  element={<MesProjets />} />
     </Routes>
     <DevTools />
     </>

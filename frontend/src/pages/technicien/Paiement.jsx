@@ -117,7 +117,7 @@ export default function Paiement() {
           if (insErr) console.error('[Supabase] abonnements insert:', insErr)
         } catch (e) { console.error('[Supabase] paiement technicien exception:', e) }
       })()
-      setTimeout(() => navigate("/localisation-tech"), 2000);
+      setTimeout(() => navigate('/dashboard-tech'), 2000);
     }, 3000);
   };
 

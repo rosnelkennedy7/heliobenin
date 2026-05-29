@@ -8,7 +8,7 @@ import Navbar from '../../components/Navbar'
 import vitreImg from '../../assets/images/vitre.webp'
 import AvatarTech from '../../components/AvatarTech'
 import { supabase } from '../../utils/supabaseClient'
-import { saveTechnicien, getTechnicien } from '../../utils/storage'
+import { saveTechnicien, getTechnicien, getUserTechnicien } from '../../utils/storage'
 import { API_BASE } from '../../utils/api'
 import s from './Etude.module.css'
 
@@ -963,13 +963,32 @@ export default function Etude() {
 
   /* ── Suivant ── */
   const handleSuivant = () => {
-    saveTechnicien({
-      etude: {
-        etape1: resE1, etape2: resE2, etape3: resE3,
-        parametres: { cs, k, eta, typeOnduleur, pr, nJours, dod, etaBat, dPanOnd, dRegBat, dBatOnd, dOndTab },
-        equipements: { panneau, onduleur: selOnduleur, onduleurSepare: selOnduleurSepare, batterie: selBatterie },
-      },
-    })
+    const etudeData = {
+      etape1: resE1, etape2: resE2, etape3: resE3,
+      parametres: { cs, k, eta, typeOnduleur, pr, nJours, dod, etaBat, dPanOnd, dRegBat, dBatOnd, dOndTab },
+      equipements: { panneau, onduleur: selOnduleur, onduleurSepare: selOnduleurSepare, batterie: selBatterie },
+    }
+    saveTechnicien({ etude: etudeData })
+    ;(async () => {
+      try {
+        if (!supabase) return
+        const userProfile = getUserTechnicien()
+        if (!userProfile.email) return
+        const { data: profile } = await supabase.from('profiles').select('id').eq('email', userProfile.email).maybeSingle()
+        const uid = profile?.id
+        if (!uid) return
+        const tech = getTechnicien()
+        const nomProjet = tech.nom_projet || `Projet ${new Date().toLocaleDateString('fr-FR')}`
+        const { error } = await supabase.from('projets_technicien').insert([{
+          user_id:      uid,
+          nom_projet:   nomProjet,
+          etude:        etudeData,
+          localisation: tech.localisation || null,
+          appareils:    tech.appareils    || null,
+        }])
+        if (error) console.error('[Supabase] projets_technicien insert:', error)
+      } catch (e) { console.error('[Supabase] projets_technicien exception:', e) }
+    })()
     navigate('/devis-tech')
   }
 

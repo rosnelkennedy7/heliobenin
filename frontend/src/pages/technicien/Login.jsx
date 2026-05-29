@@ -42,7 +42,9 @@ export default function Login() {
         localStorage.setItem('helio_user_technicien', JSON.stringify(demo))
       }
       const techData = getTechnicien()
-      navigate(techData.qcm_valide ? '/localisation-tech' : '/qcm-tech')
+      if (!techData.qcm_valide) navigate('/qcm-tech')
+      else if (!techData.abonnement || techData.abonnement === 'unique') navigate('/paiement-tech')
+      else navigate('/dashboard-tech')
     } catch {
       setError('Identifiants incorrects. Veuillez réessayer.')
     } finally {
@@ -66,7 +68,9 @@ export default function Login() {
       })
       localStorage.setItem('heliobenin_role', 'technicien')
       const techDataBio = getTechnicien()
-      navigate(techDataBio.qcm_valide ? '/localisation-tech' : '/qcm-tech')
+      if (!techDataBio.qcm_valide) navigate('/qcm-tech')
+      else if (!techDataBio.abonnement || techDataBio.abonnement === 'unique') navigate('/paiement-tech')
+      else navigate('/dashboard-tech')
     } catch {
       setError('Authentification biométrique annulée ou non disponible.')
     } finally {
