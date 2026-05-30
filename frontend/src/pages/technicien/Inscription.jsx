@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Fingerprint, Check } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { saveUserTechnicien } from '../../utils/storage'
 import { supabase } from '../../utils/supabaseClient'
@@ -64,6 +64,19 @@ export default function Inscription() {
 
   const [errors, setErrors] = useState({})
 
+  const [biometric,     setBiometric]     = useState(false)
+  const [biometricDone, setBiometricDone] = useState(false)
+  const [bioLoading,    setBioLoading]    = useState(false)
+  const [bioError,      setBioError]      = useState('')
+
+  useEffect(() => {
+    if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
+      window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+        .then(ok => setBiometric(ok))
+        .catch(() => {})
+    }
+  }, [])
+
   const update = (key, val) => {
     setForm(prev => ({ ...prev, [key]: val }))
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: '' }))
@@ -88,16 +101,19 @@ export default function Inscription() {
       e.whatsapp = 'Le numéro doit contenir exactement 10 chiffres.'
     }
 
-    if (!form.password) {
-      e.password = 'Le mot de passe est requis.'
-    } else if (form.password.length < 8) {
-      e.password = 'Le mot de passe doit contenir au moins 8 caractères.'
-    }
-
-    if (!form.confirmPassword) {
-      e.confirmPassword = 'Veuillez confirmer votre mot de passe.'
-    } else if (form.password !== form.confirmPassword) {
-      e.confirmPassword = 'Les mots de passe ne correspondent pas.'
+    if (biometric) {
+      if (!biometricDone) e.biometric = 'Veuillez enregistrer votre empreinte avant de continuer.'
+    } else {
+      if (!form.password) {
+        e.password = 'Le mot de passe est requis.'
+      } else if (form.password.length < 8) {
+        e.password = 'Le mot de passe doit contenir au moins 8 caractères.'
+      }
+      if (!form.confirmPassword) {
+        e.confirmPassword = 'Veuillez confirmer votre mot de passe.'
+      } else if (form.password !== form.confirmPassword) {
+        e.confirmPassword = 'Les mots de passe ne correspondent pas.'
+      }
     }
 
     if (!form.specialite) {
@@ -107,6 +123,39 @@ export default function Inscription() {
     }
 
     return e
+  }
+
+  const handleEnregistrerEmpreinte = async () => {
+    setBioLoading(true)
+    setBioError('')
+    try {
+      const challenge = new Uint8Array(32)
+      crypto.getRandomValues(challenge)
+      const userId = new Uint8Array(16)
+      crypto.getRandomValues(userId)
+      await navigator.credentials.create({
+        publicKey: {
+          challenge,
+          rp: { name: 'HélioBénin', id: window.location.hostname },
+          user: {
+            id: userId,
+            name: form.email || 'user',
+            displayName: [form.prenom, form.nom].filter(Boolean).join(' ') || 'Utilisateur',
+          },
+          pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'required',
+          },
+          timeout: 60000,
+        }
+      })
+      setBiometricDone(true)
+    } catch {
+      setBioError("Enregistrement annulé ou non disponible.")
+    } finally {
+      setBioLoading(false)
+    }
   }
 
   const handleSubmit = (e) => {
@@ -230,23 +279,47 @@ export default function Inscription() {
               {errors.whatsapp && <span className={styles.errorMsg}>{errors.whatsapp}</span>}
             </div>
 
-            <PasswordInput
-              id="password"
-              label="Mot de passe"
-              value={form.password}
-              onChange={e => update('password', e.target.value)}
-              error={errors.password}
-              placeholder="8 caractères minimum"
-            />
-
-            <PasswordInput
-              id="confirmPassword"
-              label="Confirmer le mot de passe"
-              value={form.confirmPassword}
-              onChange={e => update('confirmPassword', e.target.value)}
-              error={errors.confirmPassword}
-              placeholder="Répétez votre mot de passe"
-            />
+            {biometric ? (
+              <div className={styles.field}>
+                {!biometricDone ? (
+                  <button
+                    type="button"
+                    onClick={handleEnregistrerEmpreinte}
+                    disabled={bioLoading}
+                    className={styles.btnBlue}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  >
+                    <Fingerprint size={18} />
+                    {bioLoading ? 'Enregistrement…' : 'Enregistrer mon empreinte'}
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 9, color: '#10B981', fontSize: '0.9rem', fontWeight: 600 }}>
+                    <Check size={17} /> Empreinte enregistrée
+                  </div>
+                )}
+                {bioError    && <span className={styles.errorMsg}>{bioError}</span>}
+                {errors.biometric && <span className={styles.errorMsg}>{errors.biometric}</span>}
+              </div>
+            ) : (
+              <>
+                <PasswordInput
+                  id="password"
+                  label="Mot de passe"
+                  value={form.password}
+                  onChange={e => update('password', e.target.value)}
+                  error={errors.password}
+                  placeholder="8 caractères minimum"
+                />
+                <PasswordInput
+                  id="confirmPassword"
+                  label="Confirmer le mot de passe"
+                  value={form.confirmPassword}
+                  onChange={e => update('confirmPassword', e.target.value)}
+                  error={errors.confirmPassword}
+                  placeholder="Répétez votre mot de passe"
+                />
+              </>
+            )}
 
             {/* Champs technicien */}
             <div className={styles.field}>
