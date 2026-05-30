@@ -49,11 +49,20 @@ export default function Login() {
     return user
   }
 
-  const redirectTech = () => {
+  const redirectTech = async (profile) => {
+    if (profile?.id) {
+      const { data: abo } = await supabase
+        .from('abonnements')
+        .select('*')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (abo) { navigate('/dashboard-tech'); return }
+    }
     const techData = getTechnicien()
     if (!techData.qcm_valide) navigate('/qcm-tech')
-    else if (!techData.abonnement || techData.abonnement === 'unique') navigate('/paiement-tech')
-    else navigate('/dashboard-tech')
+    else navigate('/paiement-tech')
   }
 
   const sendOtp = async () => {
@@ -74,7 +83,7 @@ export default function Login() {
     }
   }
 
-  const handleBiometric = async () => {
+  const handleBiometric = async (profile) => {
     setLoading(true)
     try {
       const challenge = new Uint8Array(32)
@@ -83,7 +92,7 @@ export default function Login() {
         publicKey: { challenge, timeout: 60000, userVerification: 'required', rpId: window.location.hostname }
       })
       localStorage.setItem('heliobenin_role', 'technicien')
-      redirectTech()
+      await redirectTech(profile)
     } catch {
       setLoading(false)
       setShowConfirmEmail(true)
@@ -99,7 +108,7 @@ export default function Login() {
     if (!user) { setError('Aucun compte trouvé avec cet email.'); return }
     setResolvedUser(user)
     if (biometric) {
-      await handleBiometric()
+      await handleBiometric(user)
     } else {
       setShowConfirmEmail(true)
     }
@@ -134,7 +143,7 @@ export default function Login() {
       if (!user || user.email !== email.trim()) { setError('Aucun compte trouvé avec cet email.'); return }
       if (user.password && user.password !== password) { setError('Mot de passe incorrect.'); return }
       localStorage.setItem('heliobenin_role', 'technicien')
-      redirectTech()
+      await redirectTech(user)
     } catch {
       setError('Identifiants incorrects. Veuillez réessayer.')
     } finally {
@@ -142,10 +151,10 @@ export default function Login() {
     }
   }
 
-  const handleOtpSuccess = () => {
+  const handleOtpSuccess = async () => {
     setShowOtpPopup(false)
     localStorage.setItem('heliobenin_role', 'technicien')
-    redirectTech()
+    await redirectTech(resolvedUser)
   }
 
   const handleOtpFallback = () => {
