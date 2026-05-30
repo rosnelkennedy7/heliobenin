@@ -77,7 +77,7 @@ def get_usys(pc: float, pond: float) -> int:
     Prend le max pour être conservateur.
     """
     usys_pc = (
-        12 if pc <= 750
+        12 if pc <= 800
         else 24 if pc <= 2000
         else 48
     )

@@ -60,7 +60,7 @@ def get_pr(latitude: float) -> float:
 
 
 def get_usys(pc: float, pond: float) -> int:
-    usys_pc   = 12 if pc   <= 750  else (24 if pc   <= 2000 else 48)
+    usys_pc   = 12 if pc   <= 800  else (24 if pc   <= 2000 else 48)
     usys_pond = 12 if pond <= 1500 else (24 if pond <= 3000 else 48)
     return max(usys_pc, usys_pond)
 
