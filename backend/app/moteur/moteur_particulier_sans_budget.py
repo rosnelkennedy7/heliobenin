@@ -90,7 +90,7 @@ def calculer_solaire_principale(
         for a in appareils
     ) * 1.25
 
-    pc   = ej * (1 / irradiation) * pr
+    pc   = ej / (irradiation * pr)
     usys = get_usys(pc, pond)
 
     c_calculee = (ej * n_jours) / (dod * usys * eta_bat)
@@ -143,7 +143,7 @@ def calculer_sbee_principale(
         for a in appareils_prioritaires
     ) * t_total * k / eta
 
-    pc   = ej * (1 / irradiation) * pr
+    pc   = ej / (irradiation * pr)
     usys = get_usys(pc, pond)
 
     c_calculee = (ej * n_jours) / (dod * usys * eta_bat)

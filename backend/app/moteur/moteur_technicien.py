@@ -68,7 +68,7 @@ def calculer_pc(
     pr: float
 ) -> float:
     """Pc = Ej / (Ir × PR)"""
-    return round(ej * (1 / irradiation) * pr, 2)
+    return round(ej / (irradiation * pr), 2)
 
 
 def get_usys(pc: float, pond: float) -> int:
