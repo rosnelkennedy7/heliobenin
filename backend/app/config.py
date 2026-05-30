@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     ADMIN_JWT_SECRET: str = "heliobenin-admin-secret-key-2024"
     ADMIN_JWT_EXPIRE_HOURS: int = 24
 
+    # OTP
+    RESEND_API_KEY: str = ""
+    CALLMEBOT_APIKEY: str = ""
+
     # KKiaPay
     KKIAPAY_PUBLIC_KEY: str = ""
     KKIAPAY_PRIVATE_KEY: str = ""

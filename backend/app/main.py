@@ -6,6 +6,7 @@ from app.routers.calcul_particulier import router as calcul_particulier_router
 from app.routers.equipements import router as equipements_router
 from app.routers.admin.auth import router as admin_auth_router
 from app.routers.admin.dashboard import router as admin_dashboard_router
+from app.routers.otp import router as otp_router
 
 app = FastAPI(
     title="HélioBénin API",
@@ -37,6 +38,7 @@ app.include_router(calcul_particulier_router)
 app.include_router(equipements_router)
 app.include_router(admin_auth_router)
 app.include_router(admin_dashboard_router)
+app.include_router(otp_router)
 
 
 @app.get("/")
