@@ -619,6 +619,9 @@ export default function Devis() {
         {/* Navigation */}
         <div className={`${s.bottomNav} ${s.navigation}`}>
           <button className={s.btnRetour}  onClick={() => navigate('/etude-tech')}>‹ Retour</button>
+          {getTechnicien().projet_id && (
+            <button className={s.btnRetour} onClick={() => navigate('/dashboard-tech')} style={{ marginLeft: 'auto', marginRight: '0.5rem' }}>‹ Dashboard</button>
+          )}
           <button className={s.btnSuivant} onClick={handleSuivant}>Suivant ›</button>
         </div>
       </div>

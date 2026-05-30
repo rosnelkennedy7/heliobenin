@@ -1566,6 +1566,9 @@ export default function Etude() {
 
         <div className={s.bottomNav}>
           <button className={s.btnRetour} onClick={() => navigate('/appareils-tech')}>‹ Retour</button>
+          {getTechnicien().projet_id && (
+            <button className={s.btnRetour} onClick={() => navigate('/dashboard-tech')} style={{ marginLeft: 'auto', marginRight: '0.5rem' }}>‹ Dashboard</button>
+          )}
           <button className={s.btnSuivant} disabled={!resE3} onClick={handleSuivant}>
             Suivant ›
           </button>

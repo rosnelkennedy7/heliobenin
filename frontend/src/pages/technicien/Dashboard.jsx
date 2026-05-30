@@ -69,13 +69,14 @@ export default function DashboardTech() {
 
   const handleCommencer = () => {
     if (nomProjet.trim().length < 3) return
-    saveTechnicien({ nom_projet: nomProjet.trim() })
+    saveTechnicien({ projet_id: null, nom_projet: nomProjet.trim() })
     setShowPopup(false)
     navigate('/localisation-tech')
   }
 
   const handleOuvrir = (projet) => {
     saveTechnicien({
+      projet_id:    projet.id,
       etude:        projet.etude,
       localisation: projet.localisation,
       appareils:    projet.appareils,

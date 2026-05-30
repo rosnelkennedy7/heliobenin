@@ -115,6 +115,7 @@ export default function Rapport() {
     try {
       const userProfile = getUserTechnicien()
       const techStore   = getTechnicien()
+      const projetId    = techStore.projet_id || null
 
       let userId = userProfile.id
       if (!userId && userProfile.email && supabase) {
@@ -123,20 +124,34 @@ export default function Rapport() {
       }
       if (!userId) throw new Error('Profil introuvable')
 
-      const { error } = await supabase.from('projets_technicien').insert([{
-        user_id:      userId,
-        nom_projet:   techStore.nom_projet   || 'Sans nom',
-        etude:        techStore.etude        || null,
-        localisation: techStore.localisation || null,
-        appareils:    techStore.appareils    || null,
-      }])
-      if (error) throw error
+      if (projetId) {
+        // UPDATE
+        const { error } = await supabase.from('projets_technicien').update({
+          etude:        techStore.etude        || null,
+          localisation: techStore.localisation || null,
+          appareils:    techStore.appareils    || null,
+          updated_at:   new Date().toISOString(),
+        }).eq('id', projetId)
+        if (error) throw error
+      } else {
+        // INSERT
+        const { data, error } = await supabase.from('projets_technicien').insert([{
+          user_id:      userId,
+          nom_projet:   techStore.nom_projet   || 'Sans nom',
+          etude:        techStore.etude        || null,
+          localisation: techStore.localisation || null,
+          appareils:    techStore.appareils    || null,
+        }]).select().single()
+        if (error) throw error
+        saveTechnicien({ projet_id: data.id })
+      }
 
       setToast(true)
       setTimeout(() => setToast(false), 2500)
     } catch (e) {
       console.error('[Rapport] save:', e)
       setSaveErr('Erreur lors de la sauvegarde.')
+      setTimeout(() => setSaveErr(''), 3000)
     } finally {
       setSaving(false)
     }
