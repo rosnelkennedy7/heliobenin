@@ -11,7 +11,7 @@ export default function DashboardTech() {
 
   const [userId,        setUserId]        = useState(null)
   const [nbProjets,     setNbProjets]     = useState(null)
-  const [dateExpire,    setDateExpire]    = useState(null)
+  const [abonnement,    setAbonnement]    = useState(undefined) // undefined = chargement
   const [dernierProjet, setDernierProjet] = useState(null)
   const [showPopup,     setShowPopup]     = useState(false)
   const [nomProjet,     setNomProjet]     = useState('')
@@ -35,11 +35,11 @@ export default function DashboardTech() {
 
       const [
         { count, error: e1 },
-        { data: abos,    error: e2 },
+        { data: aboList, error: e2 },
         { data: projets, error: e3 },
       ] = await Promise.all([
         supabase.from('projets_technicien').select('*', { count: 'exact', head: true }).eq('user_id', uid),
-        supabase.from('abonnements').select('date_fin').eq('user_id', uid).order('created_at', { ascending: false }).limit(1),
+        supabase.from('abonnements').select('date_fin, date_debut, type, statut').eq('user_id', uid).order('created_at', { ascending: false }).limit(1),
         supabase.from('projets_technicien').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(1),
       ])
       if (e1) console.error('[Supabase] projets count:', e1)
@@ -47,7 +47,7 @@ export default function DashboardTech() {
       if (e3) console.error('[Supabase] dernierProjet:', e3)
 
       setNbProjets(count ?? 0)
-      setDateExpire(abos?.[0]?.date_fin || null)
+      setAbonnement(aboList?.[0] || null)
       setDernierProjet(projets?.[0] || null)
     } catch (e) {
       console.error('[Dashboard load]', e)
@@ -55,6 +55,17 @@ export default function DashboardTech() {
   }, [user.email])
 
   useEffect(() => { load() }, [load])
+
+  const getAboBadge = () => {
+    if (abonnement === undefined) return null
+    if (!abonnement) return { text: 'Aucun abonnement', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.4)', color: '#EF4444', renew: true, btnColor: '#EF4444', btnText: 'Souscrire' }
+    if (abonnement.type === 'unique') return { text: 'Abonnement à usage unique', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.4)', color: '#F59E0B', renew: false }
+    const joursRestants = Math.ceil((new Date(abonnement.date_fin) - new Date()) / (1000 * 60 * 60 * 24))
+    if (joursRestants <= 0) return { text: 'Abonnement expiré',                                             bg: 'rgba(239,68,68,0.15)',    border: 'rgba(239,68,68,0.4)',    color: '#EF4444', renew: true, btnColor: '#EF4444', btnText: 'Renouveler' }
+    if (joursRestants <= 3) return { text: `Expire dans ${joursRestants} jour${joursRestants > 1 ? 's' : ''} !`, bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.4)', color: '#EF4444', renew: true, btnColor: '#EF4444', btnText: 'Renouveler' }
+    if (joursRestants <= 7) return { text: `Expire dans ${joursRestants} jours`,                             bg: 'rgba(245,158,11,0.15)',   border: 'rgba(245,158,11,0.4)',   color: '#F59E0B', renew: true, btnColor: '#F59E0B', btnText: 'Renouveler' }
+    return { text: 'Abonnement actif', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.35)', color: '#10B981', renew: false }
+  }
 
   const handleCommencer = () => {
     if (nomProjet.trim().length < 3) return
@@ -75,6 +86,26 @@ export default function DashboardTech() {
 
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR') : '—'
 
+  const badge = getAboBadge()
+
+  const renderAboInfo = () => {
+    if (abonnement === undefined) return <p style={{ margin: 0, color: 'rgba(255,255,255,0.35)', fontSize: '0.9rem' }}>Chargement…</p>
+    if (!abonnement) return <p style={{ margin: 0, color: '#EF4444', fontSize: '0.9rem', fontWeight: 700 }}>Aucun abonnement</p>
+    if (abonnement.type === 'unique') return <p style={{ margin: 0, color: '#F59E0B', fontSize: '0.9rem', fontWeight: 700 }}>Usage unique</p>
+    const joursRestants = Math.ceil((new Date(abonnement.date_fin) - new Date()) / (1000 * 60 * 60 * 24))
+    const expired = joursRestants <= 0
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+        <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem' }}>Début : {fmtDate(abonnement.date_debut)}</span>
+        <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem' }}>Fin : {fmtDate(abonnement.date_fin)}</span>
+        {expired
+          ? <span style={{ color: '#EF4444', fontWeight: 700, fontSize: '0.88rem' }}>Expiré le {fmtDate(abonnement.date_fin)}</span>
+          : <span style={{ color: '#10B981', fontWeight: 700, fontSize: '1rem' }}>{joursRestants} jour{joursRestants > 1 ? 's' : ''} restant{joursRestants > 1 ? 's' : ''}</span>
+        }
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: '100vh', backgroundImage: `url(${vitreImg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', position: 'relative' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.75)', zIndex: 0 }} />
@@ -93,9 +124,21 @@ export default function DashboardTech() {
             <p style={{ margin: '0 0 0.6rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
               Votre espace de dimensionnement solaire
             </p>
-            <span style={{ display: 'inline-block', padding: '0.25rem 0.75rem', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: 20, color: '#10B981', fontSize: '0.78rem', fontWeight: 700 }}>
-              ✓ Abonnement actif
-            </span>
+            {badge && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-block', padding: '0.25rem 0.75rem', background: badge.bg, border: `1px solid ${badge.border}`, borderRadius: 20, color: badge.color, fontSize: '0.78rem', fontWeight: 700 }}>
+                  {badge.text}
+                </span>
+                {badge.renew && (
+                  <button
+                    onClick={() => navigate('/paiement-tech')}
+                    style={{ padding: '0.25rem 0.75rem', background: badge.btnColor, border: 'none', borderRadius: 20, color: '#fff', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    {badge.btnText}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(245,158,11,0.18)', border: '2px solid rgba(245,158,11,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', fontSize: '1.3rem', fontWeight: 800, flexShrink: 0 }}>
             {initiales}
@@ -105,7 +148,10 @@ export default function DashboardTech() {
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <StatCard label="Mes projets" value={nbProjets ?? '—'} color="#F59E0B" />
-          <StatCard label="Abonnement expire" value={fmtDate(dateExpire)} color="#A78BFA" small />
+          <div style={{ background: 'rgba(167,139,250,0.07)', border: '1px solid rgba(167,139,250,0.22)', borderRadius: 12, padding: '1.1rem 1.4rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Abonnement</p>
+            {renderAboInfo()}
+          </div>
         </div>
 
         {/* Bouton nouveau projet */}

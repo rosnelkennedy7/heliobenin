@@ -4,7 +4,8 @@ import { Check, Printer, ArrowLeft } from 'lucide-react'
 import Navbar from '../../components/Navbar'
 import AvatarTech from '../../components/AvatarTech'
 import vitreImg from '../../assets/images/vitre.webp'
-import { getTechnicien } from '../../utils/storage'
+import { getTechnicien, getUserTechnicien } from '../../utils/storage'
+import { supabase } from '../../utils/supabaseClient'
 import s from './Rapport.module.css'
 import NoteTool from '../../components/NoteTool'
 
@@ -104,9 +105,42 @@ const MAINTENANCE_DATA = [
 
 export default function Rapport() {
   const navigate = useNavigate()
-  const [toast, setToast] = useState(false)
+  const [toast,   setToast]   = useState(false)
+  const [saving,  setSaving]  = useState(false)
+  const [saveErr, setSaveErr] = useState('')
 
-  const showToast = () => { setToast(true); setTimeout(() => setToast(false), 2500) }
+  const handleEnregistrer = async () => {
+    setSaving(true)
+    setSaveErr('')
+    try {
+      const userProfile = getUserTechnicien()
+      const techStore   = getTechnicien()
+
+      let userId = userProfile.id
+      if (!userId && userProfile.email && supabase) {
+        const { data: profile } = await supabase.from('profiles').select('id').eq('email', userProfile.email).maybeSingle()
+        userId = profile?.id
+      }
+      if (!userId) throw new Error('Profil introuvable')
+
+      const { error } = await supabase.from('projets_technicien').insert([{
+        user_id:      userId,
+        nom_projet:   techStore.nom_projet   || 'Sans nom',
+        etude:        techStore.etude        || null,
+        localisation: techStore.localisation || null,
+        appareils:    techStore.appareils    || null,
+      }])
+      if (error) throw error
+
+      setToast(true)
+      setTimeout(() => setToast(false), 2500)
+    } catch (e) {
+      console.error('[Rapport] save:', e)
+      setSaveErr('Erreur lors de la sauvegarde.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const techStore = getTechnicien()
   const loc       = techStore.localisation || {}
@@ -468,12 +502,17 @@ export default function Rapport() {
             Projet enregistré ✅
           </div>
         )}
+        {saveErr && (
+          <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', background: '#EF4444', color: '#fff', padding: '0.75rem 1.5rem', borderRadius: 10, fontWeight: 700, zIndex: 100, fontSize: '0.95rem', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+            {saveErr}
+          </div>
+        )}
         <div className={s.btnActions}>
           <button onClick={() => navigate('/dashboard-tech')} className={s.btnRetour}>
             <ArrowLeft size={18} /> Retour au Dashboard
           </button>
-          <button onClick={showToast} className={s.btnSave}>
-            Enregistrer
+          <button onClick={handleEnregistrer} disabled={saving} className={s.btnSave}>
+            {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
           <button onClick={() => {
             alert(
