@@ -10,7 +10,7 @@ export default function Avatar() {
 
   const raw  = localStorage.getItem('helio_user_particulier')
   const user = raw ? JSON.parse(raw) : { prenom: 'Jean', nom: 'Doe', email: 'jean@exemple.bj', role: 'particulier' }
-  const nomInitial = (user.nom?.[0] || 'U').toUpperCase()
+  const initiales  = [user.prenom?.[0], user.nom?.[0]].filter(Boolean).join('').toUpperCase() || 'P'
   const fullName   = [user.prenom, user.nom].filter(Boolean).join(' ')
   const email      = user.email || ''
   const role       = user.role  || 'particulier'
@@ -29,7 +29,7 @@ export default function Avatar() {
         title="Mon compte"
         aria-label="Menu utilisateur"
       >
-        <div className={styles.circle}>{nomInitial}</div>
+        <div className={styles.circle}>{initiales}</div>
         <span className={styles.fullName}>{fullName}</span>
         <ChevronDown
           size={15}
@@ -44,7 +44,7 @@ export default function Avatar() {
           <div className={styles.menu}>
             {/* En-tête riche */}
             <div className={styles.menuHeader}>
-              <div className={styles.headerCircle}>{nomInitial}</div>
+              <div className={styles.headerCircle}>{initiales}</div>
               <div className={styles.headerInfo}>
                 <span className={styles.headerName}>{fullName}</span>
                 <span className={styles.headerEmail}>{email}</span>
