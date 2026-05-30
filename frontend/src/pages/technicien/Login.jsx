@@ -37,11 +37,16 @@ export default function Login() {
       const stored = localStorage.getItem('helio_user_technicien')
       const user   = stored ? JSON.parse(stored) : null
 
-      localStorage.setItem('heliobenin_role', 'technicien')
-      if (user && user.email !== email) {
-        const demo = { prenom: email.split('@')[0], nom: '', email, role: 'technicien' }
-        localStorage.setItem('helio_user_technicien', JSON.stringify(demo))
+      if (!user || user.email !== email.trim()) {
+        setError('Aucun compte trouvé avec cet email.')
+        return
       }
+      if (user.password && user.password !== password) {
+        setError('Mot de passe incorrect.')
+        return
+      }
+
+      localStorage.setItem('heliobenin_role', 'technicien')
       const techData = getTechnicien()
       if (!techData.qcm_valide) navigate('/qcm-tech')
       else if (!techData.abonnement || techData.abonnement === 'unique') navigate('/paiement-tech')
