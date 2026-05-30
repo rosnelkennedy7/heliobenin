@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
-import { getTechnicien, saveUserTechnicien } from '../../utils/storage'
+import { getTechnicien, saveUserTechnicien, clearTechnicien } from '../../utils/storage'
 import { supabase } from '../../utils/supabaseClient'
 import OtpPopup from '../../components/OtpPopup'
 import ConfirmEmailPopup from '../../components/ConfirmEmailPopup'
@@ -35,16 +35,21 @@ export default function Login() {
   }, [])
 
   const findUser = async () => {
-    const stored = localStorage.getItem('helio_user_technicien')
-    let user = stored ? JSON.parse(stored) : null
-    if (!user || user.email !== email.trim()) {
+    const stored  = localStorage.getItem('helio_user_technicien')
+    const oldUser = stored ? JSON.parse(stored) : null
+
+    if (oldUser && oldUser.email !== email.trim()) {
+      clearTechnicien()
+      localStorage.removeItem('helio_user_technicien')
+    }
+
+    let user = (!oldUser || oldUser.email !== email.trim()) ? null : oldUser
+    if (!user) {
       const { data } = await supabase
         .from('profiles').select('*').eq('email', email.trim()).maybeSingle() ?? {}
       if (data) {
         saveUserTechnicien({ ...data, role: data.role || 'technicien' })
         user = data
-      } else {
-        user = null
       }
     }
     return user
