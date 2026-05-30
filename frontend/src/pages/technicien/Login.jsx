@@ -50,11 +50,16 @@ export default function Login() {
   }
 
   const redirectTech = async (profile) => {
+    console.log('[redirectTech] profile:', profile)
     if (profile?.id) {
       const [{ data: prof }, { data: abo }] = await Promise.all([
         supabase.from('profiles').select('qcm_valide').eq('id', profile.id).maybeSingle(),
         supabase.from('abonnements').select('type, date_fin, statut').eq('user_id', profile.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
       ])
+
+      console.log('[redirectTech] prof qcm_valide:', prof?.qcm_valide)
+      console.log('[redirectTech] localStorage qcm:', getTechnicien().qcm_valide)
+      console.log('[redirectTech] abo:', abo)
 
       const qcmValide = prof?.qcm_valide || getTechnicien().qcm_valide || false
       if (!qcmValide) { navigate('/qcm-tech'); return }
