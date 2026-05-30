@@ -115,7 +115,17 @@ export default function Inscription() {
     }
     localStorage.setItem('heliobenin_role', 'technicien')
     const specialiteFinal = form.specialite === 'Autre' ? form.specialiteAutre : form.specialite
-    saveUserTechnicien({ prenom: form.prenom, nom: form.nom, email: form.email, role: 'technicien' })
+    saveUserTechnicien({
+      prenom:     form.prenom,
+      nom:        form.nom,
+      email:      form.email,
+      whatsapp:   form.whatsapp,
+      entreprise: form.entreprise,
+      ifu:        form.ifu,
+      rccm:       form.rccm,
+      specialite: form.specialite === 'Autre' ? form.specialiteAutre : form.specialite,
+      role:       'technicien',
+    })
     ;(async () => {
       try {
         const { error } = await supabase?.from('profiles').insert([{
@@ -267,39 +277,43 @@ export default function Inscription() {
               <label htmlFor="specialite">
                 Spécialité <span className={styles.required}>*</span>
               </label>
-              <select
-                id="specialite"
-                value={form.specialite}
-                onChange={e => update('specialite', e.target.value)}
-                className={errors.specialite ? styles.inputError : ''}
-              >
-                <option value="">-- Choisissez votre spécialité --</option>
-                {SPECIALITES.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              {errors.specialite && (
-                <span className={styles.errorMsg}>{errors.specialite}</span>
+              {form.specialite === 'Autre' ? (
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    id="specialiteAutre"
+                    value={form.specialiteAutre}
+                    onChange={e => update('specialiteAutre', e.target.value)}
+                    className={errors.specialiteAutre ? styles.inputError : ''}
+                    placeholder="Ex : Électromécanicien"
+                    autoFocus
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { update('specialite', ''); update('specialiteAutre', '') }}
+                    style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 6, color: 'rgba(255,255,255,0.6)', padding: '0.45rem 0.75rem', cursor: 'pointer', fontSize: '0.95rem', lineHeight: 1, fontFamily: 'inherit', flexShrink: 0 }}
+                  >
+                    ‹
+                  </button>
+                </div>
+              ) : (
+                <select
+                  id="specialite"
+                  value={form.specialite}
+                  onChange={e => update('specialite', e.target.value)}
+                  className={errors.specialite ? styles.inputError : ''}
+                >
+                  <option value="">-- Choisissez votre spécialité --</option>
+                  {SPECIALITES.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              )}
+              {errors.specialite && <span className={styles.errorMsg}>{errors.specialite}</span>}
+              {form.specialite === 'Autre' && errors.specialiteAutre && (
+                <span className={styles.errorMsg}>{errors.specialiteAutre}</span>
               )}
             </div>
-
-            {form.specialite === 'Autre' && (
-              <div className={styles.field}>
-                <label htmlFor="specialiteAutre">
-                  Précisez votre spécialité <span className={styles.required}>*</span>
-                </label>
-                <input
-                  id="specialiteAutre"
-                  value={form.specialiteAutre}
-                  onChange={e => update('specialiteAutre', e.target.value)}
-                  className={errors.specialiteAutre ? styles.inputError : ''}
-                  placeholder="Ex : Électromécanicien"
-                />
-                {errors.specialiteAutre && (
-                  <span className={styles.errorMsg}>{errors.specialiteAutre}</span>
-                )}
-              </div>
-            )}
 
             <div className={styles.infoBlue}>
               Accédez aux outils complets : paramètres avancés, base de données équipements,
