@@ -185,12 +185,17 @@ def choisir_onduleur(pond: float, usys: int) -> dict:
 # PANNEAUX AUTO
 # ════════════════════════════
 def calculer_panneaux(pc: float, usys: int, onduleur: dict) -> dict:
-    panneau  = PANNEAUX_PAR_USYS[usys]
-    voc_lim  = onduleur.get("mppt_max", 500) * 0.95
+    panneau   = PANNEAUX_PAR_USYS[usys]
+    mppt_max  = onduleur.get("mppt_max", 500)
+    mppt_min  = onduleur.get("mppt_min", mppt_max * 0.4)
+    voc_lim   = mppt_max * 0.95
 
-    ns = int(voc_lim / panneau["voc"])
+    vnom_mppt = (mppt_min + mppt_max) / 2 * 1.10
+    ns = round(vnom_mppt / panneau["vmp"])
     if ns < 1:
         ns = 1
+    while ns * panneau["voc"] > voc_lim and ns > 1:
+        ns -= 1
 
     n_par = arrondi_sup(pc / (ns * panneau["puissance"]))
     if n_par < 1:

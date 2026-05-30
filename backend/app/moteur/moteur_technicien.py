@@ -154,12 +154,16 @@ def calculer_panneaux_aio(
     panneau: dict,
     nb_onduleurs: int = 1,
 ) -> dict:
-    mppt_max = onduleur["mppt_max"]
-    voc_lim  = mppt_max * 0.95
+    mppt_max  = onduleur["mppt_max"]
+    mppt_min  = onduleur.get("mppt_min", mppt_max * 0.4)
+    voc_lim   = mppt_max * 0.95
 
-    ns = int(voc_lim / panneau["voc"])
+    vnom_mppt = (mppt_min + mppt_max) / 2 * 1.10
+    ns = round(vnom_mppt / panneau["vmp"])
     if ns < 1:
         ns = 1
+    while ns * panneau["voc"] > voc_lim and ns > 1:
+        ns -= 1
 
     warning = None
     if panneau["voc"] > voc_lim:
