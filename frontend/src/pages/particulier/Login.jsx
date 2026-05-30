@@ -1,26 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { saveUserParticulier } from '../../utils/storage'
 import { supabase } from '../../utils/supabaseClient'
 import OtpPopup from '../../components/OtpPopup'
+import ConfirmEmailPopup from '../../components/ConfirmEmailPopup'
 import styles from './Login.module.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function Login() {
   const navigate = useNavigate()
+  const emailRef = useRef(null)
 
-  const [email,        setEmail]        = useState('')
-  const [password,     setPassword]     = useState('')
-  const [showPass,     setShowPass]     = useState(false)
-  const [loading,      setLoading]      = useState(false)
-  const [error,        setError]        = useState('')
-  const [biometric,    setBiometric]    = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showOtpPopup, setShowOtpPopup] = useState(false)
-  const [otpWhatsapp,  setOtpWhatsapp]  = useState(null)
+  const [email,             setEmail]             = useState('')
+  const [password,          setPassword]          = useState('')
+  const [showPass,          setShowPass]          = useState(false)
+  const [loading,           setLoading]           = useState(false)
+  const [error,             setError]             = useState('')
+  const [biometric,         setBiometric]         = useState(false)
+  const [showPassword,      setShowPassword]      = useState(false)
+  const [showOtpPopup,      setShowOtpPopup]      = useState(false)
+  const [showConfirmEmail,  setShowConfirmEmail]  = useState(false)
+  const [resolvedUser,      setResolvedUser]      = useState(null)
 
   useEffect(() => {
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
@@ -46,15 +49,13 @@ export default function Login() {
     return user
   }
 
-  const sendOtp = async (user) => {
+  const sendOtp = async () => {
     setLoading(true)
     try {
-      const wa = user?.whatsapp || null
-      setOtpWhatsapp(wa)
       const res = await fetch(`${API_BASE}/api/otp/envoyer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), whatsapp: wa }),
+        body: JSON.stringify({ email: email.trim() }),
       })
       if (!res.ok) throw new Error()
       setShowOtpPopup(true)
@@ -66,8 +67,7 @@ export default function Login() {
     }
   }
 
-  const handleBiometricForUser = async (user) => {
-    setError('')
+  const handleBiometric = async () => {
     setLoading(true)
     try {
       const challenge = new Uint8Array(32)
@@ -79,7 +79,7 @@ export default function Login() {
       navigate('/paiement')
     } catch {
       setLoading(false)
-      await sendOtp(user)
+      setShowConfirmEmail(true)
     } finally {
       setLoading(false)
     }
@@ -90,11 +90,25 @@ export default function Login() {
     setError('')
     const user = await findUser()
     if (!user) { setError('Aucun compte trouvé avec cet email.'); return }
+    setResolvedUser(user)
     if (biometric) {
-      await handleBiometricForUser(user)
+      await handleBiometric()
     } else {
-      await sendOtp(user)
+      setShowConfirmEmail(true)
     }
+  }
+
+  const handleConfirmEmail = async () => {
+    setShowConfirmEmail(false)
+    await sendOtp()
+  }
+
+  const handleCorrectEmail = () => {
+    setShowConfirmEmail(false)
+    setEmail('')
+    setResolvedUser(null)
+    setError('')
+    setTimeout(() => emailRef.current?.focus(), 50)
   }
 
   const handleSubmit = async (e) => {
@@ -127,6 +141,11 @@ export default function Login() {
     navigate('/paiement')
   }
 
+  const handleOtpFallback = () => {
+    setShowOtpPopup(false)
+    setShowPassword(true)
+  }
+
   return (
     <div className={styles.page} style={{ backgroundImage: `url(${vitreImg})` }}>
       <div className={styles.overlay} />
@@ -143,6 +162,7 @@ export default function Login() {
               <div className={styles.inputWrap}>
                 <Mail size={17} className={styles.inputIcon} color="rgba(255,255,255,0.38)" />
                 <input
+                  ref={emailRef}
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -156,9 +176,9 @@ export default function Login() {
               </div>
             </div>
 
-            {loading && !showPassword && !showOtpPopup && (
+            {loading && !showPassword && !showOtpPopup && !showConfirmEmail && (
               <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.45)', fontSize: '0.83rem', margin: '0.1rem 0' }}>
-                {biometric ? 'Vérification biométrique…' : 'Envoi du code…'}
+                {biometric ? 'Vérification biométrique…' : 'Recherche du compte…'}
               </p>
             )}
 
@@ -197,13 +217,21 @@ export default function Login() {
         </div>
       </div>
 
+      {showConfirmEmail && (
+        <ConfirmEmailPopup
+          email={email.trim()}
+          onConfirm={handleConfirmEmail}
+          onCorrect={handleCorrectEmail}
+          onClose={() => setShowConfirmEmail(false)}
+        />
+      )}
+
       {showOtpPopup && (
         <OtpPopup
           email={email.trim()}
-          whatsapp={otpWhatsapp}
           onSuccess={handleOtpSuccess}
           onClose={() => setShowOtpPopup(false)}
-          onFallback={() => { setShowOtpPopup(false); setShowPassword(true) }}
+          onFallback={handleOtpFallback}
         />
       )}
     </div>

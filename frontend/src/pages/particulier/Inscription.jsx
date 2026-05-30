@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { saveUserParticulier } from '../../utils/storage'
 import { supabase } from '../../utils/supabaseClient'
 import OtpPopup from '../../components/OtpPopup'
+import ConfirmEmailPopup from '../../components/ConfirmEmailPopup'
+import PasswordPopup from '../../components/PasswordPopup'
 import styles from './Inscription.module.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -14,58 +15,17 @@ const formatBjPhone = (raw) => {
   return digits.replace(/(\d{2})(?=\d)/g, '$1 ')
 }
 
-function PasswordPopup({ onConfirm, onClose }) {
-  const [pass, setPass] = useState('')
-  const [show, setShow] = useState(false)
-  return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 101, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 18, padding: '2rem', width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.2rem' }}>
-        <div style={{ fontSize: '2rem' }}>🔒</div>
-        <div style={{ textAlign: 'center' }}>
-          <h2 style={{ margin: '0 0 0.3rem', color: '#fff', fontSize: '1.1rem', fontWeight: 800 }}>Définissez un mot de passe</h2>
-          <p style={{ margin: 0, color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>Ne l'oubliez pas !</p>
-        </div>
-        <div style={{ width: '100%', position: 'relative' }}>
-          <input
-            type={show ? 'text' : 'password'}
-            value={pass}
-            onChange={e => setPass(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && pass.length >= 6 && onConfirm(pass)}
-            placeholder="••••••••"
-            autoFocus
-            autoComplete="new-password"
-            style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.07)', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: 10, padding: '0.8rem 2.8rem 0.8rem 0.9rem', color: '#fff', fontSize: '1rem', fontFamily: 'inherit', outline: 'none' }}
-          />
-          <button type="button" onClick={() => setShow(v => !v)}
-            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', lineHeight: 0, padding: 0 }}>
-            {show ? <EyeOff size={17} /> : <Eye size={17} />}
-          </button>
-        </div>
-        <button
-          onClick={() => pass.length >= 6 && onConfirm(pass)}
-          disabled={pass.length < 6}
-          style={{ width: '100%', padding: '0.75rem', background: pass.length >= 6 ? '#F97316' : 'rgba(249,115,22,0.2)', border: 'none', borderRadius: 10, color: pass.length >= 6 ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: '0.95rem', fontWeight: 700, cursor: pass.length >= 6 ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.15s' }}
-        >
-          Valider
-        </button>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' }}>
-          Annuler
-        </button>
-      </div>
-    </div>
-  )
-}
-
 export default function Inscription() {
   const navigate = useNavigate()
 
   const [form, setForm] = useState({ prenom: '', nom: '', email: '', whatsapp: '' })
-  const [errors,       setErrors]       = useState({})
-  const [biometric,    setBiometric]    = useState(false)
-  const [showOtpPopup, setShowOtpPopup] = useState(false)
-  const [showPassPopup,setShowPassPopup]= useState(false)
-  const [otpSending,   setOtpSending]   = useState(false)
-  const [submitError,  setSubmitError]  = useState('')
+  const [errors,            setErrors]            = useState({})
+  const [biometric,         setBiometric]         = useState(false)
+  const [showOtpPopup,      setShowOtpPopup]      = useState(false)
+  const [showPassPopup,     setShowPassPopup]     = useState(false)
+  const [showConfirmEmail,  setShowConfirmEmail]  = useState(false)
+  const [otpSending,        setOtpSending]        = useState(false)
+  const [submitError,       setSubmitError]       = useState('')
 
   useEffect(() => {
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
@@ -125,7 +85,7 @@ export default function Inscription() {
       const res = await fetch(`${API_BASE}/api/otp/envoyer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, whatsapp: form.whatsapp || null }),
+        body: JSON.stringify({ email: form.email }),
       })
       if (!res.ok) throw new Error()
       setShowOtpPopup(true)
@@ -158,10 +118,10 @@ export default function Inscription() {
         })
         submitAccount(null)
         return
-      } catch { /* biometric failed or cancelled → fall through to OTP */ }
+      } catch { /* biometric failed → fall through to ConfirmEmail */ }
     }
 
-    await sendOtp()
+    setShowConfirmEmail(true)
   }
 
   return (
@@ -226,10 +186,18 @@ export default function Inscription() {
         </div>
       </div>
 
+      {showConfirmEmail && (
+        <ConfirmEmailPopup
+          email={form.email}
+          onConfirm={() => { setShowConfirmEmail(false); sendOtp() }}
+          onCorrect={() => setShowConfirmEmail(false)}
+          onClose={() => setShowConfirmEmail(false)}
+        />
+      )}
+
       {showOtpPopup && (
         <OtpPopup
           email={form.email}
-          whatsapp={form.whatsapp || null}
           onSuccess={() => { setShowOtpPopup(false); setShowPassPopup(true) }}
           onClose={() => setShowOtpPopup(false)}
         />
@@ -237,7 +205,7 @@ export default function Inscription() {
 
       {showPassPopup && (
         <PasswordPopup
-          onConfirm={pass => { setShowPassPopup(false); submitAccount(pass) }}
+          onSuccess={pass => { setShowPassPopup(false); submitAccount(pass) }}
           onClose={() => setShowPassPopup(false)}
         />
       )}

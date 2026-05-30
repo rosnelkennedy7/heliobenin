@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
-export default function OtpPopup({ email, whatsapp, onSuccess, onClose, onFallback }) {
+export default function OtpPopup({ email, onSuccess, onClose, onFallback }) {
   const [digits,    setDigits]    = useState(Array(6).fill(''))
   const [loading,   setLoading]   = useState(false)
   const [error,     setError]     = useState('')
@@ -10,6 +10,7 @@ export default function OtpPopup({ email, whatsapp, onSuccess, onClose, onFallba
   const [timeLeft,  setTimeLeft]  = useState(600)
   const [canResend, setCanResend] = useState(false)
   const [resending, setResending] = useState(false)
+  const [failCount, setFailCount] = useState(0)
   const refs = useRef([])
 
   useEffect(() => { refs.current[0]?.focus() }, [])
@@ -62,6 +63,12 @@ export default function OtpPopup({ email, whatsapp, onSuccess, onClose, onFallba
       if (data.success) {
         onSuccess()
       } else {
+        const newCount = failCount + 1
+        setFailCount(newCount)
+        if (newCount >= 3 && onFallback) {
+          onFallback()
+          return
+        }
         setError(data.message || 'Code incorrect ou expiré.')
         setShake(true)
         setDigits(Array(6).fill(''))
@@ -72,7 +79,7 @@ export default function OtpPopup({ email, whatsapp, onSuccess, onClose, onFallba
     } finally {
       setLoading(false)
     }
-  }, [digits, email, onSuccess])
+  }, [digits, email, failCount, onSuccess, onFallback])
 
   useEffect(() => {
     if (digits.every(d => d !== '') && !loading) verify(digits)
@@ -85,10 +92,11 @@ export default function OtpPopup({ email, whatsapp, onSuccess, onClose, onFallba
       await fetch(`${API_BASE}/api/otp/envoyer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, whatsapp: whatsapp || null }),
+        body: JSON.stringify({ email }),
       })
       setTimeLeft(600)
       setCanResend(false)
+      setFailCount(0)
       setDigits(Array(6).fill(''))
       refs.current[0]?.focus()
     } catch {
@@ -121,11 +129,9 @@ export default function OtpPopup({ email, whatsapp, onSuccess, onClose, onFallba
             </h2>
             <p style={{ margin: 0, color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem', lineHeight: 1.5 }}>
               Code envoyé à <b style={{ color: 'rgba(255,255,255,0.72)' }}>{email}</b>
-              {whatsapp && ' et WhatsApp'}
             </p>
           </div>
 
-          {/* 6 cells */}
           <div style={{ display: 'flex', gap: '0.55rem' }}>
             {digits.map((d, i) => (
               <input
@@ -173,18 +179,6 @@ export default function OtpPopup({ email, whatsapp, onSuccess, onClose, onFallba
             >
               {resending ? 'Envoi…' : 'Renvoyer le code'}
             </button>
-
-            {onFallback && (
-              <>
-                <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
-                <button
-                  onClick={onFallback}
-                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' }}
-                >
-                  Mot de passe
-                </button>
-              </>
-            )}
 
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
             <button
