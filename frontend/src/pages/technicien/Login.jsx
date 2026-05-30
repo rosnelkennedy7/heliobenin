@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
-import { getTechnicien } from '../../utils/storage'
+import { getTechnicien, saveUserTechnicien } from '../../utils/storage'
+import { supabase } from '../../utils/supabaseClient'
 import styles from './Login.module.css'
 
 export default function Login() {
@@ -37,12 +38,23 @@ export default function Login() {
     try {
       await new Promise(r => setTimeout(r, 900))
       const stored = localStorage.getItem('helio_user_technicien')
-      const user   = stored ? JSON.parse(stored) : null
+      let user = stored ? JSON.parse(stored) : null
 
       if (!user || user.email !== email.trim()) {
-        setError('Aucun compte trouvé avec cet email.')
-        return
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email.trim())
+          .maybeSingle() ?? {}
+        if (data) {
+          saveUserTechnicien({ ...data, role: data.role || 'technicien' })
+          user = data
+        } else {
+          setError('Aucun compte trouvé avec cet email.')
+          return
+        }
       }
+
       if (user.password && user.password !== password) {
         setError('Mot de passe incorrect.')
         return
