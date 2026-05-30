@@ -96,7 +96,9 @@ export default function Login() {
                   onChange={e => setEmail(e.target.value)}
                   placeholder="Adresse email"
                   className={styles.input}
-                  autoComplete="email"
+                  autoComplete="off"
+                  readOnly
+                  onFocus={e => e.target.removeAttribute('readonly')}
                 />
               </div>
             </div>
@@ -110,7 +112,9 @@ export default function Login() {
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Mot de passe"
                   className={styles.input}
-                  autoComplete="current-password"
+                  autoComplete="new-password"
+                  readOnly
+                  onFocus={e => e.target.removeAttribute('readonly')}
                 />
                 <button
                   type="button"

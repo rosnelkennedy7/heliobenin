@@ -34,6 +34,9 @@ function PasswordInput({ id, label, value, onChange, error, placeholder }) {
           onChange={onChange}
           placeholder={placeholder || ''}
           className={error ? styles.inputError : ''}
+          autoComplete="off"
+          readOnly
+          onFocus={e => e.target.removeAttribute('readonly')}
         />
         <button
           type="button"
@@ -169,6 +172,7 @@ export default function Inscription() {
                   onChange={e => update('prenom', e.target.value)}
                   className={errors.prenom ? styles.inputError : ''}
                   placeholder="Jean"
+                  autoComplete="off"
                 />
                 {errors.prenom && <span className={styles.errorMsg}>{errors.prenom}</span>}
               </div>
@@ -182,6 +186,7 @@ export default function Inscription() {
                   onChange={e => update('nom', e.target.value)}
                   className={errors.nom ? styles.inputError : ''}
                   placeholder="Doe"
+                  autoComplete="off"
                 />
                 {errors.nom && <span className={styles.errorMsg}>{errors.nom}</span>}
               </div>
@@ -199,6 +204,7 @@ export default function Inscription() {
                 onChange={e => update('email', e.target.value)}
                 className={errors.email ? styles.inputError : ''}
                 placeholder="jean.doe@email.com"
+                autoComplete="off"
               />
               {errors.email && <span className={styles.errorMsg}>{errors.email}</span>}
             </div>
@@ -218,6 +224,7 @@ export default function Inscription() {
                   className={styles.phoneInput}
                   placeholder="97 00 00 00 00"
                   maxLength={14}
+                  autoComplete="off"
                 />
               </div>
               {errors.whatsapp && <span className={styles.errorMsg}>{errors.whatsapp}</span>}
@@ -249,6 +256,7 @@ export default function Inscription() {
                 value={form.entreprise}
                 onChange={e => update('entreprise', e.target.value)}
                 placeholder="Optionnel"
+                autoComplete="off"
               />
             </div>
 
@@ -260,6 +268,7 @@ export default function Inscription() {
                   value={form.ifu}
                   onChange={e => update('ifu', e.target.value)}
                   placeholder="Optionnel"
+                  autoComplete="off"
                 />
               </div>
               <div className={styles.field}>
@@ -269,6 +278,7 @@ export default function Inscription() {
                   value={form.rccm}
                   onChange={e => update('rccm', e.target.value)}
                   placeholder="Optionnel"
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -286,6 +296,7 @@ export default function Inscription() {
                     className={errors.specialiteAutre ? styles.inputError : ''}
                     placeholder="Ex : Électromécanicien"
                     autoFocus
+                    autoComplete="off"
                     style={{ flex: 1 }}
                   />
                   <button
