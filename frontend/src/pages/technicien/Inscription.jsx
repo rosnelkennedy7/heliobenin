@@ -177,6 +177,7 @@ export default function Inscription() {
       rccm:       form.rccm,
       specialite: form.specialite === 'Autre' ? form.specialiteAutre : form.specialite,
       role:       'technicien',
+      ...(form.password ? { password: form.password } : {}),
     })
     ;(async () => {
       try {

@@ -19,8 +19,10 @@ export default function Login() {
   useEffect(() => {
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
       window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-        .then(ok => setBiometric(ok))
-        .catch(() => {})
+        .then(ok => { setBiometric(ok); if (!ok) setShowPassword(true) })
+        .catch(() => setShowPassword(true))
+    } else {
+      setShowPassword(true)
     }
   }, [])
 
@@ -90,7 +92,11 @@ export default function Login() {
     if (!biometric) { setShowPassword(true); return }
     const stored = localStorage.getItem('helio_user_technicien')
     const user   = stored ? JSON.parse(stored) : null
-    if (!user || user.email !== email.trim()) { setShowPassword(true); return }
+    if (!user || user.email !== email.trim()) {
+      setError('Aucun compte trouvé avec cet email.')
+      setShowPassword(true)
+      return
+    }
     await handleBiometric()
   }
 
