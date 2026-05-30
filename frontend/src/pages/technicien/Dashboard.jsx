@@ -7,7 +7,7 @@ import SidebarTech from '../../components/SidebarTech'
 
 export default function DashboardTech() {
   const navigate = useNavigate()
-  const user     = getUserTechnicien()
+  const [user, setUser] = useState(getUserTechnicien)
 
   const [userId,        setUserId]        = useState(null)
   const [nbProjets,     setNbProjets]     = useState(null)
@@ -15,6 +15,12 @@ export default function DashboardTech() {
   const [dernierProjet, setDernierProjet] = useState(null)
   const [showPopup,     setShowPopup]     = useState(false)
   const [nomProjet,     setNomProjet]     = useState('')
+
+  useEffect(() => {
+    const handler = () => setUser(getUserTechnicien())
+    window.addEventListener('storage', handler)
+    return () => window.removeEventListener('storage', handler)
+  }, [])
 
   const initiales = [user.prenom?.[0], user.nom?.[0]].filter(Boolean).join('').toUpperCase() || 'T'
   const fullName  = [user.prenom, user.nom].filter(Boolean).join(' ') || 'Technicien'

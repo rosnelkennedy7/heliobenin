@@ -92,6 +92,7 @@ export default function Profil() {
       ...(newPass ? { password: newPass } : {}),
     }
     saveUserTechnicien(userData)
+    window.dispatchEvent(new Event('storage'))
     if (supabase && form.email) {
       try {
         const { error } = await supabase.from('profiles').update({

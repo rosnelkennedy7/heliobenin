@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { clearTechnicien } from '../utils/storage'
+import { clearTechnicien, getUserTechnicien } from '../utils/storage'
 
 const NAV = [
   { label: 'Dashboard',    path: '/dashboard-tech'    },
@@ -10,6 +11,13 @@ const NAV = [
 export default function SidebarTech() {
   const navigate     = useNavigate()
   const { pathname } = useLocation()
+  const [user, setUser] = useState(getUserTechnicien)
+
+  useEffect(() => {
+    const handler = () => setUser(getUserTechnicien())
+    window.addEventListener('storage', handler)
+    return () => window.removeEventListener('storage', handler)
+  }, [])
 
   const handleLogout = () => {
     clearTechnicien()
