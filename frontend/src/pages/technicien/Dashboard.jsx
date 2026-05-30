@@ -89,19 +89,51 @@ export default function DashboardTech() {
   const badge = getAboBadge()
 
   const renderAboInfo = () => {
-    if (abonnement === undefined) return <p style={{ margin: 0, color: 'rgba(255,255,255,0.35)', fontSize: '0.9rem' }}>Chargement…</p>
-    if (!abonnement) return <p style={{ margin: 0, color: '#EF4444', fontSize: '0.9rem', fontWeight: 700 }}>Aucun abonnement</p>
-    if (abonnement.type === 'unique') return <p style={{ margin: 0, color: '#F59E0B', fontSize: '0.9rem', fontWeight: 700 }}>Usage unique</p>
+    if (abonnement === undefined) return (
+      <p style={{ margin: 0, color: 'rgba(255,255,255,0.35)', fontSize: '0.9rem' }}>Chargement…</p>
+    )
+    if (!abonnement) return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+        <p style={{ margin: 0, color: '#EF4444', fontSize: '0.9rem', fontWeight: 700 }}>Aucun abonnement</p>
+        <button onClick={() => navigate('/paiement-tech')} style={{ alignSelf: 'flex-start', padding: '0.2rem 0.7rem', background: '#EF4444', border: 'none', borderRadius: 20, color: '#fff', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>Souscrire</button>
+      </div>
+    )
+    if (abonnement.type === 'unique') return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+        <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem' }}>Type : Usage unique</span>
+        <span style={{ alignSelf: 'flex-start', display: 'inline-block', padding: '0.2rem 0.6rem', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', borderRadius: 20, color: '#F59E0B', fontSize: '0.75rem', fontWeight: 700 }}>
+          Abonnement à usage unique
+        </span>
+      </div>
+    )
+
     const joursRestants = Math.ceil((new Date(abonnement.date_fin) - new Date()) / (1000 * 60 * 60 * 24))
     const expired = joursRestants <= 0
+
+    let badgeText, badgeBg, badgeBorder, badgeColor, showBtn, btnColor
+    if (expired)             { badgeText = 'Abonnement expiré';                                              badgeBg = 'rgba(239,68,68,0.15)';    badgeBorder = 'rgba(239,68,68,0.4)';    badgeColor = '#EF4444'; showBtn = true;  btnColor = '#EF4444' }
+    else if (joursRestants <= 3) { badgeText = `Expire dans ${joursRestants} jour${joursRestants > 1 ? 's' : ''} !`; badgeBg = 'rgba(239,68,68,0.15)';    badgeBorder = 'rgba(239,68,68,0.4)';    badgeColor = '#EF4444'; showBtn = true;  btnColor = '#EF4444' }
+    else if (joursRestants <= 7) { badgeText = `Expire dans ${joursRestants} jours`;                         badgeBg = 'rgba(245,158,11,0.15)';   badgeBorder = 'rgba(245,158,11,0.4)';   badgeColor = '#F59E0B'; showBtn = true;  btnColor = '#F59E0B' }
+    else                         { badgeText = 'Abonnement actif';                                           badgeBg = 'rgba(16,185,129,0.15)';   badgeBorder = 'rgba(16,185,129,0.35)';  badgeColor = '#10B981'; showBtn = false }
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.22rem' }}>
+        <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem' }}>Type : {abonnement.type === 'mensuel' ? 'Mensuel' : 'Annuel'}</span>
         <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem' }}>Début : {fmtDate(abonnement.date_debut)}</span>
         <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem' }}>Fin : {fmtDate(abonnement.date_fin)}</span>
-        {expired
-          ? <span style={{ color: '#EF4444', fontWeight: 700, fontSize: '0.88rem' }}>Expiré le {fmtDate(abonnement.date_fin)}</span>
-          : <span style={{ color: '#10B981', fontWeight: 700, fontSize: '1rem' }}>{joursRestants} jour{joursRestants > 1 ? 's' : ''} restant{joursRestants > 1 ? 's' : ''}</span>
-        }
+        <span style={{ color: expired ? '#EF4444' : '#10B981', fontWeight: 700, fontSize: '0.85rem' }}>
+          {expired ? `Expiré le ${fmtDate(abonnement.date_fin)}` : `Reste : ${joursRestants} jour${joursRestants > 1 ? 's' : ''}`}
+        </span>
+        <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '0.15rem' }}>
+          <span style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: badgeBg, border: `1px solid ${badgeBorder}`, borderRadius: 20, color: badgeColor, fontSize: '0.75rem', fontWeight: 700 }}>
+            {badgeText}
+          </span>
+          {showBtn && (
+            <button onClick={() => navigate('/paiement-tech')} style={{ padding: '0.2rem 0.6rem', background: btnColor, border: 'none', borderRadius: 20, color: '#fff', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+              Renouveler
+            </button>
+          )}
+        </div>
       </div>
     )
   }

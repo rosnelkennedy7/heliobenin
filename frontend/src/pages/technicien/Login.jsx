@@ -51,18 +51,29 @@ export default function Login() {
 
   const redirectTech = async (profile) => {
     if (profile?.id) {
-      const { data: abo } = await supabase
-        .from('abonnements')
-        .select('*')
-        .eq('user_id', profile.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      if (abo) { navigate('/dashboard-tech'); return }
+      const [{ data: prof }, { data: abo }] = await Promise.all([
+        supabase.from('profiles').select('qcm_valide').eq('id', profile.id).maybeSingle(),
+        supabase.from('abonnements').select('type, date_fin, statut').eq('user_id', profile.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      ])
+
+      const qcmValide = prof?.qcm_valide || getTechnicien().qcm_valide || false
+      if (!qcmValide) { navigate('/qcm-tech'); return }
+
+      if (abo) {
+        if (abo.type === 'unique') { navigate('/paiement-tech'); return }
+        if (abo.type === 'mensuel' || abo.type === 'annuel') {
+          if (new Date(abo.date_fin) > new Date()) { navigate('/dashboard-tech'); return }
+          navigate('/paiement-tech'); return
+        }
+      }
+      navigate('/paiement-tech')
+      return
     }
-    const techData = getTechnicien()
-    if (!techData.qcm_valide) navigate('/qcm-tech')
-    else navigate('/paiement-tech')
+
+    // Fallback sans Supabase
+    const qcmValide = getTechnicien().qcm_valide || false
+    if (!qcmValide) { navigate('/qcm-tech'); return }
+    navigate('/paiement-tech')
   }
 
   const sendOtp = async () => {

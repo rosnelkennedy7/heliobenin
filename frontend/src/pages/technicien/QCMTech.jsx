@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import vitreImg from '../../assets/images/vitre.webp'
 import AvatarTech from '../../components/AvatarTech'
-import { saveTechnicien } from '../../utils/storage'
+import { saveTechnicien, getUserTechnicien } from '../../utils/storage'
+import { supabase } from '../../utils/supabaseClient'
 import styles from './QCMTech.module.css'
 
 const questions = [
@@ -87,7 +88,7 @@ export default function QCMTech() {
     setReponses(prev => ({ ...prev, [qId]: optIdx }))
   }
 
-  const handleValider = () => {
+  const handleValider = async () => {
     if (!toutesRepondues) return
     let s = 0
     questions.forEach(q => {
@@ -97,6 +98,12 @@ export default function QCMTech() {
     setSubmitted(true)
     if (s >= 4) {
       saveTechnicien({ qcm_valide: true })
+      try {
+        const email = getUserTechnicien().email
+        if (email && supabase) {
+          await supabase.from('profiles').update({ qcm_valide: true }).eq('email', email)
+        }
+      } catch (e) { console.error('[QCM] Supabase update:', e) }
       setTimeout(() => navigate('/paiement-tech'), 2000)
     }
   }
