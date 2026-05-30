@@ -71,7 +71,7 @@ export default function DashboardTech() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundImage: `url(${vitreImg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.92)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.75)', zIndex: 0 }} />
 
       <SidebarTech />
 
