@@ -4,11 +4,11 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { saveUserParticulier } from '../../utils/storage'
 import { supabase } from '../../utils/supabaseClient'
+import { generateAndStoreOtp } from '../../utils/otp'
+import { sendOtpEmail } from '../../utils/emailjs'
 import OtpPopup from '../../components/OtpPopup'
 import ConfirmEmailPopup from '../../components/ConfirmEmailPopup'
 import styles from './Login.module.css'
-
-const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function Login() {
   const navigate = useNavigate()
@@ -24,7 +24,7 @@ export default function Login() {
   const [showOtpPopup,      setShowOtpPopup]      = useState(false)
   const [showConfirmEmail,  setShowConfirmEmail]  = useState(false)
   const [resolvedUser,      setResolvedUser]      = useState(null)
-  const [bioStarted,        setBioStarted]        = useState(false)
+  const [bioRunning,        setBioRunning]        = useState(false)
 
   useEffect(() => {
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
@@ -53,12 +53,8 @@ export default function Login() {
   const sendOtp = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/api/otp/envoyer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
-      })
-      if (!res.ok) throw new Error()
+      const code = await generateAndStoreOtp(email.trim())
+      await sendOtpEmail(email.trim(), code)
       setShowOtpPopup(true)
     } catch {
       setError("Erreur d'envoi du code. Saisissez votre mot de passe.")
@@ -68,40 +64,34 @@ export default function Login() {
     }
   }
 
-  const handleBiometric = async () => {
-    setLoading(true)
-    setBioStarted(true)
-    let bioSuccess = false
-    try {
-      const challenge = new Uint8Array(32)
-      crypto.getRandomValues(challenge)
-      await navigator.credentials.get({
-        publicKey: { challenge, timeout: 60000, userVerification: 'required', rpId: window.location.hostname }
-      })
-      bioSuccess = true
-      localStorage.setItem('heliobenin_role', 'particulier')
-      navigate('/paiement')
-    } catch {
-      bioSuccess = false
-    } finally {
-      setBioStarted(false)
-      setLoading(false)
-      if (!bioSuccess) setShowConfirmEmail(true)
-    }
-  }
-
   const handleEmailBlur = async () => {
     if (!email.trim()) return
     setError('')
     const user = await findUser()
     if (!user) { setError('Aucun compte trouvé avec cet email.'); return }
     setResolvedUser(user)
+
     if (biometric) {
-      setBioStarted(true)
-      await handleBiometric()
-    } else {
-      if (!biometric) setShowConfirmEmail(true)
+      setBioRunning(true)
+      try {
+        const challenge = new Uint8Array(32)
+        crypto.getRandomValues(challenge)
+        await navigator.credentials.get({
+          publicKey: { challenge, timeout: 60000, userVerification: 'required', rpId: window.location.hostname }
+        })
+        setBioRunning(false)
+        localStorage.setItem('heliobenin_role', 'particulier')
+        navigate('/paiement')
+      } catch {
+        setBioRunning(false)
+        const code = await generateAndStoreOtp(email.trim())
+        await sendOtpEmail(email.trim(), code)
+        setShowOtpPopup(true)
+      }
+      return
     }
+
+    if (!biometric) setShowConfirmEmail(true)
   }
 
   const handleConfirmEmail = async () => {
@@ -184,7 +174,7 @@ export default function Login() {
 
             {loading && !showPassword && !showOtpPopup && !showConfirmEmail && (
               <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.45)', fontSize: '0.83rem', margin: '0.1rem 0' }}>
-                {biometric ? 'Vérification biométrique…' : 'Recherche du compte…'}
+                Envoi du code…
               </p>
             )}
 
@@ -223,7 +213,7 @@ export default function Login() {
         </div>
       </div>
 
-      {showConfirmEmail && !bioStarted && !loading && (
+      {showConfirmEmail && !bioRunning && !loading && (
         <ConfirmEmailPopup
           email={email.trim()}
           onConfirm={handleConfirmEmail}

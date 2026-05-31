@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-
-const API_BASE = import.meta.env.VITE_API_URL || ''
+import { generateAndStoreOtp, verifyOtp } from '../utils/otp'
+import { sendOtpEmail } from '../utils/emailjs'
 
 export default function OtpPopup({ email, onSuccess, onClose, onFallback }) {
   const [digits,    setDigits]    = useState(Array(6).fill(''))
@@ -54,13 +54,8 @@ export default function OtpPopup({ email, onSuccess, onClose, onFallback }) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_BASE}/api/otp/verifier`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
-      })
-      const data = await res.json()
-      if (data.success) {
+      const result = await verifyOtp(code)
+      if (result.success) {
         onSuccess()
       } else {
         const newCount = failCount + 1
@@ -69,17 +64,17 @@ export default function OtpPopup({ email, onSuccess, onClose, onFallback }) {
           onFallback()
           return
         }
-        setError(data.message || 'Code incorrect ou expiré.')
+        setError(result.message || 'Code incorrect ou expiré.')
         setShake(true)
         setDigits(Array(6).fill(''))
         setTimeout(() => { setShake(false); refs.current[0]?.focus() }, 600)
       }
     } catch {
-      setError('Erreur réseau. Veuillez réessayer.')
+      setError('Erreur de vérification. Veuillez réessayer.')
     } finally {
       setLoading(false)
     }
-  }, [digits, email, failCount, onSuccess, onFallback])
+  }, [digits, failCount, onSuccess, onFallback])
 
   useEffect(() => {
     if (digits.every(d => d !== '') && !loading) verify(digits)
@@ -89,11 +84,8 @@ export default function OtpPopup({ email, onSuccess, onClose, onFallback }) {
     setResending(true)
     setError('')
     try {
-      await fetch(`${API_BASE}/api/otp/envoyer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
+      const code = await generateAndStoreOtp(email)
+      await sendOtpEmail(email, code)
       setTimeLeft(600)
       setCanResend(false)
       setFailCount(0)
