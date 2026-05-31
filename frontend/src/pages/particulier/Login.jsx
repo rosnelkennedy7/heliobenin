@@ -221,7 +221,7 @@ export default function Login() {
         </div>
       </div>
 
-      {showConfirmEmail && !bioStarted && (
+      {showConfirmEmail && !bioStarted && !loading && (
         <ConfirmEmailPopup
           email={email.trim()}
           onConfirm={handleConfirmEmail}
