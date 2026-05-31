@@ -137,7 +137,7 @@ export default function Login() {
       setBioStarted(true)
       await handleBiometric(user)
     } else {
-      setShowConfirmEmail(true)
+      if (!biometric) setShowConfirmEmail(true)
     }
   }
 
