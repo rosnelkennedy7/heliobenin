@@ -70,21 +70,23 @@ export default function Login() {
 
   const handleBiometric = async () => {
     setLoading(true)
+    setBioStarted(true)
+    let bioSuccess = false
     try {
       const challenge = new Uint8Array(32)
       crypto.getRandomValues(challenge)
       await navigator.credentials.get({
         publicKey: { challenge, timeout: 60000, userVerification: 'required', rpId: window.location.hostname }
       })
+      bioSuccess = true
       localStorage.setItem('heliobenin_role', 'particulier')
-      setBioStarted(false)
       navigate('/paiement')
     } catch {
+      bioSuccess = false
+    } finally {
       setBioStarted(false)
       setLoading(false)
-      setShowPassword(true)
-    } finally {
-      setLoading(false)
+      if (!bioSuccess) setShowConfirmEmail(true)
     }
   }
 
