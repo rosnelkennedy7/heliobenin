@@ -107,7 +107,6 @@ export default function Login() {
 
   const handleBiometric = async (profile) => {
     setLoading(true)
-    setBioStarted(true)
     try {
       const challenge = new Uint8Array(32)
       crypto.getRandomValues(challenge)
@@ -115,12 +114,13 @@ export default function Login() {
         publicKey: { challenge, timeout: 60000, userVerification: 'required', rpId: window.location.hostname }
       })
       localStorage.setItem('heliobenin_role', 'technicien')
+      setBioStarted(false)
       await redirectTech(profile)
     } catch {
+      setBioStarted(false)
       setLoading(false)
       setShowConfirmEmail(true)
     } finally {
-      setBioStarted(false)
       setLoading(false)
     }
   }
