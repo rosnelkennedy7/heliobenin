@@ -24,6 +24,7 @@ export default function Login() {
   const [showOtpPopup,      setShowOtpPopup]      = useState(false)
   const [showConfirmEmail,  setShowConfirmEmail]  = useState(false)
   const [resolvedUser,      setResolvedUser]      = useState(null)
+  const [bioStarted,        setBioStarted]        = useState(false)
 
   useEffect(() => {
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
@@ -69,6 +70,7 @@ export default function Login() {
 
   const handleBiometric = async () => {
     setLoading(true)
+    setBioStarted(true)
     try {
       const challenge = new Uint8Array(32)
       crypto.getRandomValues(challenge)
@@ -81,6 +83,7 @@ export default function Login() {
       setLoading(false)
       setShowConfirmEmail(true)
     } finally {
+      setBioStarted(false)
       setLoading(false)
     }
   }
@@ -92,6 +95,7 @@ export default function Login() {
     if (!user) { setError('Aucun compte trouvé avec cet email.'); return }
     setResolvedUser(user)
     if (biometric) {
+      setBioStarted(true)
       await handleBiometric()
     } else {
       setShowConfirmEmail(true)
@@ -217,7 +221,7 @@ export default function Login() {
         </div>
       </div>
 
-      {showConfirmEmail && (
+      {showConfirmEmail && !bioStarted && (
         <ConfirmEmailPopup
           email={email.trim()}
           onConfirm={handleConfirmEmail}

@@ -132,6 +132,7 @@ export default function Login() {
     if (!user) { setError('Aucun compte trouvé avec cet email.'); return }
     setResolvedUser(user)
     if (biometric) {
+      setBioStarted(true)
       await handleBiometric(user)
     } else {
       setShowConfirmEmail(true)
