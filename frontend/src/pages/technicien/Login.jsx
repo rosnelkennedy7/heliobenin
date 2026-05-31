@@ -119,7 +119,7 @@ export default function Login() {
     } catch {
       setBioStarted(false)
       setLoading(false)
-      setShowConfirmEmail(true)
+      setShowPassword(true)
     } finally {
       setLoading(false)
     }
