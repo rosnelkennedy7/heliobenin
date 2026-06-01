@@ -3,12 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import vitreImg from '../../assets/images/vitre.webp'
 import { saveUserParticulier } from '../../utils/storage'
 import { supabase } from '../../utils/supabaseClient'
-import OtpPopup from '../../components/OtpPopup'
+import { generateAndSendMagicLink } from '../../utils/magicLink'
 import ConfirmEmailPopup from '../../components/ConfirmEmailPopup'
 import PasswordPopup from '../../components/PasswordPopup'
 import styles from './Inscription.module.css'
-
-const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const formatBjPhone = (raw) => {
   const digits = raw.replace(/\D/g, '').slice(0, 10)
@@ -19,13 +17,13 @@ export default function Inscription() {
   const navigate = useNavigate()
 
   const [form, setForm] = useState({ prenom: '', nom: '', email: '', whatsapp: '' })
-  const [errors,            setErrors]            = useState({})
-  const [biometric,         setBiometric]         = useState(false)
-  const [showOtpPopup,      setShowOtpPopup]      = useState(false)
-  const [showPassPopup,     setShowPassPopup]     = useState(false)
-  const [showConfirmEmail,  setShowConfirmEmail]  = useState(false)
-  const [otpSending,        setOtpSending]        = useState(false)
-  const [submitError,       setSubmitError]       = useState('')
+  const [errors,           setErrors]           = useState({})
+  const [biometric,        setBiometric]        = useState(false)
+  const [showPassPopup,    setShowPassPopup]    = useState(false)
+  const [showConfirmEmail, setShowConfirmEmail] = useState(false)
+  const [showLinkSent,     setShowLinkSent]     = useState(false)
+  const [sending,          setSending]          = useState(false)
+  const [submitError,      setSubmitError]      = useState('')
 
   useEffect(() => {
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
@@ -78,21 +76,21 @@ export default function Inscription() {
     navigate('/paiement')
   }
 
-  const sendOtp = async () => {
-    setOtpSending(true)
+  const sendMagicLink = async () => {
+    setSending(true)
     setSubmitError('')
     try {
-      const res = await fetch(`${API_BASE}/api/otp/envoyer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email }),
-      })
-      if (!res.ok) throw new Error()
-      setShowOtpPopup(true)
+      sessionStorage.setItem('helio_pending_reg', JSON.stringify({
+        nom: form.nom, prenom: form.prenom, email: form.email,
+        whatsapp: form.whatsapp || null, role: 'particulier',
+      }))
+      await generateAndSendMagicLink(form.email, 'particulier')
+      setShowLinkSent(true)
     } catch {
-      setSubmitError("Erreur lors de l'envoi du code. Vérifiez votre connexion.")
+      sessionStorage.removeItem('helio_pending_reg')
+      setShowPassPopup(true)
     } finally {
-      setOtpSending(false)
+      setSending(false)
     }
   }
 
@@ -118,7 +116,7 @@ export default function Inscription() {
         })
         submitAccount(null)
         return
-      } catch { /* biometric failed → fall through to ConfirmEmail */ }
+      } catch { /* biométrie échouée → Magic Link */ }
     }
 
     setShowConfirmEmail(true)
@@ -137,69 +135,75 @@ export default function Inscription() {
           </div>
           <p className={styles.cardSlogan}>Votre guide de dimensionnement solaire</p>
 
-          <form onSubmit={handleSubmit} noValidate>
-            <div className={styles.row}>
+          {showLinkSent ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.8rem' }}>📧</div>
+              <p style={{ color: '#10B981', fontWeight: 700, fontSize: '1rem', margin: '0 0 0.5rem' }}>
+                Lien envoyé !
+              </p>
+              <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', lineHeight: 1.6, margin: 0 }}>
+                Un lien de connexion a été envoyé à<br />
+                <strong style={{ color: '#F97316' }}>{form.email}</strong><br />
+                Vérifiez votre boîte mail et cliquez sur le lien.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="prenom">Prénom <span className={styles.required}>*</span></label>
+                  <input id="prenom" value={form.prenom} onChange={e => update('prenom', e.target.value)}
+                    className={errors.prenom ? styles.inputError : ''} placeholder="Jean" autoComplete="off" />
+                  {errors.prenom && <span className={styles.errorMsg}>{errors.prenom}</span>}
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="nom">Nom <span className={styles.required}>*</span></label>
+                  <input id="nom" value={form.nom} onChange={e => update('nom', e.target.value)}
+                    className={errors.nom ? styles.inputError : ''} placeholder="Doe" autoComplete="off" />
+                  {errors.nom && <span className={styles.errorMsg}>{errors.nom}</span>}
+                </div>
+              </div>
+
               <div className={styles.field}>
-                <label htmlFor="prenom">Prénom <span className={styles.required}>*</span></label>
-                <input id="prenom" value={form.prenom} onChange={e => update('prenom', e.target.value)}
-                  className={errors.prenom ? styles.inputError : ''} placeholder="Jean" autoComplete="off" />
-                {errors.prenom && <span className={styles.errorMsg}>{errors.prenom}</span>}
+                <label htmlFor="email">Adresse email <span className={styles.required}>*</span></label>
+                <input id="email" type="email" value={form.email} onChange={e => update('email', e.target.value)}
+                  className={errors.email ? styles.inputError : ''} placeholder="jean.doe@email.com" autoComplete="off" />
+                {errors.email && <span className={styles.errorMsg}>{errors.email}</span>}
               </div>
+
               <div className={styles.field}>
-                <label htmlFor="nom">Nom <span className={styles.required}>*</span></label>
-                <input id="nom" value={form.nom} onChange={e => update('nom', e.target.value)}
-                  className={errors.nom ? styles.inputError : ''} placeholder="Doe" autoComplete="off" />
-                {errors.nom && <span className={styles.errorMsg}>{errors.nom}</span>}
+                <label htmlFor="whatsapp">Numéro WhatsApp <span className={styles.required}>*</span></label>
+                <div className={`${styles.phoneWrap} ${errors.whatsapp ? styles.phoneError : ''}`}>
+                  <span className={styles.phonePrefix}>🇧🇯 +229</span>
+                  <input id="whatsapp" type="tel" value={form.whatsapp}
+                    onChange={e => update('whatsapp', formatBjPhone(e.target.value))}
+                    className={styles.phoneInput} placeholder="97 00 00 00 00" maxLength={14} autoComplete="off" />
+                </div>
+                {errors.whatsapp && <span className={styles.errorMsg}>{errors.whatsapp}</span>}
               </div>
-            </div>
 
-            <div className={styles.field}>
-              <label htmlFor="email">Adresse email <span className={styles.required}>*</span></label>
-              <input id="email" type="email" value={form.email} onChange={e => update('email', e.target.value)}
-                className={errors.email ? styles.inputError : ''} placeholder="jean.doe@email.com" autoComplete="off" />
-              {errors.email && <span className={styles.errorMsg}>{errors.email}</span>}
-            </div>
+              {submitError && (
+                <p style={{ margin: '0 0 0.5rem', color: '#F87171', fontSize: '0.83rem', textAlign: 'center' }}>{submitError}</p>
+              )}
 
-            <div className={styles.field}>
-              <label htmlFor="whatsapp">Numéro WhatsApp <span className={styles.required}>*</span></label>
-              <div className={`${styles.phoneWrap} ${errors.whatsapp ? styles.phoneError : ''}`}>
-                <span className={styles.phonePrefix}>🇧🇯 +229</span>
-                <input id="whatsapp" type="tel" value={form.whatsapp}
-                  onChange={e => update('whatsapp', formatBjPhone(e.target.value))}
-                  className={styles.phoneInput} placeholder="97 00 00 00 00" maxLength={14} autoComplete="off" />
+              <div className={styles.infoOrange}>
+                Obtenez une estimation de vos équipements et contactez un technicien pour votre installation.
               </div>
-              {errors.whatsapp && <span className={styles.errorMsg}>{errors.whatsapp}</span>}
-            </div>
 
-            {submitError && (
-              <p style={{ margin: '0 0 0.5rem', color: '#F87171', fontSize: '0.83rem', textAlign: 'center' }}>{submitError}</p>
-            )}
-
-            <div className={styles.infoOrange}>
-              Obtenez une estimation de vos équipements et contactez un technicien pour votre installation.
-            </div>
-
-            <button type="submit" className={styles.btnOrange} disabled={otpSending}>
-              {otpSending ? 'Envoi du code…' : 'Créer mon compte'}
-            </button>
-          </form>
+              <button type="submit" className={styles.btnOrange} disabled={sending}>
+                {sending ? 'Envoi du lien…' : 'Créer mon compte'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
 
       {showConfirmEmail && (
         <ConfirmEmailPopup
           email={form.email}
-          onConfirm={() => { setShowConfirmEmail(false); sendOtp() }}
+          onConfirm={() => { setShowConfirmEmail(false); sendMagicLink() }}
           onCorrect={() => setShowConfirmEmail(false)}
           onClose={() => setShowConfirmEmail(false)}
-        />
-      )}
-
-      {showOtpPopup && (
-        <OtpPopup
-          email={form.email}
-          onSuccess={() => { setShowOtpPopup(false); setShowPassPopup(true) }}
-          onClose={() => setShowOtpPopup(false)}
         />
       )}
 

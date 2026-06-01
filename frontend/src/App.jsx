@@ -23,6 +23,7 @@ import RapportTech from './pages/technicien/Rapport'
 import DashboardTech from './pages/technicien/Dashboard'
 import MesProjets from './pages/technicien/MesProjets'
 import ProfilTech from './pages/technicien/ProfilTech'
+import Auth from './pages/Auth'
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
     <Routes>
       {/* Accueil */}
       <Route path="/" element={<Accueil />} />
+      <Route path="/auth" element={<Auth />} />
 
       {/* Particulier */}
       <Route path="/login"        element={<LoginParticulier />} />

@@ -4,9 +4,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { saveUserParticulier } from '../../utils/storage'
 import { supabase } from '../../utils/supabaseClient'
-import { generateAndStoreOtp } from '../../utils/otp'
-import { sendOtpEmail } from '../../utils/emailjs'
-import OtpPopup from '../../components/OtpPopup'
+import { generateAndSendMagicLink } from '../../utils/magicLink'
 import ConfirmEmailPopup from '../../components/ConfirmEmailPopup'
 import styles from './Login.module.css'
 
@@ -14,17 +12,16 @@ export default function Login() {
   const navigate = useNavigate()
   const emailRef = useRef(null)
 
-  const [email,             setEmail]             = useState('')
-  const [password,          setPassword]          = useState('')
-  const [showPass,          setShowPass]          = useState(false)
-  const [loading,           setLoading]           = useState(false)
-  const [error,             setError]             = useState('')
-  const [biometric,         setBiometric]         = useState(false)
-  const [showPassword,      setShowPassword]      = useState(false)
-  const [showOtpPopup,      setShowOtpPopup]      = useState(false)
-  const [showConfirmEmail,  setShowConfirmEmail]  = useState(false)
-  const [resolvedUser,      setResolvedUser]      = useState(null)
-  const [bioRunning,        setBioRunning]        = useState(false)
+  const [email,            setEmail]            = useState('')
+  const [password,         setPassword]         = useState('')
+  const [showPass,         setShowPass]         = useState(false)
+  const [loading,          setLoading]          = useState(false)
+  const [error,            setError]            = useState('')
+  const [biometric,        setBiometric]        = useState(false)
+  const [showPassword,     setShowPassword]     = useState(false)
+  const [showConfirmEmail, setShowConfirmEmail] = useState(false)
+  const [showLinkSent,     setShowLinkSent]     = useState(false)
+  const [bioRunning,       setBioRunning]       = useState(false)
 
   useEffect(() => {
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
@@ -50,14 +47,13 @@ export default function Login() {
     return user
   }
 
-  const sendOtp = async () => {
+  const sendMagicLink = async () => {
     setLoading(true)
     try {
-      const code = await generateAndStoreOtp(email.trim())
-      await sendOtpEmail(email.trim(), code)
-      setShowOtpPopup(true)
+      await generateAndSendMagicLink(email.trim(), 'particulier')
+      setShowLinkSent(true)
     } catch {
-      setError("Erreur d'envoi du code. Saisissez votre mot de passe.")
+      setError("Erreur d'envoi du lien. Saisissez votre mot de passe.")
       setShowPassword(true)
     } finally {
       setLoading(false)
@@ -69,7 +65,6 @@ export default function Login() {
     setError('')
     const user = await findUser()
     if (!user) { setError('Aucun compte trouvé avec cet email.'); return }
-    setResolvedUser(user)
 
     if (biometric) {
       setBioRunning(true)
@@ -84,9 +79,7 @@ export default function Login() {
         navigate('/paiement')
       } catch {
         setBioRunning(false)
-        const code = await generateAndStoreOtp(email.trim())
-        await sendOtpEmail(email.trim(), code)
-        setShowOtpPopup(true)
+        await sendMagicLink()
       }
       return
     }
@@ -96,13 +89,12 @@ export default function Login() {
 
   const handleConfirmEmail = async () => {
     setShowConfirmEmail(false)
-    await sendOtp()
+    await sendMagicLink()
   }
 
   const handleCorrectEmail = () => {
     setShowConfirmEmail(false)
     setEmail('')
-    setResolvedUser(null)
     setError('')
     setTimeout(() => emailRef.current?.focus(), 50)
   }
@@ -129,17 +121,6 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleOtpSuccess = () => {
-    setShowOtpPopup(false)
-    localStorage.setItem('heliobenin_role', 'particulier')
-    navigate('/paiement')
-  }
-
-  const handleOtpFallback = () => {
-    setShowOtpPopup(false)
-    setShowPassword(true)
   }
 
   return (
@@ -172,10 +153,18 @@ export default function Login() {
               </div>
             </div>
 
-            {loading && !showPassword && !showOtpPopup && !showConfirmEmail && (
+            {loading && !showPassword && !showLinkSent && (
               <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.45)', fontSize: '0.83rem', margin: '0.1rem 0' }}>
-                Envoi du code…
+                Envoi du lien…
               </p>
+            )}
+
+            {showLinkSent && (
+              <div style={{ textAlign: 'center', color: '#10B981', padding: '1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 10, fontSize: '0.85rem', lineHeight: 1.6 }}>
+                ✅ Un lien de connexion a été envoyé à <strong>{email}</strong>
+                <br />
+                <small style={{ color: 'rgba(255,255,255,0.45)' }}>Vérifiez votre boîte mail et cliquez sur le lien</small>
+              </div>
             )}
 
             {showPassword && (
@@ -208,7 +197,7 @@ export default function Login() {
               </>
             )}
 
-            {!showPassword && error && <p className={styles.error}>{error}</p>}
+            {!showPassword && !showLinkSent && error && <p className={styles.error}>{error}</p>}
           </form>
         </div>
       </div>
@@ -219,15 +208,6 @@ export default function Login() {
           onConfirm={handleConfirmEmail}
           onCorrect={handleCorrectEmail}
           onClose={() => setShowConfirmEmail(false)}
-        />
-      )}
-
-      {showOtpPopup && (
-        <OtpPopup
-          email={email.trim()}
-          onSuccess={handleOtpSuccess}
-          onClose={() => setShowOtpPopup(false)}
-          onFallback={handleOtpFallback}
         />
       )}
     </div>
