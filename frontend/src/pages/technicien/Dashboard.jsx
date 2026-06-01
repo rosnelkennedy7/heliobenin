@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import vitreImg from '../../assets/images/vitre.webp'
 import { supabase } from '../../utils/supabaseClient'
-import { saveTechnicien, getUserTechnicien } from '../../utils/storage'
+import { saveTechnicien, getUserTechnicien, clearTechnicien } from '../../utils/storage'
 import SidebarTech from '../../components/SidebarTech'
 
 export default function DashboardTech() {
@@ -69,7 +69,9 @@ export default function DashboardTech() {
 
   const handleCommencer = () => {
     if (nomProjet.trim().length < 3) return
-    saveTechnicien({ projet_id: null, nom_projet: nomProjet.trim() })
+    clearTechnicien()
+    saveTechnicien({ ...getUserTechnicien() })
+    saveTechnicien({ nom_projet: nomProjet.trim(), projet_id: null })
     setShowPopup(false)
     navigate('/localisation-tech')
   }
