@@ -13,7 +13,7 @@ export const generateAndSendMagicLink = async (email, role) => {
   )
   const hashedToken = btoa(String.fromCharCode(...new Uint8Array(hashBuffer)))
 
-  sessionStorage.setItem('helio_magic', JSON.stringify({
+  localStorage.setItem('helio_magic', JSON.stringify({
     hash: hashedToken,
     email,
     role,
@@ -31,13 +31,13 @@ export const generateAndSendMagicLink = async (email, role) => {
 }
 
 export const verifyMagicLink = async (token, role) => {
-  const stored = sessionStorage.getItem('helio_magic')
+  const stored = localStorage.getItem('helio_magic')
   if (!stored) return { success: false, message: 'Lien expiré' }
 
   const { hash, email, role: storedRole, expires } = JSON.parse(stored)
 
   if (Date.now() > expires) {
-    sessionStorage.removeItem('helio_magic')
+    localStorage.removeItem('helio_magic')
     return { success: false, message: 'Lien expiré' }
   }
 
@@ -51,6 +51,6 @@ export const verifyMagicLink = async (token, role) => {
 
   if (hashedToken !== hash) return { success: false, message: 'Lien invalide' }
 
-  sessionStorage.removeItem('helio_magic')
+  localStorage.removeItem('helio_magic')
   return { success: true, email, role }
 }
