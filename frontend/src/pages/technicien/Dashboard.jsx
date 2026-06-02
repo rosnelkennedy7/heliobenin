@@ -190,12 +190,14 @@ export default function DashboardTech() {
         </div>
 
         {/* Bouton nouveau projet */}
-        <button
-          onClick={() => { setNomProjet(''); setShowPopup(true) }}
-          style={{ width: '100%', padding: '0.9rem', background: '#F59E0B', border: 'none', borderRadius: 12, color: '#1E293B', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.01em' }}
-        >
-          + Nouveau projet
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button
+            onClick={() => { setNomProjet(''); setShowPopup(true) }}
+            style={{ width: 'fit-content', padding: '0.9rem 2.5rem', background: '#F59E0B', border: 'none', borderRadius: 12, color: '#1E293B', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.01em' }}
+          >
+            + Nouveau projet
+          </button>
+        </div>
 
         {/* Dernier projet */}
         {dernierProjet && (

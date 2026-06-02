@@ -610,9 +610,6 @@ export default function Devis() {
           <div className={`${s.piedPage} ${s.btnActions}`}>
             <em className={s.brand}></em>
             <div className={s.footerBtns}>
-              <button className={s.btnSave} onClick={handleSave}>
-                <Save size={13} /> Enregistrer
-              </button>
               <button className={s.btnPrint} onClick={handlePrint}>
                 <Printer size={13} /> Imprimer / PDF
               </button>
