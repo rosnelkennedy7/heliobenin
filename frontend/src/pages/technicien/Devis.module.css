@@ -170,7 +170,7 @@
 
 .logoImg {
   max-width: 200px;
-  max-height: 120px;
+  max-height: 70px;
   object-fit: contain;
 }
 
@@ -361,9 +361,9 @@
 .th {
   background: #1E3A5F;
   color: #fff;
-  font-size: 11px;
+  font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.3rem 0.5rem;
+  padding: 0.25rem 0.4rem;
   text-align: left;
 }
 
@@ -377,9 +377,10 @@
 .trEven { background: #F8FAFC; }
 
 .td {
-  padding: 0.3rem 0.5rem;
+  padding: 0.25rem 0.4rem;
   border-bottom: 0.5px solid #F1F5F9;
   vertical-align: middle;
+  font-size: 0.78rem;
 }
 
 .tdDes {
@@ -601,36 +602,42 @@
 .signatures {
   padding: 0.4rem 0.75rem 0.5rem;
   border-top: 0.5px solid #E2E8F0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
   page-break-inside: avoid;
 }
 
-.signatureCol {
-  display: flex;
-  flex-direction: column;
+.signatureCard {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
-.signLabel {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #94A3B8;
-  margin-bottom: 0.5rem;
+.signCardHeader {
+  background: #0f172a;
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0;
+}
+
+.signCardBody {
+  padding: 0.35rem 0.55rem;
 }
 
 .signZone {
-  height: 55px;
-  border-bottom: 0.5px solid #94A3B8;
-  margin-bottom: 6px;
+  height: 50px;
+  border-bottom: 1px solid #cbd5e1;
+  margin-bottom: 0.3rem;
 }
 
 .signSub {
-  font-size: 11px;
+  font-size: 0.78rem;
   color: #64748B;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 /* ════ Section 7 — Pied de page ════ */
@@ -765,7 +772,11 @@
 
   @page {
     size: A4 portrait;
-    margin: 1.5cm;
+    margin: 1.27cm;
+  }
+
+  body {
+    counter-reset: page;
   }
 
   /* Masquer tout sauf la carte */
@@ -872,19 +883,23 @@
   .showPrint    { display: block !important; }
   .sec5Empty    { display: none !important; }
 
-  /* Numéro de page fixe en bas */
-  .pageNum {
-    display: block !important;
+  /* Pagination automatique */
+  .carteDevis::after {
+    content: "Page " counter(page);
+    counter-increment: page;
     position: fixed;
-    bottom: 0.5rem;
+    bottom: 0.3rem;
     right: 1rem;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #666;
   }
 
-  /* Signatures collées au contenu */
+  /* Signatures et totaux collés */
   .signatures {
     page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .totaux {
     page-break-inside: avoid !important;
   }
 
