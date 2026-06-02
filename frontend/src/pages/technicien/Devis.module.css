@@ -256,7 +256,6 @@
   display: flex;
   gap: 1.5rem;
   align-items: start;
-  border-bottom: 0.5px solid #E2E8F0;
   padding: 0 0.75rem;
 }
 
@@ -751,14 +750,9 @@
   display: inline-block;
 }
 
-/* Page 1/1 — visible uniquement à l'impression */
+/* Numéro de page — visible uniquement à l'impression */
 .pageNum {
   display: none;
-  text-align: center;
-  font-size: 10px;
-  color: #94A3B8;
-  padding: 0.35rem 1rem;
-  border-top: 0.5px solid #E2E8F0;
 }
 
 /* ══ @media print ════════════════════════ */
@@ -877,8 +871,18 @@
   .showPrint    { display: block !important; }
   .sec5Empty    { display: none !important; }
 
-  /* Numéro de page visible */
-  .pageNum { display: block !important; }
+  /* Numéro de page fixe en bas */
+  .pageNum {
+    display: block !important;
+    position: fixed;
+    bottom: 0.5rem;
+    right: 1rem;
+    font-size: 0.75rem;
+    color: #666;
+  }
+  .pageNum::after {
+    content: "Page " counter(page) "/" counter(pages);
+  }
 
   /* En-tête titre Devis N° */
   .enteteBottom { border-bottom: none !important; }

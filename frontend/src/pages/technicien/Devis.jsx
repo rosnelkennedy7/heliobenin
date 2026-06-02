@@ -340,7 +340,7 @@ export default function Devis() {
 
           {/* Logo / en-tête sans fond coloré */}
           {typeEntete === 'logo' && logoDataUrl && (
-            <div style={{ padding: '0.5rem 1rem' }}>
+            <div style={{ padding: '0.5rem 1rem', display: 'flex', justifyContent: 'center' }}>
               <img src={logoDataUrl} className={s.logoImg} alt="logo" />
             </div>
           )}
@@ -348,7 +348,7 @@ export default function Devis() {
             <img src={enteteDataUrl} className={s.enteteImg} alt="en-tête" style={{ width: '100%', display: 'block' }} />
           )}
 
-          <div className={s.enteteBottom}>
+          <div className={s.enteteBottom} style={{ marginTop: '2rem' }}>
             <div className={s.devisTitle}>
               Devis N°&nbsp;<input
                 className={s.numInput}
@@ -359,7 +359,7 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 2 — Technicien / Client ════ */}
-          <div className={s.techClient} style={{ marginTop: '0.4rem' }}>
+          <div className={s.techClient} style={{ marginTop: '2rem' }}>
             <div className={s.partyCol}>
               <div className={`${s.partyLabel} ${s.hidePrint}`}>Technicien</div>
               <div className={s.hidePrint}>
@@ -453,7 +453,7 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 3 — Tableau ════ */}
-          <div className={s.sec3} style={{ marginTop: '0.4rem' }}>
+          <div className={s.sec3} style={{ marginTop: '1.5rem' }}>
             <table className={s.table}>
               <thead>
                 <tr>
@@ -616,7 +616,7 @@ export default function Devis() {
             </div>
           </div>
 
-          <div className={s.pageNum}>Page 1/1</div>
+          <div className={s.pageNum} />
         </div>
 
         {/* Navigation */}
