@@ -84,7 +84,7 @@ export default function DashboardTech() {
       appareils:    projet.appareils,
       nom_projet:   projet.nom_projet,
     })
-    navigate('/etude-tech')
+    navigate('/localisation-tech')
   }
 
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-FR') : '—'

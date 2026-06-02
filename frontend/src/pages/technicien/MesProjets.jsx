@@ -52,7 +52,7 @@ export default function MesProjets() {
       appareils:    projet.appareils,
       nom_projet:   projet.nom_projet,
     })
-    navigate('/etude-tech')
+    navigate('/localisation-tech')
   }
 
   const handleDeleteConfirm = async () => {

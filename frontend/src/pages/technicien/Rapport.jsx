@@ -105,7 +105,7 @@ const MAINTENANCE_DATA = [
 
 export default function Rapport() {
   const navigate = useNavigate()
-  const [toast,   setToast]   = useState(false)
+  const [toast,   setToast]   = useState('')
   const [saving,  setSaving]  = useState(false)
   const [saveErr, setSaveErr] = useState('')
 
@@ -146,8 +146,8 @@ export default function Rapport() {
         saveTechnicien({ projet_id: data.id })
       }
 
-      setToast(true)
-      setTimeout(() => setToast(false), 2500)
+      setToast(projetId ? 'Projet mis à jour ✅' : 'Projet enregistré ✅')
+      setTimeout(() => setToast(''), 2500)
     } catch (e) {
       console.error('[Rapport] save:', e)
       setSaveErr('Erreur lors de la sauvegarde.')
@@ -514,7 +514,7 @@ export default function Rapport() {
         {/* ═══ Boutons ═══ */}
         {toast && (
           <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', background: '#10B981', color: '#fff', padding: '0.75rem 1.5rem', borderRadius: 10, fontWeight: 700, zIndex: 100, fontSize: '0.95rem', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
-            Projet enregistré ✅
+            {toast}
           </div>
         )}
         {saveErr && (

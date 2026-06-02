@@ -338,18 +338,14 @@ export default function Devis() {
               onChange={e => handleFileEntete(e.target.files[0])} />
           </div>
 
-          {/* Bande bleue — seulement si image chargée */}
+          {/* Logo / en-tête sans fond coloré */}
           {typeEntete === 'logo' && logoDataUrl && (
-            <div className={s.enteteDevis}>
-              <div className={s.logoZoneWrap}>
-                <img src={logoDataUrl} className={s.logoImg} alt="logo" />
-              </div>
+            <div style={{ padding: '0.5rem 1rem' }}>
+              <img src={logoDataUrl} className={s.logoImg} alt="logo" />
             </div>
           )}
           {typeEntete === 'entete_complete' && enteteDataUrl && (
-            <div className={s.enteteDevis} style={{ padding: 0 }}>
-              <img src={enteteDataUrl} className={s.enteteImg} alt="en-tête" />
-            </div>
+            <img src={enteteDataUrl} className={s.enteteImg} alt="en-tête" style={{ width: '100%', display: 'block' }} />
           )}
 
           <div className={s.enteteBottom}>
@@ -363,9 +359,9 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 2 — Technicien / Client ════ */}
-          <div className={s.techClient}>
+          <div className={s.techClient} style={{ marginTop: '0.4rem' }}>
             <div className={s.partyCol}>
-              <div className={s.partyLabel}>Technicien</div>
+              <div className={`${s.partyLabel} ${s.hidePrint}`}>Technicien</div>
               <div className={s.hidePrint}>
                 <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                   <select className={s.civiliteSelect} value={tech.civilite}
@@ -396,19 +392,24 @@ export default function Devis() {
                   value={tech.adresse} onChange={e => setTech(t => ({ ...t, adresse: e.target.value }))} />
               </div>
               <div className={s.showPrint}>
-                <div className={s.printLine}><span className={s.printKey}>Nom :</span> {tech.civilite} {tech.nom || '_______________'}</div>
-                {tech.entreprise && <div className={s.printLine}><span className={s.printKey}>Entreprise :</span> {tech.entreprise}</div>}
-                {tech.specialite && <div className={s.printLine}><span className={s.printKey}>Spécialité :</span> {tech.specialite}</div>}
-                {tech.ifu && <div className={s.printLine}><span className={s.printKey}>IFU :</span> {tech.ifu}</div>}
-                {tech.rccm && <div className={s.printLine}><span className={s.printKey}>RCCM :</span> {tech.rccm}</div>}
-                {tech.whatsapp && <div className={s.printLine}><span className={s.printKey}>Téléphone :</span> {tech.whatsapp}</div>}
-                {tech.email && <div className={s.printLine}><span className={s.printKey}>Email :</span> {tech.email}</div>}
-                {tech.adresse && <div className={s.printLine}><span className={s.printKey}>Adresse :</span> {tech.adresse}</div>}
+                <div style={{ border: '1px solid #cbd5e1', borderRadius: 5, overflow: 'hidden', fontSize: '0.78rem' }}>
+                  <div style={{ background: '#0f172a', color: '#fff', textAlign: 'center', fontWeight: 800, fontSize: '0.68rem', letterSpacing: '0.1em', padding: '0.25rem 0' }}>TECHNICIEN</div>
+                  <div style={{ padding: '0.35rem 0.55rem', display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                    <div className={s.printLine}><span className={s.printKey}>Nom :</span> {tech.civilite} {tech.nom || '_______________'}</div>
+                    {tech.entreprise && <div className={s.printLine}><span className={s.printKey}>Entreprise :</span> {tech.entreprise}</div>}
+                    {tech.specialite && <div className={s.printLine}><span className={s.printKey}>Spécialité :</span> {tech.specialite}</div>}
+                    {tech.ifu && <div className={s.printLine}><span className={s.printKey}>IFU :</span> {tech.ifu}</div>}
+                    {tech.rccm && <div className={s.printLine}><span className={s.printKey}>RCCM :</span> {tech.rccm}</div>}
+                    {tech.whatsapp && <div className={s.printLine}><span className={s.printKey}>Téléphone :</span> {tech.whatsapp}</div>}
+                    {tech.email && <div className={s.printLine}><span className={s.printKey}>Email :</span> {tech.email}</div>}
+                    {tech.adresse && <div className={s.printLine}><span className={s.printKey}>Adresse :</span> {tech.adresse}</div>}
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className={s.partyCol}>
-              <div className={s.partyLabel}>Client</div>
+              <div className={`${s.partyLabel} ${s.hidePrint}`}>Client</div>
               <div className={s.hidePrint}>
                 <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                   <select className={s.civiliteSelect} value={client.civilite}
@@ -438,16 +439,21 @@ export default function Devis() {
                 />
               </div>
               <div className={s.showPrint}>
-                <div className={s.printLine}><span className={s.printKey}>Nom :</span> {client.civilite} {client.nom || '_______________'}</div>
-                {client.telephone && <div className={s.printLine}><span className={s.printKey}>Téléphone :</span> {client.telephone}</div>}
-                {client.email && <div className={s.printLine}><span className={s.printKey}>Email :</span> {client.email}</div>}
-                {client.adresse && <div className={s.printLine}><span className={s.printKey}>Adresse :</span> {client.adresse}</div>}
+                <div style={{ border: '1px solid #cbd5e1', borderRadius: 5, overflow: 'hidden', fontSize: '0.78rem' }}>
+                  <div style={{ background: '#0f172a', color: '#fff', textAlign: 'center', fontWeight: 800, fontSize: '0.68rem', letterSpacing: '0.1em', padding: '0.25rem 0' }}>CLIENT</div>
+                  <div style={{ padding: '0.35rem 0.55rem', display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                    <div className={s.printLine}><span className={s.printKey}>Nom :</span> {client.civilite} {client.nom || '_______________'}</div>
+                    {client.telephone && <div className={s.printLine}><span className={s.printKey}>Téléphone :</span> {client.telephone}</div>}
+                    {client.email && <div className={s.printLine}><span className={s.printKey}>Email :</span> {client.email}</div>}
+                    {client.adresse && <div className={s.printLine}><span className={s.printKey}>Adresse :</span> {client.adresse}</div>}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           {/* ════ Section 3 — Tableau ════ */}
-          <div className={s.sec3}>
+          <div className={s.sec3} style={{ marginTop: '0.4rem' }}>
             <table className={s.table}>
               <thead>
                 <tr>
@@ -585,7 +591,7 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 6 — Signatures ════ */}
-          <div className={s.signatures}>
+          <div className={s.signatures} style={{ marginTop: '0.4rem' }}>
             <div className={s.signatureCol}>
               <div className={s.signLabel}>Signature du technicien</div>
               <div className={s.signZone} />
