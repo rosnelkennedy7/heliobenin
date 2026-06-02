@@ -348,7 +348,7 @@ export default function Devis() {
             <img src={enteteDataUrl} className={s.enteteImg} alt="en-tête" style={{ width: '100%', display: 'block' }} />
           )}
 
-          <div className={s.enteteBottom} style={{ marginTop: '0.4rem' }}>
+          <div className={s.enteteBottom} style={{ marginTop: '0.2rem' }}>
             <div className={s.devisTitle}>
               Devis N°&nbsp;<input
                 className={s.numInput}
@@ -359,7 +359,7 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 2 — Technicien / Client ════ */}
-          <div className={s.techClient} style={{ marginTop: '0.4rem' }}>
+          <div className={s.techClient} style={{ marginTop: '0.2rem' }}>
             <div className={s.partyCol}>
               <div className={`${s.partyLabel} ${s.hidePrint}`}>Technicien</div>
               <div className={s.hidePrint}>
@@ -453,7 +453,7 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 3 — Tableau ════ */}
-          <div className={s.sec3} style={{ marginTop: '0.4rem' }}>
+          <div className={s.sec3} style={{ marginTop: '0.2rem' }}>
             <table className={s.table}>
               <thead>
                 <tr>
@@ -514,7 +514,7 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 4 — Totaux ════ */}
-          <div className={s.totaux} style={{ marginTop: '0.4rem' }}>
+          <div className={s.totaux} style={{ marginTop: '0.2rem' }}>
             <table className={s.totTable}>
               <tbody>
                 <tr>
@@ -591,12 +591,12 @@ export default function Devis() {
           </div>
 
           {/* ════ Section 6 — Signatures ════ */}
-          <div className={s.signatures} style={{ marginTop: '0.4rem' }}>
+          <div className={s.signatures} style={{ marginTop: '0.2rem' }}>
             <div className={s.signatureCard}>
               <div className={s.signCardHeader}>SIGNATURE TECHNICIEN</div>
               <div className={s.signCardBody}>
                 <div className={s.signZone} />
-                <div className={s.signSub}>Nom : {tech.nom ? `${tech.civilite} ${tech.nom}` : '_______________'}</div>
+                <div className={s.signSub}>Nom : {tech.civilite} {tech.nom || '___'}</div>
                 <div className={s.signSub}>Date : {dateStr}</div>
               </div>
             </div>
@@ -604,7 +604,7 @@ export default function Devis() {
               <div className={s.signCardHeader}>SIGNATURE CLIENT</div>
               <div className={s.signCardBody}>
                 <div className={s.signZone} />
-                <div className={s.signSub}>Nom : {client.nom ? `${client.civilite} ${client.nom}` : '_______________'}</div>
+                <div className={s.signSub}>Nom : {client.civilite} {client.nom || '___'}</div>
                 <div className={s.signSub}>Date : {dateStr}</div>
               </div>
             </div>

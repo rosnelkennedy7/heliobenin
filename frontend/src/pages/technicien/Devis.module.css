@@ -602,8 +602,10 @@
 .signatures {
   padding: 0.4rem 0.75rem 0.5rem;
   border-top: 0.5px solid #E2E8F0;
-  display: flex;
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.4rem;
   page-break-inside: avoid;
 }
 
@@ -625,7 +627,7 @@
 }
 
 .signCardBody {
-  padding: 0.35rem 0.55rem;
+  padding: 0.5rem 0.55rem;
 }
 
 .signZone {
@@ -636,8 +638,8 @@
 
 .signSub {
   font-size: 0.78rem;
-  color: #64748B;
-  line-height: 1.6;
+  color: #374151;
+  margin-top: 0.15rem;
 }
 
 /* ════ Section 7 — Pied de page ════ */
@@ -758,10 +760,6 @@
   display: inline-block;
 }
 
-/* Numéro de page — visible uniquement à l'impression */
-.pageNum {
-  display: none;
-}
 
 /* ══ @media print ════════════════════════ */
 @media print {
@@ -773,10 +771,12 @@
   @page {
     size: A4 portrait;
     margin: 1.27cm;
-  }
-
-  body {
-    counter-reset: page;
+    @bottom-right {
+      content: "Page " counter(page) " / " counter(pages);
+      font-size: 0.7rem;
+      color: #666;
+      font-family: 'Aptos Display', 'Segoe UI', Arial, sans-serif;
+    }
   }
 
   /* Masquer tout sauf la carte */
@@ -883,24 +883,14 @@
   .showPrint    { display: block !important; }
   .sec5Empty    { display: none !important; }
 
-  /* Pagination automatique */
-  .carteDevis::after {
-    content: "Page " counter(page);
-    counter-increment: page;
-    position: fixed;
-    bottom: 0.3rem;
-    right: 1rem;
-    font-size: 0.7rem;
-    color: #666;
-  }
-
   /* Signatures et totaux collés */
-  .signatures {
-    page-break-before: avoid !important;
-    page-break-inside: avoid !important;
-  }
   .totaux {
+    page-break-inside: avoid;
+  }
+  .signatures {
     page-break-inside: avoid !important;
+    page-break-before: avoid !important;
+    margin-top: 0.4rem !important;
   }
 
   /* En-tête titre Devis N° */
