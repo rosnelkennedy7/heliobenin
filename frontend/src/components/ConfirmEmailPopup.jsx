@@ -29,7 +29,7 @@ export default function ConfirmEmailPopup({ email, onConfirm, onCorrect, onClose
             onClick={onCorrect}
             style={{ flex: 1, padding: '0.75rem', background: 'rgba(255,255,255,0.07)', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: 10, color: 'rgba(255,255,255,0.7)', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}
           >
-            Ce n'est pas mon email
+            Ce n'est pas moi
           </button>
           <button
             onClick={onConfirm}
