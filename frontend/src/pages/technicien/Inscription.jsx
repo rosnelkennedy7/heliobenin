@@ -95,7 +95,7 @@ export default function Inscription() {
     setSubmitError('')
     try {
       const specialiteFinal = form.specialite === 'Autre' ? form.specialiteAutre : form.specialite
-      sessionStorage.setItem('helio_pending_reg', JSON.stringify({
+      localStorage.setItem('helio_pending_reg', JSON.stringify({
         nom: form.nom, prenom: form.prenom, email: form.email, role: 'technicien',
         whatsapp: form.whatsapp || null, entreprise: form.entreprise || null,
         specialite: specialiteFinal || null, ifu: form.ifu || null, rccm: form.rccm || null,
@@ -103,7 +103,7 @@ export default function Inscription() {
       await generateAndSendMagicLink(form.email, 'technicien')
       setShowLinkSent(true)
     } catch {
-      sessionStorage.removeItem('helio_pending_reg')
+      localStorage.removeItem('helio_pending_reg')
       setShowPassPopup(true)
     } finally {
       setSending(false)

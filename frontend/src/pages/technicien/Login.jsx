@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import vitreImg from '../../assets/images/vitre.webp'
 import { getTechnicien, saveUserTechnicien, clearTechnicien } from '../../utils/storage'
@@ -9,8 +9,9 @@ import ConfirmEmailPopup from '../../components/ConfirmEmailPopup'
 import styles from './Login.module.css'
 
 export default function Login() {
-  const navigate = useNavigate()
-  const emailRef = useRef(null)
+  const navigate   = useNavigate()
+  const [params]   = useSearchParams()
+  const emailRef   = useRef(null)
 
   const blurLockRef = useRef(false)
 
@@ -193,6 +194,17 @@ export default function Login() {
           </div>
           <h1 className={styles.title}>Bon retour !</h1>
           <p className={styles.subtitle}>Connectez-vous à votre espace technicien</p>
+
+          {params.get('error') === 'lien_expire' && (
+            <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '0.5rem', textAlign: 'center' }}>
+              <p style={{ margin: '0 0 0.5rem', color: '#F87171', fontSize: '0.85rem', fontWeight: 600 }}>
+                Lien expiré ou invalide
+              </p>
+              <p style={{ margin: '0 0 0.6rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>
+                Saisissez votre email ci-dessous pour recevoir un nouveau lien.
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className={styles.form} noValidate>
             <div className={styles.field}>

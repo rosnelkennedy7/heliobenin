@@ -80,14 +80,14 @@ export default function Inscription() {
     setSending(true)
     setSubmitError('')
     try {
-      sessionStorage.setItem('helio_pending_reg', JSON.stringify({
+      localStorage.setItem('helio_pending_reg', JSON.stringify({
         nom: form.nom, prenom: form.prenom, email: form.email,
         whatsapp: form.whatsapp || null, role: 'particulier',
       }))
       await generateAndSendMagicLink(form.email, 'particulier')
       setShowLinkSent(true)
     } catch {
-      sessionStorage.removeItem('helio_pending_reg')
+      localStorage.removeItem('helio_pending_reg')
       setShowPassPopup(true)
     } finally {
       setSending(false)

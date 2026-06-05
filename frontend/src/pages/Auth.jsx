@@ -30,14 +30,14 @@ export default function Auth() {
 
       // Inscription : profil pas encore créé → lire données en attente
       if (!profile) {
-        const pendingRaw = sessionStorage.getItem('helio_pending_reg')
+        const pendingRaw = localStorage.getItem('helio_pending_reg')
         if (pendingRaw) {
           const pending = JSON.parse(pendingRaw)
           if (pending.email === result.email && pending.role === role) {
             try {
               const { data: newProfile } = await supabase
                 .from('profiles').insert([pending]).select().single()
-              sessionStorage.removeItem('helio_pending_reg')
+              localStorage.removeItem('helio_pending_reg')
               if (role === 'technicien') {
                 if (newProfile) saveUserTechnicien({ ...newProfile, role: 'technicien' })
                 navigate('/qcm-tech')
