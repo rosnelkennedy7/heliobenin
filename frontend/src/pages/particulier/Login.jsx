@@ -161,14 +161,22 @@ export default function Login() {
           <h1 className={styles.title}>Bon retour !</h1>
           <p className={styles.subtitle}>Connectez-vous à votre espace solaire</p>
 
-          {params.get('error') === 'lien_expire' && (
+          {params.get('error') === 'lien_expire' && !showLinkSent && (
             <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: 10, padding: '0.85rem 1rem', marginBottom: '0.5rem', textAlign: 'center' }}>
-              <p style={{ margin: '0 0 0.5rem', color: '#F87171', fontSize: '0.85rem', fontWeight: 600 }}>
+              <p style={{ margin: '0 0 0.4rem', color: '#F87171', fontSize: '0.85rem', fontWeight: 600 }}>
                 Lien expiré ou invalide
               </p>
-              <p style={{ margin: '0 0 0.6rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>
-                Saisissez votre email ci-dessous pour recevoir un nouveau lien.
+              <p style={{ margin: '0 0 0.7rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>
+                Saisissez votre email ci-dessous puis cliquez sur le bouton.
               </p>
+              <button
+                type="button"
+                disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || loading}
+                onClick={() => { blurLockRef.current = true; sendMagicLink() }}
+                style={{ padding: '0.55rem 1.2rem', background: email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? '#F59E0B' : 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, color: email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? '#1E293B' : 'rgba(255,255,255,0.3)', fontSize: '0.85rem', fontWeight: 700, cursor: email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.15s' }}
+              >
+                {loading ? 'Envoi…' : 'Renvoyer le lien'}
+              </button>
             </div>
           )}
 
