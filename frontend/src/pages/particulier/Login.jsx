@@ -123,6 +123,7 @@ export default function Login() {
     setShowConfirmEmail(false)
     setEmail('')
     setError('')
+    blurLockRef.current = false
     setTimeout(() => emailRef.current?.focus(), 50)
   }
 
@@ -180,9 +181,9 @@ export default function Login() {
               </div>
             </div>
 
-            {loading && !showPassword && !showLinkSent && (
+            {(loading || bioRunning) && !showPassword && !showLinkSent && (
               <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.45)', fontSize: '0.83rem', margin: '0.1rem 0' }}>
-                Envoi du lien…
+                {bioRunning ? 'Vérification biométrique…' : 'Envoi du lien…'}
               </p>
             )}
 
@@ -234,7 +235,7 @@ export default function Login() {
           email={email.trim()}
           onConfirm={handleConfirmEmail}
           onCorrect={handleCorrectEmail}
-          onClose={() => setShowConfirmEmail(false)}
+          onClose={() => { setShowConfirmEmail(false); blurLockRef.current = false }}
         />
       )}
     </div>
