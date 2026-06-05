@@ -60,6 +60,16 @@ export default function Login() {
     }
   }
 
+  const getCredentialId = (em) => {
+    const credMap = JSON.parse(localStorage.getItem('helio_credentials') || '{}')
+    const b64 = credMap[em]
+    if (!b64) return null
+    const binary = atob(b64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    return bytes.buffer
+  }
+
   const handleEmailBlur = async () => {
     if (!email.trim()) return
     setError('')
@@ -69,10 +79,18 @@ export default function Login() {
     if (biometric) {
       setBioRunning(true)
       try {
-        const challenge = new Uint8Array(32)
-        crypto.getRandomValues(challenge)
+        const challenge    = crypto.getRandomValues(new Uint8Array(32))
+        const credentialId = getCredentialId(email.trim())
         await navigator.credentials.get({
-          publicKey: { challenge, timeout: 60000, userVerification: 'required', rpId: window.location.hostname }
+          publicKey: {
+            challenge,
+            timeout: 60000,
+            userVerification: 'required',
+            rpId: window.location.hostname,
+            ...(credentialId ? {
+              allowCredentials: [{ type: 'public-key', id: credentialId, transports: ['internal'] }]
+            } : {})
+          }
         })
         setBioRunning(false)
         localStorage.setItem('heliobenin_role', 'particulier')

@@ -102,18 +102,31 @@ export default function Inscription() {
 
     if (biometric) {
       try {
-        const challenge = new Uint8Array(32); crypto.getRandomValues(challenge)
-        const userId    = new Uint8Array(16);  crypto.getRandomValues(userId)
-        await navigator.credentials.create({
+        const credential = await navigator.credentials.create({
           publicKey: {
-            challenge,
+            challenge: crypto.getRandomValues(new Uint8Array(32)),
             rp: { name: 'HélioBénin', id: window.location.hostname },
-            user: { id: userId, name: form.email, displayName: [form.prenom, form.nom].filter(Boolean).join(' ') },
-            pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
-            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+            user: {
+              id: new TextEncoder().encode(form.email),
+              name: form.email,
+              displayName: `${form.prenom} ${form.nom}`,
+            },
+            pubKeyCredParams: [
+              { alg: -7,   type: 'public-key' },
+              { alg: -257, type: 'public-key' },
+            ],
+            authenticatorSelection: {
+              authenticatorAttachment: 'platform',
+              userVerification: 'required',
+              residentKey: 'preferred',
+            },
             timeout: 60000,
           }
         })
+        const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)))
+        const credMap = JSON.parse(localStorage.getItem('helio_credentials') || '{}')
+        credMap[form.email] = credentialId
+        localStorage.setItem('helio_credentials', JSON.stringify(credMap))
         submitAccount(null)
         return
       } catch { /* biométrie échouée → Magic Link */ }
