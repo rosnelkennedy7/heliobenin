@@ -12,6 +12,8 @@ export default function Login() {
   const navigate = useNavigate()
   const emailRef = useRef(null)
 
+  const blurLockRef = useRef(false)
+
   const [email,            setEmail]            = useState('')
   const [password,         setPassword]         = useState('')
   const [showPass,         setShowPass]         = useState(false)
@@ -105,10 +107,11 @@ export default function Login() {
   }
 
   const handleEmailBlur = async () => {
-    if (!email.trim()) return
+    if (!email.trim() || blurLockRef.current) return
+    blurLockRef.current = true
     setError('')
     const user = await findUser()
-    if (!user) { setError('Aucun compte trouvé avec cet email.'); return }
+    if (!user) { setError('Aucun compte trouvé avec cet email.'); blurLockRef.current = false; return }
 
     if (biometric) {
       setBioRunning(true)
@@ -131,6 +134,7 @@ export default function Login() {
         await redirectTech(user)
       } catch {
         setBioRunning(false)
+        blurLockRef.current = false
         await sendMagicLink()
       }
       return
