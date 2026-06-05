@@ -113,23 +113,21 @@ export default function Login() {
     const user = await findUser()
     if (!user) { setError('Aucun compte trouvé avec cet email.'); blurLockRef.current = false; return }
 
-    if (biometric) {
+    const credentialId = getCredentialId(email.trim())
+
+    if (biometric && credentialId) {
       setBioRunning(true)
       try {
-        const challenge    = crypto.getRandomValues(new Uint8Array(32))
-        const credentialId = getCredentialId(email.trim())
+        const challenge = crypto.getRandomValues(new Uint8Array(32))
         const assertion = await navigator.credentials.get({
           publicKey: {
             challenge,
             timeout: 60000,
             userVerification: 'required',
             rpId: window.location.hostname,
-            ...(credentialId ? {
-              allowCredentials: [{ type: 'public-key', id: credentialId, transports: ['internal'] }]
-            } : {})
+            allowCredentials: [{ type: 'public-key', id: credentialId, transports: ['internal'] }],
           }
         })
-        // Mémoriser le credentialId choisi pour cibler directement la prochaine fois
         const usedId = btoa(String.fromCharCode(...new Uint8Array(assertion.rawId)))
         const credMap = JSON.parse(localStorage.getItem('helio_credentials') || '{}')
         credMap[email.trim()] = usedId
@@ -145,7 +143,7 @@ export default function Login() {
       return
     }
 
-    if (!biometric) setShowConfirmEmail(true)
+    setShowConfirmEmail(true)
   }
 
   const handleConfirmEmail = async () => {
