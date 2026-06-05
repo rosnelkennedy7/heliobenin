@@ -2,13 +2,32 @@ import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { verifyMagicLink } from '../utils/magicLink'
 import { supabase } from '../utils/supabaseClient'
-import { saveUserTechnicien, saveUserParticulier } from '../utils/storage'
+import { saveUserTechnicien, saveUserParticulier, getTechnicien } from '../utils/storage'
 
 export default function Auth() {
   const navigate      = useNavigate()
   const [params]      = useSearchParams()
 
   useEffect(() => {
+    const redirectTech = async (profile) => {
+      const { data: abo } = await supabase
+        .from('abonnements').select('type, date_fin, statut')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false }).limit(1).maybeSingle()
+
+      const qcmValide = profile.qcm_valide || getTechnicien().qcm_valide || false
+      if (!qcmValide) { navigate('/qcm-tech'); return }
+
+      if (abo) {
+        if (abo.type === 'unique') { navigate('/paiement-tech'); return }
+        if (abo.type === 'mensuel' || abo.type === 'annuel') {
+          if (new Date(abo.date_fin) > new Date()) { navigate('/dashboard-tech'); return }
+          navigate('/paiement-tech'); return
+        }
+      }
+      navigate('/paiement-tech')
+    }
+
     const verify = async () => {
       const token = params.get('token')
       const role  = params.get('role')
@@ -58,17 +77,7 @@ export default function Auth() {
       // Login : profil existant
       if (role === 'technicien') {
         saveUserTechnicien({ ...profile, role: 'technicien' })
-
-        const { data: abo } = await supabase
-          .from('abonnements').select('type, date_fin')
-          .eq('user_id', profile.id)
-          .order('created_at', { ascending: false }).limit(1).maybeSingle()
-
-        if (!profile.qcm_valide)            { navigate('/qcm-tech');      return }
-        if (!abo || abo.type === 'unique')   { navigate('/paiement-tech'); return }
-        if (new Date(abo.date_fin) > new Date()) { navigate('/dashboard-tech'); return }
-        navigate('/paiement-tech')
-
+        await redirectTech(profile)
       } else {
         saveUserParticulier({ ...profile, role: 'particulier' })
         navigate('/paiement')
