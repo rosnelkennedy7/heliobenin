@@ -84,7 +84,7 @@ export default function Login() {
       try {
         const challenge    = crypto.getRandomValues(new Uint8Array(32))
         const credentialId = getCredentialId(email.trim())
-        await navigator.credentials.get({
+        const assertion = await navigator.credentials.get({
           publicKey: {
             challenge,
             timeout: 60000,
@@ -95,6 +95,11 @@ export default function Login() {
             } : {})
           }
         })
+        // Mémoriser le credentialId choisi pour cibler directement la prochaine fois
+        const usedId = btoa(String.fromCharCode(...new Uint8Array(assertion.rawId)))
+        const credMap = JSON.parse(localStorage.getItem('helio_credentials') || '{}')
+        credMap[email.trim()] = usedId
+        localStorage.setItem('helio_credentials', JSON.stringify(credMap))
         setBioRunning(false)
         localStorage.setItem('heliobenin_role', 'particulier')
         navigate('/paiement')
