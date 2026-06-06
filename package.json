@@ -2,6 +2,9 @@
   "name": "heliobenin",
   "version": "1.0.0",
   "description": "HélioBénin — Application locale React + FastAPI",
+  "scripts": {
+    "compress": "node compress.mjs"
+  },
   "devDependencies": {
     "sharp": "^0.34.5",
     "xlsx": "^0.18.5"
