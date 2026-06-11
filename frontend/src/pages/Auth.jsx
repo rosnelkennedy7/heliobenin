@@ -43,6 +43,38 @@ export default function Auth() {
 
       localStorage.setItem('heliobenin_role', role)
 
+      // Mode local sans Supabase : résoudre depuis localStorage uniquement
+      if (!supabase) {
+        const pendingRaw = localStorage.getItem('helio_pending_reg')
+        if (pendingRaw) {
+          const pending = JSON.parse(pendingRaw)
+          if (pending.email === result.email && pending.role === role) {
+            localStorage.removeItem('helio_pending_reg')
+            if (role === 'technicien') {
+              saveUserTechnicien({ ...pending, role: 'technicien' })
+              navigate('/qcm-tech')
+            } else {
+              saveUserParticulier({ ...pending, role: 'particulier' })
+              navigate('/paiement')
+            }
+            return
+          }
+        }
+        const storedKey = role === 'technicien' ? 'helio_user_technicien' : 'helio_user_particulier'
+        const localUser = JSON.parse(localStorage.getItem(storedKey) || 'null')
+        if (localUser?.email === result.email) {
+          if (role === 'technicien') {
+            const qcmValide = localUser.qcm_valide || getTechnicien().qcm_valide || false
+            navigate(qcmValide ? '/paiement-tech' : '/qcm-tech')
+          } else {
+            navigate('/paiement')
+          }
+          return
+        }
+        navigate(`/${role === 'technicien' ? 'login-tech' : 'login'}`)
+        return
+      }
+
       // Chercher profil existant
       const { data: profile } = await supabase
         .from('profiles').select('*').eq('email', result.email).maybeSingle()

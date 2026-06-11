@@ -38,6 +38,7 @@ export default function Login() {
     const stored = localStorage.getItem('helio_user_particulier')
     let user = stored ? JSON.parse(stored) : null
     if (!user || user.email !== email.trim()) {
+      if (!supabase) return null
       const { data } = await supabase
         .from('profiles').select('*').eq('email', email.trim()).maybeSingle() ?? {}
       if (data) {

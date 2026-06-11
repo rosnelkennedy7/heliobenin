@@ -45,6 +45,7 @@ export default function Login() {
 
     let user = (!oldUser || oldUser.email !== email.trim()) ? null : oldUser
     if (!user) {
+      if (!supabase) return null
       const { data } = await supabase
         .from('profiles').select('*').eq('email', email.trim()).maybeSingle() ?? {}
       if (data) {
@@ -57,7 +58,7 @@ export default function Login() {
 
   const redirectTech = async (profile) => {
     console.log('[redirectTech] profile:', profile)
-    if (profile?.id) {
+    if (profile?.id && supabase) {
       const [{ data: prof }, { data: abo }] = await Promise.all([
         supabase.from('profiles').select('qcm_valide').eq('id', profile.id).maybeSingle(),
         supabase.from('abonnements').select('type, date_fin, statut').eq('user_id', profile.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
