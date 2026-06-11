@@ -32,6 +32,7 @@ export default function Inscription() {
   const [submitError,      setSubmitError]      = useState('')
 
   useEffect(() => {
+    if (window.location.hostname === 'localhost') return
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
       window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
         .then(ok => setBiometric(ok))

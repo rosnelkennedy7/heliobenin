@@ -27,6 +27,7 @@ export default function Login() {
   const [bioRunning,       setBioRunning]       = useState(false)
 
   useEffect(() => {
+    if (window.location.hostname === 'localhost') return
     if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
       window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
         .then(ok => setBiometric(ok))
